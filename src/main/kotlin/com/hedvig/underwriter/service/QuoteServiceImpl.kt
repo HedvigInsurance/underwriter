@@ -3,15 +3,7 @@ package com.hedvig.underwriter.service
 import arrow.core.Either
 import arrow.core.Right
 import arrow.core.flatMap
-import com.hedvig.underwriter.model.ApartmentData
-import com.hedvig.underwriter.model.HouseData
-import com.hedvig.underwriter.model.Partner
-import com.hedvig.underwriter.model.PersonPolicyHolder
-import com.hedvig.underwriter.model.ProductType
-import com.hedvig.underwriter.model.Quote
-import com.hedvig.underwriter.model.QuoteInitiatedFrom
-import com.hedvig.underwriter.model.QuoteRepository
-import com.hedvig.underwriter.model.QuoteState
+import com.hedvig.underwriter.model.*
 import com.hedvig.underwriter.service.exceptions.QuoteCompletionFailedException
 import com.hedvig.underwriter.service.exceptions.QuoteNotFoundException
 import com.hedvig.underwriter.serviceIntegration.customerio.CustomerIO
@@ -20,6 +12,7 @@ import com.hedvig.underwriter.serviceIntegration.memberService.dtos.UpdateSsnReq
 import com.hedvig.underwriter.serviceIntegration.productPricing.ProductPricingService
 import com.hedvig.underwriter.serviceIntegration.productPricing.dtos.QuoteDto
 import com.hedvig.underwriter.serviceIntegration.productPricing.dtos.RedeemCampaignDto
+import com.hedvig.underwriter.serviceIntegration.productPricing.dtos.ValidateCampaignDto
 import com.hedvig.underwriter.web.dtos.CompleteQuoteResponseDto
 import com.hedvig.underwriter.web.dtos.ErrorCodes
 import com.hedvig.underwriter.web.dtos.ErrorResponseDto
@@ -29,10 +22,10 @@ import com.hedvig.underwriter.web.dtos.SignQuoteRequest
 import com.hedvig.underwriter.web.dtos.SignedQuoteResponseDto
 import com.hedvig.underwriter.web.dtos.UnderwriterQuoteSignRequest
 import java.time.Instant
-import java.time.LocalDate
 import java.util.UUID
 import org.slf4j.LoggerFactory.getLogger
 import org.springframework.stereotype.Service
+import java.time.LocalDate
 
 @Service
 class QuoteServiceImpl(
@@ -42,7 +35,6 @@ class QuoteServiceImpl(
     val quoteRepository: QuoteRepository,
     val customerIOClient: CustomerIO?
 ) : QuoteService {
-
     val logger = getLogger(QuoteServiceImpl::class.java)!!
 
     override fun updateQuote(incompleteQuoteDto: IncompleteQuoteDto, id: UUID): Either<ErrorResponseDto, Quote> {
@@ -252,4 +244,37 @@ class QuoteServiceImpl(
             throw RuntimeException("could not create a signed quote", exception)
         }
     }
+
+    override fun redeemCode(completeQuoteId: UUID, code: String): Either<ErrorResponseDto, Campaign> {
+        val quote = getQuote(completeQuoteId)
+            ?: throw QuoteNotFoundException("Quote $completeQuoteId not found when trying to redeemCode")
+
+        if (quote.state == QuoteState.EXPIRED) {
+            return Either.Left(
+                ErrorResponseDto(
+                    ErrorCodes.MEMBER_QUOTE_HAS_EXPIRED,
+                    "cannot redeemCode quote has expired"
+                )
+            )
+        }
+
+        if (quote.state == QuoteState.SIGNED) {
+            return Either.left(
+                ErrorResponseDto(
+                    ErrorCodes.MEMBER_HAS_EXISTING_INSURANCE,
+                    "cannot redeemCode quote is already signed"
+                )
+            )
+        }
+
+        val result = this.productPricingService.validateRedeemableCampaign(ValidateCampaignDto(code))
+        if(result is Either.Right){
+            val quoteWithCampaign = quote.addCampaign(result.b)
+            quoteRepository.update(quoteWithCampaign)
+        }
+
+
+        return result.bimap({ErrorResponseDto(ErrorCodes.UNKNOWN_ERROR_CODE, it)}, {it})
+    }
 }
+

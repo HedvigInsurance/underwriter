@@ -1,12 +1,14 @@
 package com.hedvig.underwriter.web
 
 import arrow.core.Either
+import arrow.core.getOrHandle
 import com.hedvig.underwriter.model.Quote
 import com.hedvig.underwriter.service.QuoteService
 import com.hedvig.underwriter.serviceIntegration.memberService.MemberService
 import com.hedvig.underwriter.serviceIntegration.productPricing.dtos.QuoteDto
 import com.hedvig.underwriter.web.dtos.IncompleteQuoteDto
 import com.hedvig.underwriter.web.dtos.IncompleteQuoteResponseDto
+import com.hedvig.underwriter.web.dtos.RedeemCodeRequest
 import com.hedvig.underwriter.web.dtos.SignQuoteRequest
 import java.util.UUID
 import javax.validation.Valid
@@ -70,5 +72,13 @@ class QuoteController @Autowired constructor(
             is Either.Left -> ResponseEntity.status(422).body(errorOrQuote.a)
             is Either.Right -> ResponseEntity.status(200).body(errorOrQuote.b)
         }
+    }
+
+    @PostMapping("/{completeQuoteId}/redeemCode")
+    fun redeemCode(@PathVariable completeQuoteId: UUID,  @RequestBody body: RedeemCodeRequest): Any {
+        return quoteService.redeemCode(completeQuoteId, body.code).bimap(
+            {ResponseEntity.status(422).body(it)},
+            {ResponseEntity.status(200).body(it.Incentive)}
+        ).getOrHandle { it }
     }
 }

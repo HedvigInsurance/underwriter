@@ -88,7 +88,9 @@ data class Quote(
     val startDate: LocalDate? = null,
 
     val validity: Long = ONE_DAY * 30,
-    val memberId: String? = null
+    val memberId: String? = null,
+
+    val campaign: Campaign? = null
 ) {
     val isComplete: Boolean
         get() = when {
@@ -214,6 +216,10 @@ data class Quote(
         }
 
         return Left(errorStrings)
+    }
+
+    fun addCampaign(campaign: Campaign): Quote {
+        return this.copy(campaign = campaign)
     }
 
     companion object {

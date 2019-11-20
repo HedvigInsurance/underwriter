@@ -1,11 +1,8 @@
 package com.hedvig.underwriter.serviceIntegration.productPricing
 
-import com.hedvig.underwriter.serviceIntegration.productPricing.dtos.ApartmentQuotePriceDto
-import com.hedvig.underwriter.serviceIntegration.productPricing.dtos.HouseQuotePriceDto
-import com.hedvig.underwriter.serviceIntegration.productPricing.dtos.QuotePriceResponseDto
-import com.hedvig.underwriter.serviceIntegration.productPricing.dtos.RapioProductCreatedResponseDto
-import com.hedvig.underwriter.serviceIntegration.productPricing.dtos.RapioQuoteRequestDto
-import com.hedvig.underwriter.serviceIntegration.productPricing.dtos.RedeemCampaignDto
+import arrow.core.Either
+import com.hedvig.underwriter.model.Campaign
+import com.hedvig.underwriter.serviceIntegration.productPricing.dtos.*
 import org.springframework.http.ResponseEntity
 
 interface ProductPricingService {
@@ -15,5 +12,6 @@ interface ProductPricingService {
 
     fun createProduct(rapioQuoteRequest: RapioQuoteRequestDto, memberId: String): RapioProductCreatedResponseDto
 
-    fun redeemCampaign(redeemCampaignDto: RedeemCampaignDto): ResponseEntity<Void>
+    fun redeemCampaign(redeemCampaignDto: RedeemCampaignDto): ResponseEntity<RedeemCampaignResponseDto>
+    fun validateRedeemableCampaign(redeemCampaignDto: ValidateCampaignDto): Either<String, Campaign>
 }

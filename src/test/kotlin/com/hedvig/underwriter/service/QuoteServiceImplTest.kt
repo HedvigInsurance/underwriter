@@ -89,7 +89,7 @@ class QuoteServiceImplTest {
                 any()
             )
         } returns RapioProductCreatedResponseDto(UUID.randomUUID())
-        every { productPricingService.redeemCampaign(any()) } returns ResponseEntity.ok().build()
+        every { productPricingService.redeemCampaign(any()) } returns ResponseEntity.ok().body(null)
         every { memberService.signQuote(any(), any()) } returns Right(UnderwriterQuoteSignResponse(1234, true))
         every { memberService.isSsnAlreadySignedMemberEntity(any()) } returns IsSsnAlreadySignedMemberResponse(false)
         cut.signQuote(quoteId, SignQuoteRequest(Name("", ""), LocalDate.now(), "null"))
