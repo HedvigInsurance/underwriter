@@ -45,5 +45,5 @@ interface MemberServiceClient {
     fun checkIsSsnAlreadySignedMemberEntity(@RequestHeader ssn: String): IsSsnAlreadySignedMemberResponse
 
     @PostMapping("/_/member/{memberId}/edit")
-    fun editMember(@PathVariable memberId: Long, @RequestBody request: EditMemberRequest): ResponseEntity<Void>
+    fun editMember(@RequestHeader("Authorization") token: String, @PathVariable memberId: Long, @RequestBody request: EditMemberRequest): ResponseEntity<Void>
 }

@@ -68,6 +68,6 @@ class MemberServiceImpl @Autowired constructor(
     }
 
     override fun editMember(memberId: Long, request: EditMemberRequest) {
-        client.editMember(memberId, request)
+        client.editMember(memberId.toString(), memberId, request)
     }
 }
