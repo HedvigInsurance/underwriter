@@ -18,6 +18,7 @@ import com.hedvig.underwriter.service.exceptions.QuoteCompletionFailedException
 import com.hedvig.underwriter.service.exceptions.QuoteNotFoundException
 import com.hedvig.underwriter.serviceIntegration.customerio.CustomerIO
 import com.hedvig.underwriter.serviceIntegration.memberService.MemberService
+import com.hedvig.underwriter.serviceIntegration.memberService.dtos.UpdateMemberNameAndSsnDto
 import com.hedvig.underwriter.serviceIntegration.memberService.dtos.UpdateSsnRequest
 import com.hedvig.underwriter.serviceIntegration.productPricing.ProductPricingService
 import com.hedvig.underwriter.serviceIntegration.productPricing.dtos.ModifyProductRequestDto
@@ -313,7 +314,14 @@ class QuoteServiceImpl(
 
             val memberId = memberService.createMember()
 
-            memberService.updateMemberSsn(memberId.toLong(), UpdateSsnRequest(ssn = quote.data.ssn!!))
+            memberService.updateMemberNameAndSsn(memberId.toLong(),
+                UpdateMemberNameAndSsnDto(
+                    body.name!!.firstName,
+                    body.name.lastName,
+                    quote.data.ssn!!
+
+                )
+            )
 
             quoteRepository.update(updatedStartTime.copy(memberId = memberId))
         } else {

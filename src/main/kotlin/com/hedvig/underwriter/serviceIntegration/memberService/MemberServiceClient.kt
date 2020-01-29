@@ -5,6 +5,7 @@ import com.hedvig.underwriter.serviceIntegration.memberService.dtos.HelloHedvigR
 import com.hedvig.underwriter.serviceIntegration.memberService.dtos.IsSsnAlreadySignedMemberResponse
 import com.hedvig.underwriter.serviceIntegration.memberService.dtos.PersonStatusDto
 import com.hedvig.underwriter.serviceIntegration.memberService.dtos.UnderwriterQuoteSignResponse
+import com.hedvig.underwriter.serviceIntegration.memberService.dtos.UpdateMemberNameAndSsnDto
 import com.hedvig.underwriter.serviceIntegration.memberService.dtos.UpdateSsnRequest
 import com.hedvig.underwriter.web.dtos.UnderwriterQuoteSignRequest
 import feign.Headers
@@ -50,4 +51,7 @@ interface MemberServiceClient {
         @PathVariable("memberId") memberId: String,
         @RequestBody req: FinalizeOnBoardingRequest
     ): ResponseEntity<*>
+
+    @PostMapping("/_/member/{memberId}/updateMemberNameAndSsn")
+    fun updateMemberNameAndSsn(@PathVariable memberId: Long, @RequestBody req: UpdateMemberNameAndSsnDto)
 }

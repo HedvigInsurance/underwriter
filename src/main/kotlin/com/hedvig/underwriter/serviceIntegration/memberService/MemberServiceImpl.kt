@@ -8,6 +8,7 @@ import com.hedvig.underwriter.serviceIntegration.memberService.dtos.FinalizeOnBo
 import com.hedvig.underwriter.serviceIntegration.memberService.dtos.IsSsnAlreadySignedMemberResponse
 import com.hedvig.underwriter.serviceIntegration.memberService.dtos.PersonStatusDto
 import com.hedvig.underwriter.serviceIntegration.memberService.dtos.UnderwriterQuoteSignResponse
+import com.hedvig.underwriter.serviceIntegration.memberService.dtos.UpdateMemberNameAndSsnDto
 import com.hedvig.underwriter.serviceIntegration.memberService.dtos.UpdateSsnRequest
 import com.hedvig.underwriter.web.dtos.ErrorResponseDto
 import com.hedvig.underwriter.web.dtos.UnderwriterQuoteSignRequest
@@ -71,5 +72,10 @@ class MemberServiceImpl @Autowired constructor(
     override fun finalizeOnboarding(quote: Quote, email: String, phoneNumber: String?) {
         logger.debug("Finalizing web on boarding by populating member-service")
         client.finalizeOnBoarding(quote.memberId!!, FinalizeOnBoardingRequest.fromQuote(quote, email, phoneNumber))
+    }
+
+    override fun updateMemberNameAndSsn(memberId: Long, memberInfoAndSsn: UpdateMemberNameAndSsnDto) {
+        logger.debug("Sending memberName and SSN to member-service")
+        this.client.updateMemberNameAndSsn(memberId, memberInfoAndSsn)
     }
 }
