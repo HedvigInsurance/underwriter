@@ -8,7 +8,7 @@ import org.springframework.web.bind.annotation.RequestBody
 
 @FeignClient(
     name = "notification-service",
-    url = "\${hedvig.notification-service.url:https://track.customer.io/api}"
+    url = "\${hedvig.notification-service.url:http://notification-service}"
 )
 interface NotificationServiceClient {
 
