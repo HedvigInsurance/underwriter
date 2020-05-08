@@ -182,16 +182,12 @@ class SignServiceImpl(
 
         quoteRepository.update(signedQuote, signedAt)
 
-        val activeProfiles = env.activeProfiles.intersect(listOf("staging", "production"))
+
         try {
-            if (activeProfiles.isNotEmpty()) {
-                logger.error("customerIOClient is null even thou $activeProfiles is set")
-            }
             customerIO.postSignUpdate(quoteWithProductId)
         } catch (ex: Exception) {
             logger.error(
-                "Something went wrong while posting a signing update to customerIO " +
-                    "[ActiveProfile: $activeProfiles] [SignQuote: $signedQuote]"
+                "Something went wrong while posting a signing update to customerIO [SignQuote: $signedQuote]"
             )
         }
 
