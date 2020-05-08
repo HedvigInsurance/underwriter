@@ -11,14 +11,7 @@ object SwedishApartmentGuidelines {
         SwedishApartmentHouseHoldSizeAtLeast1,
         SwedishApartmentLivingSpaceAtLeast1Sqm,
         SwedishApartmentHouseHoldSizeNotMoreThan6,
-        SwedishApartmentLivingSpaceNotMoreThan250Sqm
-    )
-}
-
-object SwedishStudentApartmentGuidelines {
-    val setOfRules = setOf(
-        SwedishApartmentHouseHoldSizeAtLeast1,
-        SwedishApartmentLivingSpaceAtLeast1Sqm,
+        SwedishApartmentLivingSpaceNotMoreThan250Sqm,
         SwedishStudentApartmentHouseholdSizeNotMoreThan2,
         SwedishStudentApartmentLivingSpaceNotMoreThan50Sqm,
         SwedishStudentApartmentAgeNotMoreThan30Years

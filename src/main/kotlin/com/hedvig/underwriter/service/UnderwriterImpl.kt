@@ -1,7 +1,6 @@
 package com.hedvig.underwriter.service
 
 import arrow.core.Either
-import com.hedvig.underwriter.model.ApartmentProductSubType
 import com.hedvig.underwriter.model.ExtraBuilding
 import com.hedvig.underwriter.model.NorwegianHomeContentsData
 import com.hedvig.underwriter.model.NorwegianTravelData
@@ -20,7 +19,6 @@ import com.hedvig.underwriter.service.guidelines.PersonalDebt
 import com.hedvig.underwriter.service.guidelines.SwedishApartmentGuidelines
 import com.hedvig.underwriter.service.guidelines.SwedishHouseGuidelines
 import com.hedvig.underwriter.service.guidelines.SwedishPersonalGuidelines
-import com.hedvig.underwriter.service.guidelines.SwedishStudentApartmentGuidelines
 import com.hedvig.underwriter.service.model.QuoteRequest
 import com.hedvig.underwriter.service.model.QuoteRequestData
 import com.hedvig.underwriter.serviceIntegration.priceEngine.PriceEngineService
@@ -233,18 +231,11 @@ class UnderwriterImpl(
                     data,
                     SwedishHouseGuidelines.setOfRules
                 )
-            is SwedishApartmentData -> when (data.subType) {
-                ApartmentProductSubType.STUDENT_BRF, ApartmentProductSubType.STUDENT_RENT ->
-                    runRules(
-                        data,
-                        SwedishStudentApartmentGuidelines.setOfRules
-                    )
-                else ->
-                    runRules(
-                        data,
-                        SwedishApartmentGuidelines.setOfRules
-                    )
-            }
+            is SwedishApartmentData ->
+                runRules(
+                    data,
+                    SwedishApartmentGuidelines.setOfRules
+                )
             is NorwegianHomeContentsData ->
                 runRules(
                     data,

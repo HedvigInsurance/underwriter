@@ -31,6 +31,12 @@ interface QuoteService {
         updateMemberService: Boolean
     ): Either<ErrorResponseDto, CompleteQuoteResponseDto>
 
+    fun createQuoteFromAgreement(
+        agreementId: UUID,
+        memberId: String,
+        underwritingGuidelinesBypassedBy: String?
+    ): Either<ErrorResponseDto, CompleteQuoteResponseDto>
+
     fun updateQuote(
         quoteRequest: QuoteRequest,
         id: UUID,

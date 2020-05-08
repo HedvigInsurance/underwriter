@@ -102,7 +102,7 @@ class Mutation @Autowired constructor(
         )
 
     fun signQuotes(input: SignQuotesInput, env: DataFetchingEnvironment) =
-        signService.startSigningQuotes(input.quoteIds, env.getToken(), env.getEndUserIp())
+        signService.startSigningQuotes(input.quoteIds, env.getToken(), env.getEndUserIp(), input.successUrl, input.failUrl)
 
     private fun responseForEditedQuote(
         errorOrQuote: Either<ErrorResponseDto, Quote>,

@@ -5,6 +5,8 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.kotlin.readValue
 import com.hedvig.underwriter.model.Quote
 import com.hedvig.underwriter.serviceIntegration.memberService.dtos.FinalizeOnBoardingRequest
+import com.hedvig.underwriter.serviceIntegration.memberService.dtos.InternalMember
+import com.hedvig.underwriter.serviceIntegration.memberService.dtos.IsMemberAlreadySignedResponse
 import com.hedvig.underwriter.serviceIntegration.memberService.dtos.IsSsnAlreadySignedMemberResponse
 import com.hedvig.underwriter.serviceIntegration.memberService.dtos.PersonStatusDto
 import com.hedvig.underwriter.serviceIntegration.memberService.dtos.StartNorwegianBankIdSignResponse
@@ -32,6 +34,9 @@ class MemberServiceImpl @Autowired constructor(
     override fun isSsnAlreadySignedMemberEntity(ssn: String): IsSsnAlreadySignedMemberResponse {
         return this.client.checkIsSsnAlreadySignedMemberEntity(ssn)
     }
+
+    override fun isMemberIdAlreadySignedMemberEntity(memberId: Long): IsMemberAlreadySignedResponse =
+        client.checkIsMemberAlreadySignedMemberEntity(memberId)
 
     override fun updateMemberSsn(memberId: Long, request: UpdateSsnRequest) {
         this.client.updateMemberSsn(memberId, request)
@@ -85,14 +90,31 @@ class MemberServiceImpl @Autowired constructor(
         ipAddress: String,
         isSwitching: Boolean
     ): StartSwedishBankIdSignResponse {
-        return client.startSwedishBankIdSign(memberId, UnderwriterStartSwedishBankIdSignSessionRequest(underwriterSessionReference, ssn, ipAddress, isSwitching)).body!!
+        return client.startSwedishBankIdSign(
+            memberId,
+            UnderwriterStartSwedishBankIdSignSessionRequest(underwriterSessionReference, ssn, ipAddress, isSwitching)
+        ).body!!
     }
 
     override fun startNorwegianBankIdSignQuotes(
         memberId: Long,
         underwriterSessionReference: UUID,
-        ssn: String
+        ssn: String,
+        successUrl: String,
+        failUrl: String
     ): StartNorwegianBankIdSignResponse {
-        return client.startNorwegianSing(memberId, UnderwriterStartNorwegianBankIdSignSessionRequest(underwriterSessionReference, ssn)).body!!
+        return client.startNorwegianSing(
+            memberId,
+            UnderwriterStartNorwegianBankIdSignSessionRequest(
+                underwriterSessionReference,
+                ssn,
+                successUrl,
+                failUrl
+            )
+        ).body!!
+    }
+
+    override fun getMember(memberId: Long): InternalMember {
+        return client.getMember(memberId).body!!
     }
 }

@@ -259,7 +259,7 @@ internal class GraphQlMutationsIntegrationTest {
                 PriceQueryRequest.NorwegianHomeContent(
                     holderMemberId = "123",
                     quoteId = UUID.fromString("00000000-0000-0000-0000-000000000006"),
-                    holderBirthDate = LocalDate.of(1912, 12, 12),
+                    holderBirthDate = "21126114165".birthDateFromNorwegianSsn(),
                     numberCoInsured = 0,
                     lineOfBusiness = NorwegianHomeContentLineOfBusiness.OWN,
                     postalCode = "12345",
@@ -308,7 +308,7 @@ internal class GraphQlMutationsIntegrationTest {
                 PriceQueryRequest.NorwegianTravel(
                     holderMemberId = "123",
                     quoteId = UUID.fromString("2b9e3b30-5c87-11ea-aa95-fbfb43d88ae7"),
-                    holderBirthDate = "1212121212".birthDateFromNorwegianSsn(),
+                    holderBirthDate = "21126114165".birthDateFromNorwegianSsn(),
                     numberCoInsured = 0,
                     lineOfBusiness = NorwegianTravelLineOfBusiness.REGULAR
                 )
@@ -339,8 +339,8 @@ internal class GraphQlMutationsIntegrationTest {
             "",
             null,
             null,
-            "1212121212",
-            "1212121212".birthDateFromNorwegianSsn(),
+            "21126114165",
+            "21126114165".birthDateFromNorwegianSsn(),
             null,
             null,
             null,

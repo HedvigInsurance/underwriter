@@ -6,7 +6,7 @@ data class CurrentInsurer(
     val switchable: Boolean
 ) {
     companion object {
-        val insurerMap = mapOf<String, Pair<String, Boolean>>(
+        private val swedishInsurerMap = mapOf(
             "if" to Pair("If", false),
             "Folksam" to Pair("Folksam", true),
             "Trygg-Hansa" to Pair("Trygg-Hansa", true),
@@ -19,8 +19,20 @@ data class CurrentInsurer(
             "Dina Försäkringar" to Pair("Dina Försäkringar", false),
             "other" to Pair("Other", false)
         )
+        private val norwegianInsurerMap = mapOf(
+            "If NO" to Pair("If", true),
+            "Fremtind" to Pair("Fremtind", true),
+            "Gjensidige NO" to Pair("Gjensidige", true),
+            "Tryg" to Pair("Tryg", true),
+            "Eika" to Pair("Eika", true),
+            "Frende" to Pair("Frende", true),
+            "Storebrand" to Pair("Storebrand", true),
+            "Codan" to Pair("Codan", true)
+        )
 
-        fun create(id: String) = insurerMap[id]?.let {
+        private val allInsurers = swedishInsurerMap + norwegianInsurerMap
+
+        fun create(id: String) = allInsurers[id]?.let {
             CurrentInsurer(id, it.first, it.second)
         } ?: throw IllegalArgumentException("Unknown id($id) when creating CurrentInsurer")
     }

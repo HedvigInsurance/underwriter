@@ -2,6 +2,7 @@ package com.hedvig.underwriter.serviceIntegration.productPricing
 
 import com.hedvig.underwriter.graphql.type.InsuranceCost
 import com.hedvig.underwriter.serviceIntegration.productPricing.dtos.AddAgreementRequest
+import com.hedvig.underwriter.serviceIntegration.productPricing.dtos.Agreement
 import com.hedvig.underwriter.serviceIntegration.productPricing.dtos.ApartmentQuotePriceDto
 import com.hedvig.underwriter.serviceIntegration.productPricing.dtos.CalculateBundleInsuranceCostRequest
 import com.hedvig.underwriter.serviceIntegration.productPricing.dtos.CalculateInsuranceCostRequest
@@ -16,9 +17,11 @@ import com.hedvig.underwriter.serviceIntegration.productPricing.dtos.contract.Ad
 import com.hedvig.underwriter.serviceIntegration.productPricing.dtos.contract.CreateContractResponse
 import com.hedvig.underwriter.serviceIntegration.productPricing.dtos.contract.CreateContractsRequest
 import feign.Headers
+import java.util.UUID
 import javax.validation.Valid
 import org.springframework.cloud.openfeign.FeignClient
 import org.springframework.http.ResponseEntity
+import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
@@ -74,9 +77,14 @@ interface ProductPricingClient {
         @Valid @RequestBody request: AddAgreementRequest
     ): AddAgreementResponse
 
-    @PostMapping("/_/underwriter/{memberId}/bundleInsuranceCost")
+    @PostMapping("/_/underwriter/{memberId}/calculate/bundleInsuranceCost")
     fun calculateBundleInsuranceCost(
         @Valid @RequestBody request: CalculateBundleInsuranceCostRequest,
         @PathVariable memberId: String
     ): ResponseEntity<InsuranceCost>
+
+    @GetMapping("/_/agreements/{agreementId}")
+    fun getAgreement(
+        @PathVariable agreementId: UUID
+    ): ResponseEntity<Agreement>
 }

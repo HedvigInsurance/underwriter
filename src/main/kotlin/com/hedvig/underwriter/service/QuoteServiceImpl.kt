@@ -2,7 +2,6 @@ package com.hedvig.underwriter.service
 
 import arrow.core.Either
 import arrow.core.orNull
-import com.hedvig.graphql.commons.type.MonetaryAmountV2
 import com.hedvig.underwriter.graphql.type.InsuranceCost
 import com.hedvig.underwriter.model.NorwegianHomeContentsData
 import com.hedvig.underwriter.model.NorwegianTravelData
@@ -26,7 +25,6 @@ import com.hedvig.underwriter.web.dtos.CompleteQuoteResponseDto
 import com.hedvig.underwriter.web.dtos.ErrorCodes
 import com.hedvig.underwriter.web.dtos.ErrorResponseDto
 import java.lang.RuntimeException
-import java.math.BigDecimal
 import java.time.LocalDate
 import java.util.UUID
 import org.javamoney.moneta.Money
@@ -150,6 +148,36 @@ class QuoteServiceImpl(
         return transformCompleteQuoteReturn(breachedGuidelinesOrQuote, quoteId)
     }
 
+    override fun createQuoteFromAgreement(
+        agreementId: UUID,
+        memberId: String,
+        underwritingGuidelinesBypassedBy: String?
+    ): Either<ErrorResponseDto, CompleteQuoteResponseDto> {
+        val quoteId = UUID.randomUUID()
+
+        val agreementData = productPricingService.getAgreement(agreementId)
+
+        val member = memberService.getMember(memberId.toLong())
+
+        val incompleteQuoteData = agreementData.toQuoteRequestData()
+
+        val quoteData = QuoteRequest.from(
+            member = member,
+            agreementData = agreementData,
+            incompleteQuoteData = incompleteQuoteData
+        )
+
+        val breachedGuidelinesOrQuote =
+            underwriter.createQuote(quoteData, quoteId, QuoteInitiatedFrom.HOPE, underwritingGuidelinesBypassedBy)
+        val quote = when (breachedGuidelinesOrQuote) {
+            is Either.Left -> breachedGuidelinesOrQuote.a.first
+            is Either.Right -> breachedGuidelinesOrQuote.b
+        }
+        quoteRepository.insert(quote)
+
+        return transformCompleteQuoteReturn(breachedGuidelinesOrQuote, quoteId)
+    }
+
     private fun transformCompleteQuoteReturn(
         potentiallySavedQuote: Either<Pair<Quote, List<String>>, Quote>,
         quoteId: UUID
@@ -240,18 +268,14 @@ class QuoteServiceImpl(
         val memberId = quote.memberId
             ?: throw RuntimeException("Can't calculate InsuranceCost on a quote without memberId [Quote: $quote]")
 
-        // TODO once campaign service is up to speed lets remove this when
         return when (quote.data) {
             is SwedishHouseData,
             is SwedishApartmentData -> productPricingService.calculateInsuranceCost(
                 Money.of(quote.price, "SEK"), memberId
             )
             is NorwegianHomeContentsData,
-            is NorwegianTravelData -> InsuranceCost(
-                monthlyGross = MonetaryAmountV2.of(quote.price!!, "NOK"),
-                monthlyDiscount = MonetaryAmountV2.of(BigDecimal.ZERO, "NOK"),
-                monthlyNet = MonetaryAmountV2.of(quote.price, "NOK"),
-                freeUntil = null
+            is NorwegianTravelData -> productPricingService.calculateInsuranceCost(
+                Money.of(quote.price, "NOK"), memberId
             )
         }
     }

@@ -14,6 +14,9 @@ import java.time.LocalDate
 import java.time.ZoneId
 import java.util.UUID
 
+val FIRST_BIRTH_CONTROL_SEQUENCE = intArrayOf(3, 7, 6, 1, 8, 9, 4, 5, 2, 1)
+val SECOND_BIRTH_CONTROL_SEQUENCE = intArrayOf(5, 4, 3, 2, 7, 6, 5, 4, 3, 2, 1)
+
 val Quote.firstName
     get() = (data as? PersonPolicyHolder<*>)?.firstName
         ?: throw RuntimeException("No firstName on Quote! $this")
@@ -66,19 +69,46 @@ fun String.birthDateFromNorwegianSsn(): LocalDate {
     return LocalDate.parse(this.birthDateStringFromNorwegianSsn())
 }
 
-fun String.birthDateStringFromNorwegianSsn(): String {
+fun String.dayMonthAndTwoDigitYearFromNorwegianSsn(): Triple<String, String, String> {
     val trimmedInput = this.trim().replace("-", "").replace(" ", "")
     val day = trimmedInput.substring(0, 2)
     val month = trimmedInput.substring(2, 4)
     val twoDigitYear = trimmedInput.substring(4, 6)
+    return Triple(day, month, twoDigitYear)
+}
+
+fun String.birthDateStringFromNorwegianSsn(): String {
+    val dayMonthYear = this.dayMonthAndTwoDigitYearFromNorwegianSsn()
     val breakPoint = LocalDate.now().minusYears(10).year.toString().substring(2, 4).toInt()
 
-    val year = if (twoDigitYear.toInt() > breakPoint) {
-        "19$twoDigitYear"
+    val year = if (dayMonthYear.third.toInt() > breakPoint) {
+        "19${dayMonthYear.third}"
     } else {
-        "20$twoDigitYear"
+        "20${dayMonthYear.third}"
     }
-    return "$year-$month-$day"
+    return "$year-${dayMonthYear.second}-${dayMonthYear.first}"
+}
+
+fun String.isValidNorwegianSsn(): Boolean {
+    this.toLongOrNull() ?: return false
+
+    if (this.length != 11) {
+        return false
+    }
+
+    val ssnAsArray = this.map { Character.getNumericValue(it) }.toIntArray()
+
+    return isValidCheckSum(FIRST_BIRTH_CONTROL_SEQUENCE, ssnAsArray) &&
+        isValidCheckSum(SECOND_BIRTH_CONTROL_SEQUENCE, ssnAsArray)
+}
+
+private fun isValidCheckSum(
+    sequence: IntArray,
+    ssn: IntArray
+): Boolean {
+    val checkSum = (sequence.indices).sumBy { sequence[it] * ssn[it] }
+
+    return checkSum % 11 == 0
 }
 
 data class DatabaseQuoteRevision(

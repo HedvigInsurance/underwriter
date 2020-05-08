@@ -173,6 +173,8 @@ input ExtraBuildingInput {
 
 input SignQuotesInput {
     quoteIds: [ID!]!
+    successUrl: String
+    failUrl: String
 }
 
 enum ExtraBuildingType {
@@ -511,6 +513,7 @@ type BundledQuote {
     expiresAt: LocalDate!
     email: String
     dataCollectionId: ID
+    typeOfContract: TypeOfContract!
 }
 
 scalar LocalDate

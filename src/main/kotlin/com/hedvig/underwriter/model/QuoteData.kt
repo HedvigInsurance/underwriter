@@ -126,7 +126,7 @@ data class NorwegianHomeContentsData(
     // TODO: Let's remove the concept of complete
     override val isComplete: Boolean
         get() = when (null) {
-            ssn, firstName, lastName, street, zipCode, coInsured, livingSpace -> false
+            firstName, lastName, street, zipCode, coInsured, livingSpace -> false
             else -> true
         }
 }
@@ -152,7 +152,7 @@ data class NorwegianTravelData(
     // TODO: Let's remove the concept of complete
     override val isComplete: Boolean
         get() = when (null) {
-            ssn, firstName, lastName, coInsured -> false
+            firstName, lastName, coInsured -> false
             else -> true
         }
 }

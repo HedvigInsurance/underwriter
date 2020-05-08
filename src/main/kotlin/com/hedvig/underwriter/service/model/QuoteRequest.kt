@@ -6,9 +6,12 @@ import com.hedvig.underwriter.model.Partner
 import com.hedvig.underwriter.model.ProductType
 import com.hedvig.underwriter.model.birthDateFromNorwegianSsn
 import com.hedvig.underwriter.model.birthDateFromSwedishSsn
+import com.hedvig.underwriter.serviceIntegration.memberService.dtos.InternalMember
+import com.hedvig.underwriter.serviceIntegration.productPricing.dtos.Agreement
 import com.hedvig.underwriter.web.dtos.QuoteRequestDto
 import java.time.Instant
 import java.time.LocalDate
+import java.time.ZoneId
 import java.util.UUID
 
 data class QuoteRequest(
@@ -71,6 +74,24 @@ data class QuoteRequest(
                 originatingProductId = quoteRequestDto.originatingProductId,
                 startDate = quoteRequestDto.startDate,
                 dataCollectionId = quoteRequestDto.dataCollectionId
+            )
+        }
+
+        fun from(member: InternalMember, agreementData: Agreement, incompleteQuoteData: QuoteRequestData?): QuoteRequest {
+            return QuoteRequest(
+                firstName = member.firstName,
+                lastName = member.lastName,
+                birthDate = member.birthDate,
+                currentInsurer = null,
+                email = member.email,
+                quotingPartner = null,
+                ssn = member.ssn,
+                productType = agreementData.getOldProductType(),
+                incompleteQuoteData = incompleteQuoteData,
+                dataCollectionId = null,
+                memberId = member.memberId.toString(),
+                originatingProductId = agreementData.id,
+                startDate = agreementData.fromDate?.atStartOfDay(ZoneId.of("Europe/Stockholm"))?.toInstant()
             )
         }
     }

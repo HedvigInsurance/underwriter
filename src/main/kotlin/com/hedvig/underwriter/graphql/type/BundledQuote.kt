@@ -17,4 +17,7 @@ data class BundledQuote(
     val expiresAt: LocalDate,
     val email: String?,
     val dataCollectionId: UUID?
-)
+) {
+    val typeOfContract: TypeOfContract
+        get() = quoteDetails.typeOfContract
+}

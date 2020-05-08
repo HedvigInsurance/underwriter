@@ -47,14 +47,24 @@ class SignServiceImpl(
     val env: Environment
 ) : SignService {
 
-    override fun startSigningQuotes(quoteIds: List<UUID>, memberId: String, ipAddress: String?): StartSignResponse {
+    override fun startSigningQuotes(
+        quoteIds: List<UUID>,
+        memberId: String,
+        ipAddress: String?,
+        successUrl: String?,
+        failUrl: String?
+    ): StartSignResponse {
+
+        if (memberService.isMemberIdAlreadySignedMemberEntity(memberId.toLong()).memberAlreadySigned) {
+            return StartSignResponse.FailedToStartSign(MEMBER_HAS_ALREADY_SIGNED_ERROR_MESSAGE)
+        }
 
         val quotes = quoteService.getQuotes(quoteIds)
         quotes.forEach { quote ->
             quote.memberId?.let { quoteMemberId ->
                 if (memberId != quoteMemberId) {
                     logger.info("Member [id: $memberId] tried to sign quote with member id: $quoteMemberId. [Quotes: $quotes]")
-                    return StartSignResponse.FailedToStartSign(VARIOS_MEMBER_ID_ERROR_MESSAGE)
+                    return StartSignResponse.FailedToStartSign(VARIOUS_MEMBER_ID_ERROR_MESSAGE)
                 }
             } ?: run {
                 logger.info("Member [id: $memberId] tried to sign quote without member id. [Quotes: $quotes]")
@@ -89,10 +99,20 @@ class SignServiceImpl(
                 } ?: StartSignResponse.FailedToStartSign(errorMessage = response.internalErrorMessage!!)
             }
             is QuotesSignData.NorwegianBankId -> {
+                if (successUrl == null || failUrl == null) {
+                    return StartSignResponse.FailedToStartSign(TARGET_URL_NOT_PROVIDED_ERROR_MESSAGE)
+                }
+
                 val signSessionId = signSessionRepository.insert(quoteIds)
 
                 val response =
-                    memberService.startNorwegianBankIdSignQuotes(data.memberId.toLong(), signSessionId, data.ssn)
+                    memberService.startNorwegianBankIdSignQuotes(
+                        data.memberId.toLong(),
+                        signSessionId,
+                        data.ssn,
+                        successUrl,
+                        failUrl
+                    )
 
                 return response.redirectUrl?.let { redirectUrl ->
                     StartSignResponse.NorwegianBankIdSession(signSessionId, redirectUrl)
@@ -310,6 +330,8 @@ class SignServiceImpl(
     companion object {
         val logger = LoggerFactory.getLogger(this.javaClass)!!
         const val SIGNING_QUOTE_WITH_OUT_MEMBER_ID_ERROR_MESSAGE = "quotes must have member id to be able to sign"
-        const val VARIOS_MEMBER_ID_ERROR_MESSAGE = "creation and signing must be made by the same member"
+        const val VARIOUS_MEMBER_ID_ERROR_MESSAGE = "creation and signing must be made by the same member"
+        const val TARGET_URL_NOT_PROVIDED_ERROR_MESSAGE = "Bad request: Must provide `successUrl` and `failUrl` when starting norwegian sign"
+        const val MEMBER_HAS_ALREADY_SIGNED_ERROR_MESSAGE = "Member has already signed"
     }
 }
