@@ -182,7 +182,6 @@ class SignServiceImpl(
 
         quoteRepository.update(signedQuote, signedAt)
 
-
         try {
             customerIO.postSignUpdate(quoteWithProductId)
         } catch (ex: Exception) {
