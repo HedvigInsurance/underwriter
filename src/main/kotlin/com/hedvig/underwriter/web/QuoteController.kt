@@ -15,8 +15,10 @@ import com.hedvig.underwriter.web.dtos.ActivateQuoteRequestDto
 import com.hedvig.underwriter.web.dtos.AddAgreementFromQuoteRequest
 import com.hedvig.underwriter.web.dtos.ErrorCodes
 import com.hedvig.underwriter.web.dtos.ErrorResponseDto
+import com.hedvig.underwriter.web.dtos.QuoteForNewContractRequestDto
 import com.hedvig.underwriter.web.dtos.QuoteRequestDto
 import com.hedvig.underwriter.web.dtos.QuoteRequestFromAgreementDto
+import com.hedvig.underwriter.web.dtos.SignQuoteFromHopeRequest
 import com.hedvig.underwriter.web.dtos.SignQuoteRequest
 import com.hedvig.underwriter.web.dtos.SignRequest
 import java.util.UUID
@@ -82,7 +84,20 @@ class QuoteController @Autowired constructor(
             underwritingGuidelinesBypassedBy = quoteRequest.underwritingGuidelinesBypassedBy
         ).bimap(
             { ResponseEntity.status(422).body(it) },
-        { ResponseEntity.status(200).body(it) }
+            { ResponseEntity.status(200).body(it) }
+        ).getOrHandle { it }
+    }
+
+    @PostMapping("/createQuoteForNewContract")
+    fun createQuoteFromAgreement(
+        @RequestBody request: QuoteForNewContractRequestDto
+    ): ResponseEntity<out Any> {
+        return quoteService.createQuoteForNewContractFromHope(
+            quoteRequest = QuoteRequest.from(request.quoteRequestDto),
+            underwritingGuidelinesBypassedBy = request.underwritingGuidelinesBypassedBy
+        ).bimap(
+            { ResponseEntity.status(422).body(it) },
+            { ResponseEntity.status(200).body(it) }
         ).getOrHandle { it }
     }
 
@@ -132,6 +147,14 @@ class QuoteController @Autowired constructor(
     @PostMapping("/{completeQuoteId}/sign")
     fun signCompleteQuote(@Valid @PathVariable completeQuoteId: UUID, @RequestBody body: SignQuoteRequest): ResponseEntity<Any> {
         return when (val errorOrQuote = signService.signQuote(completeQuoteId, body)) {
+            is Either.Left -> ResponseEntity.status(422).body(errorOrQuote.a)
+            is Either.Right -> ResponseEntity.status(200).body(errorOrQuote.b)
+        }
+    }
+
+    @PostMapping("/{completeQuoteId}/signFromHope")
+    fun signQuoteFromHope(@Valid @PathVariable completeQuoteId: UUID, @RequestBody request: SignQuoteFromHopeRequest): ResponseEntity<Any> {
+        return when (val errorOrQuote = signService.signQuoteFromHope(completeQuoteId, request)) {
             is Either.Left -> ResponseEntity.status(422).body(errorOrQuote.a)
             is Either.Right -> ResponseEntity.status(200).body(errorOrQuote.b)
         }

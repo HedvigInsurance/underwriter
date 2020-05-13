@@ -110,7 +110,7 @@ sealed class Agreement {
             livingSpace = this.squareMeters.toInt(),
             city = null,
             coInsured = this.numberCoInsured,
-            type = NorwegianHomeContentsType.valueOf(this.lineOfBusiness.name),
+            subType = NorwegianHomeContentsType.valueOf(this.lineOfBusiness.name),
             isYouth = when (this.lineOfBusiness) {
                 NorwegianHomeContentLineOfBusiness.OWN,
                 NorwegianHomeContentLineOfBusiness.RENT -> {

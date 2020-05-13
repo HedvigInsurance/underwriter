@@ -17,7 +17,7 @@ data class CreateNorwegianHomeContentsInput(
             zipCode = this.zipCode,
             livingSpace = this.livingSpace,
             coInsured = this.coInsured,
-            type = com.hedvig.underwriter.model.NorwegianHomeContentsType.valueOf(this.type.name),
+            subType = com.hedvig.underwriter.model.NorwegianHomeContentsType.valueOf(this.type.name),
             isYouth = this.isYouth,
             city = null
         )

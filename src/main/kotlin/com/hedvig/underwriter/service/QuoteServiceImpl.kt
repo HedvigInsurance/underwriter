@@ -24,7 +24,6 @@ import com.hedvig.underwriter.web.dtos.AddAgreementFromQuoteRequest
 import com.hedvig.underwriter.web.dtos.CompleteQuoteResponseDto
 import com.hedvig.underwriter.web.dtos.ErrorCodes
 import com.hedvig.underwriter.web.dtos.ErrorResponseDto
-import java.lang.RuntimeException
 import java.time.LocalDate
 import java.util.UUID
 import org.javamoney.moneta.Money
@@ -133,17 +132,36 @@ class QuoteServiceImpl(
         updateMemberService: Boolean
     ): Either<ErrorResponseDto, CompleteQuoteResponseDto> {
         val quoteId = id ?: UUID.randomUUID()
-        val breachedGuidelinesOrQuote =
-            underwriter.createQuote(incompleteQuoteData, quoteId, initiatedFrom, underwritingGuidelinesBypassedBy)
-        val quote = when (breachedGuidelinesOrQuote) {
-            is Either.Left -> breachedGuidelinesOrQuote.a.first
-            is Either.Right -> breachedGuidelinesOrQuote.b
-        }
-        quoteRepository.insert(quote)
 
+        val breachedGuidelinesOrQuote = createAndSaveQuote(
+            quoteData = incompleteQuoteData,
+            quoteId = quoteId,
+            initiatedFrom = initiatedFrom,
+            underwritingGuidelinesBypassedBy = underwritingGuidelinesBypassedBy
+        )
+
+        val quote = breachedGuidelinesOrQuote.getQuote()
         if (updateMemberService && quote.memberId != null) {
             memberService.finalizeOnboarding(quote, quote.email ?: "")
         }
+
+        return transformCompleteQuoteReturn(breachedGuidelinesOrQuote, quoteId)
+    }
+
+    override fun createQuoteForNewContractFromHope(
+        quoteRequest: QuoteRequest,
+        underwritingGuidelinesBypassedBy: String?
+    ): Either<ErrorResponseDto, CompleteQuoteResponseDto> {
+        val quoteId = UUID.randomUUID()
+
+        val updatedQuoteRequest = updateQuoteRequestWithMember(quoteRequest)
+
+        val breachedGuidelinesOrQuote = createAndSaveQuote(
+            quoteData = updatedQuoteRequest,
+            quoteId = quoteId,
+            initiatedFrom = QuoteInitiatedFrom.HOPE,
+            underwritingGuidelinesBypassedBy = underwritingGuidelinesBypassedBy
+        )
 
         return transformCompleteQuoteReturn(breachedGuidelinesOrQuote, quoteId)
     }
@@ -167,15 +185,46 @@ class QuoteServiceImpl(
             incompleteQuoteData = incompleteQuoteData
         )
 
-        val breachedGuidelinesOrQuote =
-            underwriter.createQuote(quoteData, quoteId, QuoteInitiatedFrom.HOPE, underwritingGuidelinesBypassedBy)
-        val quote = when (breachedGuidelinesOrQuote) {
-            is Either.Left -> breachedGuidelinesOrQuote.a.first
-            is Either.Right -> breachedGuidelinesOrQuote.b
-        }
-        quoteRepository.insert(quote)
+        val breachedGuidelinesOrQuote = createAndSaveQuote(
+            quoteData,
+            quoteId,
+            QuoteInitiatedFrom.HOPE,
+            underwritingGuidelinesBypassedBy
+        )
 
         return transformCompleteQuoteReturn(breachedGuidelinesOrQuote, quoteId)
+    }
+
+    private fun updateQuoteRequestWithMember(input: QuoteRequest): QuoteRequest {
+        val member = memberService.getMember(input.memberId!!.toLong())
+        return input.copy(
+            firstName = member.firstName,
+            lastName = member.lastName,
+            email = member.email,
+            birthDate = member.birthDate,
+            ssn = member.ssn
+        )
+    }
+
+    private fun createAndSaveQuote(
+        quoteData: QuoteRequest,
+        quoteId: UUID,
+        initiatedFrom: QuoteInitiatedFrom,
+        underwritingGuidelinesBypassedBy: String?
+    ): Either<Pair<Quote, List<String>>, Quote> {
+        val breachedGuidelinesOrQuote =
+            underwriter.createQuote(quoteData, quoteId, initiatedFrom, underwritingGuidelinesBypassedBy)
+        val quote = breachedGuidelinesOrQuote.getQuote()
+
+        quoteRepository.insert(quote)
+        return breachedGuidelinesOrQuote
+    }
+
+    private fun Either<Pair<Quote, List<String>>, Quote>.getQuote(): Quote {
+        return when (this) {
+            is Either.Left -> a.first
+            is Either.Right -> b
+        }
     }
 
     private fun transformCompleteQuoteReturn(

@@ -39,7 +39,7 @@ sealed class QuoteRequestData {
         val livingSpace: Int?,
         @field:JsonProperty("youth")
         val isYouth: Boolean?,
-        val type: NorwegianHomeContentsType?
+        val subType: NorwegianHomeContentsType?
     ) : QuoteRequestData()
 
     data class NorwegianTravel(

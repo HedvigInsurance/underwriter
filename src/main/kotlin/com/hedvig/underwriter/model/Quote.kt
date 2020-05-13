@@ -276,7 +276,7 @@ data class Quote(
                             livingSpace = data.livingSpace
                         )
                     }
-                    else -> throw IllegalTypeCangeOnQuote(newQuote.data, requestData)
+                    else -> throw IllegalTypeChangeOnQuote(newQuote.data, requestData)
                 }
                 newQuote = newQuote.copy(
                     data = newQuoteData.copy(
@@ -307,7 +307,7 @@ data class Quote(
                             livingSpace = data.livingSpace
                         )
                     }
-                    else -> throw IllegalTypeCangeOnQuote(newQuote.data, requestData)
+                    else -> throw IllegalTypeChangeOnQuote(newQuote.data, requestData)
                 }
                 newQuote = newQuote.copy(
                     data = newQuoteData.copy(
@@ -328,7 +328,7 @@ data class Quote(
             is NorwegianHomeContents -> {
                 val newQuoteData: NorwegianHomeContentsData = when (newQuote.data) {
                     is NorwegianHomeContentsData -> newQuote.data as NorwegianHomeContentsData
-                    else -> throw IllegalTypeCangeOnQuote(newQuote.data, requestData)
+                    else -> throw IllegalTypeChangeOnQuote(newQuote.data, requestData)
                 }
 
                 newQuote = newQuote.copy(
@@ -339,14 +339,15 @@ data class Quote(
                         livingSpace = requestData.livingSpace ?: newQuoteData.livingSpace,
                         coInsured = requestData.coInsured ?: newQuoteData.coInsured,
                         isYouth = requestData.isYouth ?: newQuoteData.isYouth,
-                        type = requestData.type ?: newQuoteData.type
+                        type = requestData.subType ?: newQuoteData.type
                     )
                 )
             }
             is NorwegianTravel -> {
                 val newQuoteData: NorwegianTravelData = when (newQuote.data) {
                     is NorwegianHomeContentsData -> newQuote.data as NorwegianTravelData
-                    else -> throw IllegalTypeCangeOnQuote(newQuote.data, requestData)
+                    is NorwegianTravelData -> newQuote.data as NorwegianTravelData
+                    else -> throw IllegalTypeChangeOnQuote(newQuote.data, requestData)
                 }
 
                 newQuote = newQuote.copy(
@@ -379,9 +380,9 @@ data class Quote(
     }
 }
 
-class IllegalTypeCangeOnQuote(
+class IllegalTypeChangeOnQuote(
     quoteData: QuoteData,
     requestData: QuoteRequestData
 ) : Exception(
-    "Illegal to cange from type [${quoteData::class}] to [${requestData::class}]. [QuoteData: $quoteData] [QuoteRequestData: $requestData]"
+    "Illegal to change from type [${quoteData::class}] to [${requestData::class}]. [QuoteData: $quoteData] [QuoteRequestData: $requestData]"
 )

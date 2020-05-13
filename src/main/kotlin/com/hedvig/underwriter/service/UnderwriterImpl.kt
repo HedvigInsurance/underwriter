@@ -98,7 +98,7 @@ class UnderwriterImpl(
                         firstName = quoteRequest.firstName!!,
                         lastName = quoteRequest.lastName!!,
                         email = quoteRequest.email,
-                        type = quoteData.type!!,
+                        type = quoteData.subType!!,
                         street = quoteData.street!!,
                         zipCode = quoteData.zipCode!!,
                         city = quoteData.city,

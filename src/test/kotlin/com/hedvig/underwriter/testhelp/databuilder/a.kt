@@ -361,7 +361,7 @@ class a {
             livingSpace = livingSpace,
             coInsured = coInsured,
             isYouth = isYouth,
-            type = type
+            subType = type
         )
     }
 

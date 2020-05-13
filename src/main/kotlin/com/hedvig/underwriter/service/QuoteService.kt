@@ -58,4 +58,9 @@ interface QuoteService {
     fun getQuotes(quoteIds: List<UUID>): List<Quote>
 
     fun addAgreementFromQuote(request: AddAgreementFromQuoteRequest): Either<ErrorResponseDto, Quote>
+
+    fun createQuoteForNewContractFromHope(
+        quoteRequest: QuoteRequest,
+        underwritingGuidelinesBypassedBy: String?
+    ): Either<ErrorResponseDto, CompleteQuoteResponseDto>
 }
