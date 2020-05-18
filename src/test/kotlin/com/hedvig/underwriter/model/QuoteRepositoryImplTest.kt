@@ -555,6 +555,15 @@ class QuoteRepositoryImplTest {
     }
 
     @Test
+    fun findQuotesWithEmptyList() {
+        val quoteDao = QuoteRepositoryImpl(jdbiRule.jdbi)
+
+        val result = quoteDao.findQuotes(listOf())
+
+        assert(result.isEmpty())
+    }
+
+    @Test
     fun insertsAndUpdatesBreachedUnderwritingGuidelines() {
         val quoteDao = QuoteRepositoryImpl(jdbiRule.jdbi)
 

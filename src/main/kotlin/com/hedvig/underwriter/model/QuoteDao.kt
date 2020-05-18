@@ -94,7 +94,7 @@ interface QuoteDao {
             ORDER BY qr.master_quote_id ASC, qr.id DESC
         """
     )
-    fun find(@BindList("quoteIds") quoteIds: List<UUID>): List<DatabaseQuoteRevision>
+    fun find(@BindList("quoteIds", onEmpty = BindList.EmptyHandling.NULL_STRING) quoteIds: List<UUID>): List<DatabaseQuoteRevision>
 
     @SqlUpdate(
         """
