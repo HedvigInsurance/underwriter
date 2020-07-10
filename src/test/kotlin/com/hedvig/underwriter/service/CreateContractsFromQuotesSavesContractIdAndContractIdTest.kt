@@ -149,7 +149,7 @@ class CreateContractsFromQuotesSavesContractIdAndContractIdTest {
         every { productPricingService.createContractsFromQuotes(any(), any(), any()) } returns listOf(
             CreateContractResponse(quoteId, agreementId, contractId)
         )
-        every { memberService.isSsnAlreadySignedMemberEntity(any()) } returns IsSsnAlreadySignedMemberResponse(true)
+        every { productPricingService.memberHasContract(any()) } returns true
 
         signServiceImpl.signQuoteFromHope(
             quoteId,

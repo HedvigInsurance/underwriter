@@ -390,9 +390,7 @@ class SignServiceImplTest {
         val quote =
             a.QuoteBuilder(id = quoteId, data = a.NorwegianHomeContentDataBuilder(), memberId = memberId).build()
 
-        every { memberService.isSsnAlreadySignedMemberEntity(any()) } returns IsSsnAlreadySignedMemberResponse(
-            ssnAlreadySignedMember = true
-        )
+        every { productPricingService.memberHasContract(any()) } returns true
         every { quoteService.getQuotes(listOf(quoteId)) } returns listOf(quote)
         every { quoteRepository.find(any()) } returns quote
         every { quoteRepository.update(any(), any()) } returnsArgument 0
