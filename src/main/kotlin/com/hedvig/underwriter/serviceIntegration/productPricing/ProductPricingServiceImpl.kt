@@ -70,4 +70,6 @@ class ProductPricingServiceImpl @Autowired constructor(
 
     override fun getAgreement(agreementId: UUID): Agreement =
         productPricingClient.getAgreement(agreementId).body!!
+
+    override fun memberHasContract(memberId: String): Boolean = productPricingClient.memberHasContract(memberId)
 }

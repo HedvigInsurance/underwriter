@@ -288,12 +288,9 @@ class SignServiceImpl(
             return Either.left(quoteNotSignableErrorDto)
         }
 
-        val memberAlreadySigned = when (quote.data) {
-            is PersonPolicyHolder<*> -> memberService.isSsnAlreadySignedMemberEntity(quote.data.ssn!!)
-            else -> throw RuntimeException("Unsupported quote data class")
-        }
+        val memberHasContract = productPricingService.memberHasContract(quote.memberId!!)
 
-        if (!memberAlreadySigned.ssnAlreadySignedMember) {
+        if (!memberHasContract) {
             return Either.Left(
                 ErrorResponseDto(
                     ErrorCodes.MEMBER_DOES_NOT_HAVE_EXISTING_SIGNED_INSURANCE,

@@ -31,7 +31,6 @@ import javax.validation.Valid
     url = "\${hedvig.product-pricing.url:product-pricing}"
 )
 interface ProductPricingClient {
-
     @PostMapping("/_/insurance/getHomeQuotePrice")
     fun priceFromProductPricingForHomeQuote(
         @Valid @RequestBody req: ApartmentQuotePriceDto
@@ -80,4 +79,7 @@ interface ProductPricingClient {
     fun getAgreement(
         @PathVariable agreementId: UUID
     ): ResponseEntity<Agreement>
+
+    @GetMapping("/_/contracts/members/{memberId}/hasContract")
+    fun memberHasContract(@PathVariable memberId: String): Boolean
 }
