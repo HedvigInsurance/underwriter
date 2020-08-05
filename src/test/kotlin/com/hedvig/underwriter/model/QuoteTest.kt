@@ -37,7 +37,8 @@ class QuoteTest {
                 birthDate = null,
                 memberId = null,
                 startDate = null,
-                dataCollectionId = null
+                dataCollectionId = null,
+                dataCollectionIds = emptyList()
             )
         )
         assertThat(updatedQuote.id).isEqualTo(quote.id)
@@ -86,7 +87,8 @@ class QuoteTest {
                 birthDate = null,
                 memberId = null,
                 startDate = null,
-                dataCollectionId = null
+                dataCollectionId = null,
+                dataCollectionIds = emptyList()
             )
         )
         assertThat(updatedQuote.id).isEqualTo(quote.id)
@@ -134,7 +136,8 @@ class QuoteTest {
                 birthDate = null,
                 memberId = null,
                 startDate = null,
-                dataCollectionId = null
+                dataCollectionId = null,
+                dataCollectionIds = emptyList()
             )
         )
         assertThat(updatedQuote.id).isEqualTo(quote.id)

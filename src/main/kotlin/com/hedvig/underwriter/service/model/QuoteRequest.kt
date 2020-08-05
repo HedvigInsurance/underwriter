@@ -33,7 +33,9 @@ data class QuoteRequest(
     val memberId: String?,
     val originatingProductId: UUID?,
     val startDate: Instant?,
-    val dataCollectionId: UUID?
+    @Deprecated("use dataCollectionIds")
+    val dataCollectionId: UUID?,
+    val dataCollectionIds: List<UUID?>
 ) {
     companion object {
         fun from(quoteRequestDto: QuoteRequestDto): QuoteRequest {
@@ -73,7 +75,8 @@ data class QuoteRequest(
                 memberId = quoteRequestDto.memberId,
                 originatingProductId = quoteRequestDto.originatingProductId,
                 startDate = quoteRequestDto.startDate,
-                dataCollectionId = quoteRequestDto.dataCollectionId
+                dataCollectionId = quoteRequestDto.dataCollectionId,
+                dataCollectionIds = quoteRequestDto.dataCollectionIds
             )
         }
 
@@ -91,7 +94,8 @@ data class QuoteRequest(
                 dataCollectionId = null,
                 memberId = member.memberId.toString(),
                 originatingProductId = agreementData.id,
-                startDate = agreementData.fromDate?.atStartOfDay(ZoneId.of("Europe/Stockholm"))?.toInstant()
+                startDate = agreementData.fromDate?.atStartOfDay(ZoneId.of("Europe/Stockholm"))?.toInstant(),
+                dataCollectionIds = emptyList()
             )
         }
     }

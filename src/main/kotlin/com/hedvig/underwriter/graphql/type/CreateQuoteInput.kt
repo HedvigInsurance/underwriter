@@ -29,7 +29,9 @@ data class CreateQuoteInput(
     val swedishHouse: CreateSwedishHouseInput?,
     val norwegianHomeContents: CreateNorwegianHomeContentsInput?,
     val norwegianTravel: CreateNorwegianTravelInput?,
-    val dataCollectionId: UUID?
+    @Deprecated("use dataCollectionIds")
+    val dataCollectionId: UUID?,
+    val dataCollectionIds: List<UUID?>
 ) {
     fun toQuoteRequest(
         quotingPartner: Partner? = null,
@@ -59,7 +61,8 @@ data class CreateQuoteInput(
     memberId = memberId,
     originatingProductId = originatingProductId,
     startDate = this.startDate?.atStartOfDay()?.toStockholmInstant(),
-    dataCollectionId = this.dataCollectionId
+    dataCollectionId = this.dataCollectionId,
+    dataCollectionIds = this.dataCollectionIds
     )
 
     @JsonIgnore

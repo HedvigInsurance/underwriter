@@ -33,6 +33,8 @@ data class QuoteRequestDto(
     val memberId: String? = null,
     val originatingProductId: UUID? = null,
     val startDate: Instant? = null,
+    @Deprecated("use dataCollectionIds")
     val dataCollectionId: UUID? = null,
+    val dataCollectionIds: List<UUID?> = emptyList(),
     val underwritingGuidelinesBypassedBy: String? = null
 )

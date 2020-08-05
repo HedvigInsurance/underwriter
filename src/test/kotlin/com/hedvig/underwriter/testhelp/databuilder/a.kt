@@ -272,7 +272,8 @@ class a {
             memberId = memberId,
             originatingProductId = originatingProductId,
             startDate = startDate,
-            dataCollectionId = dataCollectionId
+            dataCollectionId = dataCollectionId,
+            dataCollectionIds = listOf(dataCollectionId)
         )
     }
 
@@ -344,7 +345,8 @@ class a {
             memberId = memberId,
             originatingProductId = originatingProductId,
             startDate = startDate,
-            dataCollectionId = dataCollectionId
+            dataCollectionId = dataCollectionId,
+            dataCollectionIds = listOf(dataCollectionId)
         )
     }
 
@@ -398,7 +400,8 @@ class a {
             memberId = memberId,
             originatingProductId = originatingProductId,
             startDate = startDate,
-            dataCollectionId = dataCollectionId
+            dataCollectionId = dataCollectionId,
+            dataCollectionIds = listOf(dataCollectionId)
         )
     }
 
@@ -441,7 +444,8 @@ class a {
             memberId = memberId,
             originatingProductId = originatingProductId,
             startDate = startDate,
-            dataCollectionId = dataCollectionId
+            dataCollectionId = dataCollectionId,
+            dataCollectionIds = listOf(dataCollectionId)
         )
     }
 }
