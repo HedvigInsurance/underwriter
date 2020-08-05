@@ -30,7 +30,7 @@ data class EditQuoteInput(
     val norwegianTravel: EditNorwegianTravelInput?,
     @Deprecated("use dataCollectionIds")
     val dataCollectionId: UUID?,
-    val dataCollectionIds: List<UUID?>
+    val dataCollectionIds: List<UUID?>?
 ) {
     fun toQuoteRequest(
         quotingPartner: Partner? = null,
@@ -62,7 +62,7 @@ data class EditQuoteInput(
         originatingProductId = originatingProductId,
         startDate = this.startDate?.atStartOfDay()?.toStockholmInstant(),
         dataCollectionId = this.dataCollectionId,
-        dataCollectionIds = this.dataCollectionIds
+        dataCollectionIds = this.dataCollectionIds ?: emptyList()
     )
 
     fun getProductType(): ProductType? =

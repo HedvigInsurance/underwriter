@@ -76,7 +76,7 @@ data class QuoteRequest(
                 originatingProductId = quoteRequestDto.originatingProductId,
                 startDate = quoteRequestDto.startDate,
                 dataCollectionId = quoteRequestDto.dataCollectionId,
-                dataCollectionIds = quoteRequestDto.dataCollectionIds
+                dataCollectionIds = quoteRequestDto.dataCollectionIds ?: emptyList()
             )
         }
 

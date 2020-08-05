@@ -31,7 +31,7 @@ data class CreateQuoteInput(
     val norwegianTravel: CreateNorwegianTravelInput?,
     @Deprecated("use dataCollectionIds")
     val dataCollectionId: UUID?,
-    val dataCollectionIds: List<UUID?>
+    val dataCollectionIds: List<UUID?>?
 ) {
     fun toQuoteRequest(
         quotingPartner: Partner? = null,
@@ -62,7 +62,7 @@ data class CreateQuoteInput(
     originatingProductId = originatingProductId,
     startDate = this.startDate?.atStartOfDay()?.toStockholmInstant(),
     dataCollectionId = this.dataCollectionId,
-    dataCollectionIds = this.dataCollectionIds
+    dataCollectionIds = this.dataCollectionIds ?: emptyList()
     )
 
     @JsonIgnore
