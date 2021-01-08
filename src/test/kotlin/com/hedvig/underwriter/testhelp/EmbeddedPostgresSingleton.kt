@@ -8,6 +8,8 @@ object EmbeddedPostgresSingleton {
         get() {
             if (_embeddedPostgres == null) {
                 _embeddedPostgres = EmbeddedPostgres.builder()
+                    // https://github.com/zonkyio/embedded-postgres/issues/11
+                    .setLocaleConfig("locale", "en_US")
                     .start()
             }
 
