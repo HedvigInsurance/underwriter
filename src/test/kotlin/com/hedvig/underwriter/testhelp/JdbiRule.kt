@@ -50,7 +50,7 @@ class JdbiRule : ExternalResource() {
         } catch (e: LiquibaseException) {
             throw SQLException(e)
         } catch (e: Throwable) {
-            println(e)
+            e.printStackTrace()
         } finally {
             if (dataSource.connection != null) {
                 if (!dataSource.connection.autoCommit) {
