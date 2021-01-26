@@ -1,12 +1,17 @@
 server.port: 5698
+management.endpoints.web.exposure.include: '*'
+logging.level.com.hedvig: INFO
 
 spring:
   main:
     allow-bean-definition-overriding: true
   datasource:
+    platform: POSTGRESQL
     driverClassName: org.postgresql.Driver
-    url: jdbc:postgresql://localhost:5432/underwriter
-    username: postgres
+    url: ${POSTGRES_URL}/underwriter
+    username: ${POSTGRES_USERNAME}
+    password: ${POSTGRES_PASSWORD}
+    initialization-mode: never
   liquibase.change-log: classpath:/db/changelog/changelog-master.yml
   liquibase.enabled: false
   jackson.deserialization.read-unknown-enum-values-using-default-value: true
@@ -25,20 +30,38 @@ graphiql:
   enabled: true
   pageTitle: Underwriter GraphiQL
 
-graphcms.project: Underwriter
-graphcms.url: https://api-euwest.graphcms.com/v1/cjmawd9hw036a01cuzmjhplka/master
+graphcms:
+  project: Underwriter
+  url: https://api-euwest.graphcms.com/v1/cjmawd9hw036a01cuzmjhplka/master
+
+lokalise:
+  useFakes: true
+
+hedvig:
+  notification-service.url: http://notification-service
 
 ---
 spring:
-  profiles: staging
+  profiles: production, staging
+
+server.port: 80
+logging.level.com.hedvig: TRACE
+
+cloud.aws:
+  region.static: eu-central-1
+  stack.auto: false
+
+lokalise:
+  useFakes: false
+  projectId: ${LOKALISE_PROJECT_ID}
+  apiToken: ${LOKALISE_API_TOKEN}
 
 graphql:
-  servlet:
+  servlet: # Should this be true only for staging or production too?
     exception-handlers-enabled: true
 
 ---
 spring:
   profiles: test, development
 
-lokalise:
-  useFakes: true
+  liquibase.enabled: true
