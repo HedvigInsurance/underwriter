@@ -34,9 +34,6 @@ graphcms:
   project: Underwriter
   url: https://api-euwest.graphcms.com/v1/cjmawd9hw036a01cuzmjhplka/master
 
-hedvig:
-  notification-service.url: http://notification-service
-
 ---
 spring:
   profiles: production, staging
