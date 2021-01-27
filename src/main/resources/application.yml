@@ -49,8 +49,12 @@ lokalise:
   projectId: ${LOKALISE_PROJECT_ID}
   apiToken: ${LOKALISE_API_TOKEN}
 
+---
+spring:
+  profiles: staging
+
 graphql:
-  servlet: # Should this be true only for staging or production too?
+  servlet:
     exception-handlers-enabled: true
 
 ---
