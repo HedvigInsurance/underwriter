@@ -34,9 +34,6 @@ graphcms:
   project: Underwriter
   url: https://api-euwest.graphcms.com/v1/cjmawd9hw036a01cuzmjhplka/master
 
-lokalise:
-  useFakes: true
-
 hedvig:
   notification-service.url: http://notification-service
 
@@ -52,7 +49,6 @@ cloud.aws:
   stack.auto: false
 
 lokalise:
-  useFakes: false
   projectId: ${LOKALISE_PROJECT_ID}
   apiToken: ${LOKALISE_API_TOKEN}
 
