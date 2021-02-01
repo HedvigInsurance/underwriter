@@ -6,6 +6,7 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
+import org.springframework.context.annotation.Profile
 import java.util.Locale
 
 @Configuration
@@ -27,6 +28,7 @@ class LocalizationConfiguration {
 
     @Bean
     @ConditionalOnMissingBean
+    @Profile("!production")
     fun fakeService(): LocalizationService = object : LocalizationService {
         override fun getTranslation(key: String, locale: Locale) = key
     }
