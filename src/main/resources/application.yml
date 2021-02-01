@@ -49,6 +49,9 @@ lokalise:
   projectId: ${LOKALISE_PROJECT_ID}
   apiToken: ${LOKALISE_API_TOKEN}
 
+hedvig:
+  notification-service.url: http://notification-service
+
 ---
 spring:
   profiles: staging
@@ -62,3 +65,6 @@ spring:
   profiles: test, development
 
   liquibase.enabled: true
+
+hedvig:
+  notification-service.url: http://localhost:4087

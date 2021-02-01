@@ -9,7 +9,7 @@ import org.springframework.web.bind.annotation.RequestBody
 
 @FeignClient(
     name = "notification-service",
-    url = "http://notification-service"
+    url = "\${hedvig.notification-service.url:http://notification-service/}"
 )
 interface NotificationServiceClient {
     @PostMapping("_/customerio/{memberId}")
