@@ -34,7 +34,7 @@ class SignSessionController @Autowired constructor(
     }
 
     @PostMapping("/{sessionId}/completed")
-    fun singSessionComplete(
+    fun signSessionComplete(
         @PathVariable sessionId: UUID
     ) {
         signService.completedSignSession(
