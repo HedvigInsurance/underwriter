@@ -13,7 +13,6 @@ import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
 import javax.servlet.http.HttpServletRequest
-import javax.validation.Valid
 
 @RestController
 @RequestMapping("/quotes")
@@ -22,7 +21,7 @@ class ExternalQuoteController(
 ) {
     @PostMapping
     fun createQuote(
-        @Valid @RequestBody body: ExternalQuoteRequestDto,
+        @RequestBody body: ExternalQuoteRequestDto,
         httpServletRequest: HttpServletRequest
     ): ResponseEntity<out Any> {
         val quoteInitiatedFrom = when {
