@@ -132,7 +132,16 @@ data class QuoteRequest(
                     quoteRequestDto.danishTravelData != null -> quoteRequestDto.danishTravelData
                     else -> throw IllegalStateException()
                 },
-                productType = null,
+                productType = when {
+                    quoteRequestDto.swedishApartmentData != null -> ProductType.APARTMENT
+                    quoteRequestDto.swedishHouseData != null -> ProductType.HOUSE
+                    quoteRequestDto.norwegianHomeContentsData != null -> ProductType.HOME_CONTENT
+                    quoteRequestDto.norwegianTravelData != null -> ProductType.TRAVEL
+                    quoteRequestDto.danishHomeContentsData != null -> ProductType.HOME_CONTENT
+                    quoteRequestDto.danishAccidentData != null -> ProductType.ACCIDENT
+                    quoteRequestDto.danishTravelData != null -> ProductType.TRAVEL
+                    else -> throw IllegalStateException()
+                },
                 memberId = quoteRequestDto.memberId,
                 originatingProductId = null,
                 startDate = quoteRequestDto.startDate.atStartOfDay().toStockholmInstant(),
