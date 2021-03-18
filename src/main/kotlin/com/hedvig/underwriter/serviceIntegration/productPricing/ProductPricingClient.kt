@@ -1,6 +1,8 @@
 package com.hedvig.underwriter.serviceIntegration.productPricing
 
 import com.hedvig.productPricingObjects.dtos.Agreement
+import com.hedvig.productPricingObjects.dtos.SelfChangeRequest
+import com.hedvig.productPricingObjects.dtos.SelfChangeResult
 import com.hedvig.underwriter.graphql.type.InsuranceCost
 import com.hedvig.underwriter.serviceIntegration.productPricing.dtos.AddAgreementRequest
 import com.hedvig.underwriter.serviceIntegration.productPricing.dtos.CalculateBundleInsuranceCostRequest
@@ -73,4 +75,10 @@ interface ProductPricingClient {
     fun getAgreement(
         @PathVariable agreementId: UUID
     ): ResponseEntity<Agreement>
+
+    @PostMapping("/contracts/selfChange")
+    fun selfChangeContracts(
+        @RequestHeader("Hedvig.token") memberId: String,
+        @RequestBody body: SelfChangeRequest
+    ): SelfChangeResult
 }
