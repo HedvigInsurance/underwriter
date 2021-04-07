@@ -52,6 +52,10 @@ lokalise:
 hedvig:
   notification-service.url: http://notification-service
 
+---
+spring:
+  profiles: production
+
 features:
   block-requoting: true
 
@@ -62,6 +66,9 @@ spring:
 graphql:
   servlet:
     exception-handlers-enabled: true
+
+features:
+  block-requoting: false
 
 ---
 spring:
