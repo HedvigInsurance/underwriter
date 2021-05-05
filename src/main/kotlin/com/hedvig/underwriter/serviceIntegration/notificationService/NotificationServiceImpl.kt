@@ -5,10 +5,12 @@ import com.hedvig.underwriter.model.email
 import com.hedvig.underwriter.model.firstName
 import com.hedvig.underwriter.model.lastName
 import com.hedvig.underwriter.model.ssnMaybe
+import com.hedvig.underwriter.service.exceptions.NotFoundException
 import com.hedvig.underwriter.service.quoteStrategies.QuoteStrategyService
 import com.hedvig.underwriter.serviceIntegration.notificationService.dtos.QuoteCreatedEvent
 import com.hedvig.underwriter.util.logger
 import org.springframework.stereotype.Service
+import java.lang.RuntimeException
 import java.time.Instant
 
 @Service
@@ -40,10 +42,14 @@ class NotificationServiceImpl(
     }
 
     override fun deleteMember(memberId: String) {
-        try {
-            client.deleteMember(memberId)
-        } catch (e: Exception) {
-            logger.error("Could not delete member: $memberId", e)
+        val response = client.deleteMember(memberId)
+
+        if (response.statusCodeValue == 404) {
+            throw NotFoundException("Failed to delete member $memberId in Notification Service, member not found")
+        }
+
+        if (response.statusCode.isError) {
+            throw RuntimeException("Failed to delete member $memberId in Notification Service: $response")
         }
     }
 }
