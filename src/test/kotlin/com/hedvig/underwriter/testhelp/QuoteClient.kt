@@ -28,10 +28,9 @@ class QuoteClient {
         city: String = "ApCity",
         livingSpace: Int = 111,
         householdSize: Int = 1,
-        floor: Int = 0,
         subType: String = "BRF"
     ): CompleteQuoteResponseDto {
-        return createSwedishApartmentQuote<CompleteQuoteResponseDto>(ssn, street, zip, city, livingSpace, householdSize, floor, subType).body!!
+        return createSwedishApartmentQuote<CompleteQuoteResponseDto>(ssn, street, zip, city, livingSpace, householdSize, subType).body!!
     }
 
     fun createSwedishApartmentQuoteRaw(
@@ -41,10 +40,9 @@ class QuoteClient {
         city: String = "ApCity",
         livingSpace: Int = 111,
         householdSize: Int = 1,
-        floor: Int = 0,
         subType: String = "BRF"
     ): ResponseEntity<String> {
-        return createSwedishApartmentQuote<String>(ssn, street, zip, city, livingSpace, householdSize, floor, subType)
+        return createSwedishApartmentQuote<String>(ssn, street, zip, city, livingSpace, householdSize, subType)
     }
 
     fun createSwedishHouseQuote(
@@ -57,10 +55,9 @@ class QuoteClient {
         ancillaryArea: Int = 11,
         yearOfConstruction: Int = 1970,
         numberOfBathrooms: Int = 1,
-        floor: Int = 0,
         subleted: Boolean = false
     ): CompleteQuoteResponseDto {
-        return createSwedishHouseQuote<CompleteQuoteResponseDto>(ssn, street, zip, city, livingSpace, householdSize, ancillaryArea, yearOfConstruction, numberOfBathrooms, floor, subleted).body!!
+        return createSwedishHouseQuote<CompleteQuoteResponseDto>(ssn, street, zip, city, livingSpace, householdSize, ancillaryArea, yearOfConstruction, numberOfBathrooms, subleted).body!!
     }
 
     fun createSwedishHouseQuoteRaw(
@@ -73,10 +70,9 @@ class QuoteClient {
         ancillaryArea: Int = 11,
         yearOfConstruction: Int = 1970,
         numberOfBathrooms: Int = 1,
-        floor: Int = 0,
         subleted: Boolean = false
     ): ResponseEntity<String> {
-        return createSwedishHouseQuote<String>(ssn, street, zip, city, livingSpace, householdSize, ancillaryArea, yearOfConstruction, numberOfBathrooms, floor, subleted)
+        return createSwedishHouseQuote<String>(ssn, street, zip, city, livingSpace, householdSize, ancillaryArea, yearOfConstruction, numberOfBathrooms, subleted)
     }
 
     fun createNorwegianHomeContentQuote(
@@ -305,7 +301,6 @@ class QuoteClient {
         city: String,
         livingSpace: Int,
         householdSize: Int,
-        floor: Int,
         subType: String
     ): ResponseEntity<T> {
         val request = """           
@@ -324,7 +319,6 @@ class QuoteClient {
                     "city": "$city",
                     "livingSpace": $livingSpace,
                     "householdSize": $householdSize,
-                    "floor": $floor,
                     "subType": "$subType"
                 },
                 "shouldComplete": true
@@ -344,7 +338,6 @@ class QuoteClient {
         ancillaryArea: Int,
         yearOfConstruction: Int,
         numberOfBathrooms: Int,
-        floor: Int,
         subleted: Boolean
     ): ResponseEntity<T> {
         val request = """           
@@ -372,7 +365,6 @@ class QuoteClient {
                         "area": 11,
                         "hasWaterConnected": true
                     }],
-                    "floor": $floor,
                     "subleted": $subleted
                 },
                 "shouldComplete": true

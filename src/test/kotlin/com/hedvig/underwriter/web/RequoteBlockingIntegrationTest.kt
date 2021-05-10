@@ -39,7 +39,7 @@ import java.util.UUID
 
 @RunWith(SpringRunner::class)
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
-class RequoteIntegrationTest {
+class RequoteBlockingIntegrationTest {
 
     @Autowired
     private lateinit var restTemplate: TestRestTemplate

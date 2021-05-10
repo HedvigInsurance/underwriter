@@ -527,7 +527,6 @@ class RapioIntegrationTest {
         assertThat(data.extraBuildings!![0].type.name).isEqualTo("CARPORT")
         assertThat(data.extraBuildings!![0].displayName).isNull()
         assertThat(data.extraBuildings!![0].hasWaterConnected).isEqualTo(true)
-        assertThat(data.floor).isEqualTo(0)
         assertThat(data.isSubleted).isEqualTo(true)
         assertThat(data.numberOfBathrooms).isEqualTo(2)
         assertThat(data.yearOfConstruction).isEqualTo(1980)

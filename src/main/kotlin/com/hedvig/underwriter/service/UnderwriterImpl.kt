@@ -60,8 +60,7 @@ class UnderwriterImpl(
             updatedAt = now,
             productType = quoteRequest.productType!!,
             initiatedFrom = initiatedFrom,
-            attributedTo = quoteRequest.quotingPartner
-                ?: Partner.HEDVIG,
+            attributedTo = quoteRequest.quotingPartner ?: Partner.HEDVIG,
             data = createQuoteData(quoteRequest),
             state = QuoteState.INCOMPLETE,
             memberId = quoteRequest.memberId,
@@ -112,6 +111,10 @@ class UnderwriterImpl(
 
     private fun complete(quote: Quote): Quote {
         val priceQueryResponse = getPriceRetrievedFromProductPricing(quote)
+
+        // Check if we should reuse old price if customer have done this query before
+//        price = requotingService.useOldOrNewPrice(quote, price)
+
         return quote.copy(
             price = priceQueryResponse.price.number.numberValueExact(BigDecimal::class.java),
             currency = priceQueryResponse.price.currency.currencyCode,
