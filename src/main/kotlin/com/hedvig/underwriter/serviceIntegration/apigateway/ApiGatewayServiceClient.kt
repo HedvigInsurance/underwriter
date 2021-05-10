@@ -5,6 +5,7 @@ import org.springframework.cloud.openfeign.FeignClient
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.DeleteMapping
 import org.springframework.web.bind.annotation.PathVariable
+import org.springframework.web.bind.annotation.RequestHeader
 
 @Headers("Accept: application/json;charset=utf-8")
 @FeignClient(
@@ -14,5 +15,5 @@ import org.springframework.web.bind.annotation.PathVariable
 interface ApiGatewayServiceClient {
 
     @DeleteMapping("_/member/{memberId}")
-    fun deleteMember(@PathVariable memberId: String): ResponseEntity<Any>
+    fun deleteMember(@RequestHeader token: String, @PathVariable memberId: String): ResponseEntity<Any>
 }

@@ -223,7 +223,7 @@ class GdprIntegrationTest {
         assertCleanJob(quoteId)
 
         verify(exactly = 1) { notificationServiceClient.deleteMember(memberId) }
-        verify(exactly = 1) { apiGatewayServiceClient.deleteMember(memberId) }
+        verify(exactly = 1) { apiGatewayServiceClient.deleteMember(any(), memberId) }
         verify(exactly = 1) { memberServiceClient.deleteMember(memberId) }
 
         // TODO: Add verify checks to member and lookup services when implemented
@@ -243,7 +243,7 @@ class GdprIntegrationTest {
         assertQuoteExist(quoteId)
 
         verify(exactly = 0) { notificationServiceClient.deleteMember(memberId) }
-        verify(exactly = 0) { apiGatewayServiceClient.deleteMember(memberId) }
+        verify(exactly = 0) { apiGatewayServiceClient.deleteMember(any(), memberId) }
         verify(exactly = 0) { memberServiceClient.deleteMember(memberId) }
 
         // TODO: Add verify checks to member, lookup services when implemented
@@ -261,7 +261,7 @@ class GdprIntegrationTest {
 
         // Since user has another quote than the quote deleted he/she is not removed in other services
         verify(exactly = 0) { notificationServiceClient.deleteMember(memberId) }
-        verify(exactly = 0) { apiGatewayServiceClient.deleteMember(memberId) }
+        verify(exactly = 0) { apiGatewayServiceClient.deleteMember(any(), memberId) }
         verify(exactly = 0) { memberServiceClient.deleteMember(memberId) }
 
         // TODO: Add verify checks to member, lookup services when implemented
