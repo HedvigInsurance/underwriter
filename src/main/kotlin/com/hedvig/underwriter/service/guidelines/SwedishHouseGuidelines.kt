@@ -48,7 +48,7 @@ object SwedishHouseLivingSpaceGuideline : SwedishHouseGuideline {
             return TOO_SMALL_LIVING_SPACE
         }
 
-        if (data.livingSpace!! + (data.ancillaryArea ?: 0) > 250) {
+        if (data.livingSpace!! + (data.ancillaryArea ?: 0) > 300) {
             return TOO_MUCH_LIVING_SPACE
         }
 
