@@ -221,6 +221,5 @@ class OutgoingMapper {
             return lineItems.map { com.hedvig.productPricingObjects.dtos.LineItem(it.type, it.subType, it.amount) }
                 .toList()
         }
-
     }
 }
