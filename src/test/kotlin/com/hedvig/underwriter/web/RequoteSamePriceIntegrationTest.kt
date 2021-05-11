@@ -313,7 +313,7 @@ class RequoteSamePriceIntegrationTest {
         // Create quote with another floor, should trigger the new price
         with(quoteClient.createDanishHomeContentQuote(
             street = "Test Duffy",
-            floor = 2
+            floor = "2"
         )) {
             assertThat(price.toPlainString()).isEqualTo("20")
             assertThat(currency).isEqualTo("SEK")
