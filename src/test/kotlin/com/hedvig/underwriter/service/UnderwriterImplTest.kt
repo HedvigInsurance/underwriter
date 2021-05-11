@@ -349,7 +349,7 @@ class UnderwriterImplTest {
             data = SwedishHouseQuoteRequestDataBuilder(
                 householdSize = 1,
                 numberOfBathrooms = 1,
-                ancillaryArea = 50,
+                ancillaryArea = 100,
                 livingSpace = 201,
                 extraBuildings = listOf(
                     SwedishHouseQuoteRequestDataExtraBuildingsBuilder(area = 7).build()
