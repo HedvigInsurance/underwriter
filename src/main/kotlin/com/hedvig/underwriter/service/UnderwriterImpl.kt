@@ -110,15 +110,15 @@ class UnderwriterImpl(
     }
 
     private fun complete(quote: Quote): Quote {
-        val priceQueryResponse = getPriceRetrievedFromProductPricing(quote)
+        var price = getPriceRetrievedFromProductPricing(quote)
 
         // Check if we should reuse old price if customer have done this query before
-//        price = requotingService.useOldOrNewPrice(quote, price)
+        price = requotingService.useOldOrNewPrice(quote, price)
 
         return quote.copy(
-            price = priceQueryResponse.price.number.numberValueExact(BigDecimal::class.java),
-            currency = priceQueryResponse.price.currency.currencyCode,
-            lineItems = priceQueryResponse.lineItems?.map {
+            price = price.price.number.numberValueExact(BigDecimal::class.java),
+            currency = price.price.currency.currencyCode,
+            lineItems = price.lineItems?.map {
                 LineItem(
                     type = it.type,
                     subType = it.subType,

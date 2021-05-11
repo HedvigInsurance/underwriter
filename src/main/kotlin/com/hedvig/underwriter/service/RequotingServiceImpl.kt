@@ -18,6 +18,8 @@ import com.hedvig.underwriter.model.SwedishHouseData
 import com.hedvig.underwriter.model.birthDateMaybe
 import com.hedvig.underwriter.model.ssnMaybe
 import com.hedvig.underwriter.service.model.PersonPolicyHolder
+import com.hedvig.underwriter.serviceIntegration.priceEngine.dtos.LineItem
+import com.hedvig.underwriter.serviceIntegration.priceEngine.dtos.PriceQueryResponse
 import com.hedvig.underwriter.serviceIntegration.productPricing.ProductPricingService
 import com.hedvig.underwriter.util.logger
 import org.javamoney.moneta.Money
@@ -56,7 +58,7 @@ class RequotingServiceImpl(
         }
     }
 
-    override fun useOldOrNewPrice(quote: Quote, newPrice: MonetaryAmount): MonetaryAmount {
+    override fun useOldOrNewPrice(quote: Quote, newPrice: PriceQueryResponse): PriceQueryResponse {
 
         logger.debug("Check if to reuse old price for quote. Initiated from ${quote.initiatedFrom}")
 
@@ -84,12 +86,22 @@ class RequotingServiceImpl(
 
         val nowMinus30d = Instant.now().minus(30, ChronoUnit.DAYS)
 
-        val lastPrice = quotes.last().let { Money.of(it.price, it.currency) }
+        val lastPrice = getLastPrice(quotes)
         val anyOlderThan30d = quotes.any() { it.createdAt.isBefore(nowMinus30d) }
         val anyChangeLessThan30d = quotes
             .filter { it.createdAt.isAfter(nowMinus30d) }
-            .all { lastPrice.isSameAmount(it.price) }
+            .all { lastPrice.price.isSameAmount(it.price) }
             .not()
+
+        // If new price has not changed then use it (line items may have changed thou)
+        if (lastPrice.price == newPrice.price) {
+            return newPrice
+        }
+
+        // During migration to line items feature we favour the new price if last does not have any line items
+        if (lastPrice.lineItems.isNullOrEmpty() && newPrice.lineItems != null && newPrice.lineItems.isNotEmpty()) {
+            return newPrice
+        }
 
         // If user do not have older quotes than 30 days then reuse last price
         if (!anyOlderThan30d) {
@@ -174,6 +186,14 @@ class RequotingServiceImpl(
 
     private fun AgreementStatus.isAnyOf(vararg statuses: AgreementStatus): Boolean =
         statuses.any { this == it }
+
+    private fun getLastPrice(quotes: List<Quote>): PriceQueryResponse {
+
+        val quote = quotes.sortedBy { it.createdAt }.last()
+        val lineItems = quote.lineItems.map { LineItem(it.type, it.subType, it.amount) }
+
+        return PriceQueryResponse(quote.id, Money.of(quote.price, quote.currency), lineItems)
+    }
 }
 
 fun MonetaryAmount.isSameAmount(amount: BigDecimal?): Boolean {

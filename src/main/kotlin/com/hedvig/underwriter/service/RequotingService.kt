@@ -1,10 +1,10 @@
 package com.hedvig.underwriter.service
 
 import com.hedvig.underwriter.model.Quote
-import javax.money.MonetaryAmount
+import com.hedvig.underwriter.serviceIntegration.priceEngine.dtos.PriceQueryResponse
 
 interface RequotingService {
 
     fun blockDueToExistingAgreement(quote: Quote): Boolean
-    fun useOldOrNewPrice(quote: Quote, newPrice: MonetaryAmount): MonetaryAmount
+    fun useOldOrNewPrice(quote: Quote, newPrice: PriceQueryResponse): PriceQueryResponse
 }
