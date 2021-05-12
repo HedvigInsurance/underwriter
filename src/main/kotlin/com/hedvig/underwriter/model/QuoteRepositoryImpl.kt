@@ -215,6 +215,11 @@ class QuoteRepositoryImpl(private val jdbi: Jdbi) : QuoteRepository {
 
     override fun delete(quote: Quote) {
         jdbi.inTransaction<Unit, RuntimeException> { h ->
+
+            // Delete any sessions for quote first, due to the FK
+            val sessionDao = h.attach<SignSessionDao>()
+            sessionDao.delete(quote.id)
+
             val dao = h.attach<QuoteDao>()
             val revs = dao.findRevisions(quote.id)
 
