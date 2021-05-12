@@ -96,7 +96,7 @@ class GdprServiceImpl(
 
             if (dryRun) {
                 logger.info("DRYRUN: Deleting member $id in other services skipped.")
-                return
+                continue
             }
 
             deleteMemberInApiGateway(id)
