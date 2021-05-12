@@ -9,6 +9,7 @@ import com.hedvig.underwriter.service.exceptions.NotFoundException
 import com.hedvig.underwriter.service.quoteStrategies.QuoteStrategyService
 import com.hedvig.underwriter.serviceIntegration.notificationService.dtos.QuoteCreatedEvent
 import com.hedvig.underwriter.util.logger
+import feign.FeignException
 import org.springframework.stereotype.Service
 import java.lang.RuntimeException
 import java.time.Instant
@@ -42,14 +43,22 @@ class NotificationServiceImpl(
     }
 
     override fun deleteMember(memberId: String) {
-        val response = client.deleteMember(memberId)
+        try {
+            val response = client.deleteMember(memberId)
 
-        if (response.statusCodeValue == 404) {
-            throw NotFoundException("Failed to delete member $memberId in Notification Service, member not found")
-        }
+            if (response.statusCodeValue == 404) {
+                throw NotFoundException("Failed to delete member $memberId in Notification Service, member not found")
+            }
 
-        if (response.statusCode.isError) {
-            throw RuntimeException("Failed to delete member $memberId in Notification Service: $response")
+            if (response.statusCode.isError) {
+                throw RuntimeException("Failed to delete member $memberId in Notification Service: $response")
+            }
+        } catch (e: FeignException) {
+            if (e.status() == 404) {
+                throw NotFoundException("Failed to delete member $memberId in Notification Service, member not found")
+            }
+
+            throw RuntimeException("Failed to delete member $memberId in Notification Service", e)
         }
     }
 }

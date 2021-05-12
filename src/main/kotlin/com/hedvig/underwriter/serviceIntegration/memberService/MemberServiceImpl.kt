@@ -125,14 +125,22 @@ class MemberServiceImpl @Autowired constructor(
 
     override fun deleteMember(memberId: String) {
 
-        val response = client.deleteMember(memberId)
+        try {
+            val response = client.deleteMember(memberId)
 
-        if (response.statusCodeValue == 404) {
-            throw NotFoundException("Failed to delete member $memberId in Member Service, member not found")
-        }
+            if (response.statusCodeValue == 404) {
+                throw NotFoundException("Failed to delete member $memberId in Member Service, member not found")
+            }
 
-        if (response.statusCode.isError) {
-            throw java.lang.RuntimeException("Failed to delete member $memberId in Member Service: $response")
+            if (response.statusCode.isError) {
+                throw RuntimeException("Failed to delete member $memberId in Member Service: $response")
+            }
+        } catch (e: FeignException) {
+            if (e.status() == 404) {
+                throw NotFoundException("Failed to delete member $memberId in Member Service, member not found")
+            }
+
+            throw RuntimeException("Failed to delete member $memberId in Member Service", e)
         }
     }
 }
