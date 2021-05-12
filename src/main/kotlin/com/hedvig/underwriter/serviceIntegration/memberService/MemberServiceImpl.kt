@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.kotlin.readValue
 import com.hedvig.underwriter.model.Market
 import com.hedvig.underwriter.model.Quote
+import com.hedvig.underwriter.service.exceptions.NotFoundException
 import com.hedvig.underwriter.serviceIntegration.memberService.dtos.FinalizeOnBoardingRequest
 import com.hedvig.underwriter.serviceIntegration.memberService.dtos.InternalMember
 import com.hedvig.underwriter.serviceIntegration.memberService.dtos.IsMemberAlreadySignedResponse
@@ -120,5 +121,18 @@ class MemberServiceImpl @Autowired constructor(
 
     override fun getMember(memberId: Long): InternalMember {
         return client.getMember(memberId).body!!
+    }
+
+    override fun deleteMember(memberId: String) {
+
+        val response = client.deleteMember(memberId)
+
+        if (response.statusCodeValue == 404) {
+            throw NotFoundException("Failed to delete member $memberId in Member Service, member not found")
+        }
+
+        if (response.statusCode.isError) {
+            throw java.lang.RuntimeException("Failed to delete member $memberId in Member Service: $response")
+        }
     }
 }

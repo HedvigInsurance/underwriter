@@ -26,6 +26,7 @@ import com.hedvig.underwriter.model.NorwegianTravelData
 import com.hedvig.underwriter.model.QuoteData
 import com.hedvig.underwriter.model.SwedishApartmentData
 import com.hedvig.underwriter.model.SwedishHouseData
+import com.hedvig.underwriter.serviceIntegration.apigateway.ApiGatewayServiceClient
 import com.hedvig.underwriter.serviceIntegration.memberService.MemberServiceClient
 import com.hedvig.underwriter.serviceIntegration.memberService.dtos.Flag
 import com.hedvig.underwriter.serviceIntegration.memberService.dtos.HelloHedvigResponseDto
@@ -56,27 +57,30 @@ import java.util.UUID
 class GdprIntegrationTest {
 
     @Autowired
-    private lateinit var quoteClient: QuoteClient
+    lateinit var quoteClient: QuoteClient
 
     @Autowired
-    private lateinit var gdprClient: GdprClient
+    lateinit var gdprClient: GdprClient
 
     @Autowired
-    private lateinit var graphQLTestTemplate: GraphQLTestTemplate
+    lateinit var graphQLTestTemplate: GraphQLTestTemplate
 
     @Autowired
-    private lateinit var jdbi: Jdbi
+    lateinit var jdbi: Jdbi
 
     @MockkBean(relaxed = true)
     lateinit var notificationServiceClient: NotificationServiceClient
 
-    @MockkBean
+    @MockkBean(relaxed = true)
+    lateinit var apiGatewayServiceClient: ApiGatewayServiceClient
+
+    @MockkBean(relaxed = true)
     lateinit var priceEngineClient: PriceEngineClient
 
-    @MockkBean
+    @MockkBean(relaxed = true)
     lateinit var memberServiceClient: MemberServiceClient
 
-    @MockkBean
+    @MockkBean(relaxed = true)
     lateinit var productPricingClient: ProductPricingClient
 
     val activeAgreement = Agreement.SwedishApartment(UUID.randomUUID(), mockk(), mockk(), mockk(), null, AgreementStatus.ACTIVE, mockk(), mockk(), 0, 100)
@@ -219,8 +223,10 @@ class GdprIntegrationTest {
         assertCleanJob(quoteId)
 
         verify(exactly = 1) { notificationServiceClient.deleteMember(memberId) }
+        verify(exactly = 1) { apiGatewayServiceClient.deleteMember(any(), memberId) }
+        verify(exactly = 1) { memberServiceClient.deleteMember(memberId) }
 
-        // TODO: Add verify checks to member, api gw, lookup services when implemented
+        // TODO: Add verify checks to member and lookup services when implemented
     }
 
     @Test
@@ -237,8 +243,10 @@ class GdprIntegrationTest {
         assertQuoteExist(quoteId)
 
         verify(exactly = 0) { notificationServiceClient.deleteMember(memberId) }
+        verify(exactly = 0) { apiGatewayServiceClient.deleteMember(any(), memberId) }
+        verify(exactly = 0) { memberServiceClient.deleteMember(memberId) }
 
-        // TODO: Add verify checks to member, api gw, lookup services when implemented
+        // TODO: Add verify checks to member, lookup services when implemented
     }
 
     @Test
@@ -253,8 +261,10 @@ class GdprIntegrationTest {
 
         // Since user has another quote than the quote deleted he/she is not removed in other services
         verify(exactly = 0) { notificationServiceClient.deleteMember(memberId) }
+        verify(exactly = 0) { apiGatewayServiceClient.deleteMember(any(), memberId) }
+        verify(exactly = 0) { memberServiceClient.deleteMember(memberId) }
 
-        // TODO: Add verify checks to member, api gw, lookup services when implemented
+        // TODO: Add verify checks to member, lookup services when implemented
     }
 
     private fun createMutation() =

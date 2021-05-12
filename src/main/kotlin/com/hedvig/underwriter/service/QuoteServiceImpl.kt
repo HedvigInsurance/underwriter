@@ -17,6 +17,7 @@ import com.hedvig.underwriter.model.QuoteRepository
 import com.hedvig.underwriter.model.QuoteState
 import com.hedvig.underwriter.model.email
 import com.hedvig.underwriter.model.validTo
+import com.hedvig.underwriter.service.exceptions.NotFoundException
 import com.hedvig.underwriter.service.exceptions.QuoteNotFoundException
 import com.hedvig.underwriter.service.guidelines.BreachedGuidelineCode
 import com.hedvig.underwriter.service.model.QuoteRequest
@@ -371,7 +372,3 @@ fun assertQuoteIsNotSignedOrExpired(quote: Quote): ErrorResponseDto? {
     }
     return null
 }
-
-class NotFoundException(
-    message: String
-) : RuntimeException(message)

@@ -49,4 +49,6 @@ interface MemberService {
     ): UnderwriterStartSignSessionResponse.SimpleSign
 
     fun getMember(memberId: Long): InternalMember
+
+    fun deleteMember(memberId: String)
 }
