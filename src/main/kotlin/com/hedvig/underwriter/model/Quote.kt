@@ -155,6 +155,7 @@ data class DatabaseQuoteRevision(
     val currentInsurer: String? = "",
     val startDate: LocalDate? = null,
     val price: BigDecimal? = null,
+    val priceFrom: UUID? = null,
     val currency: String? = null,
     val quoteApartmentDataId: Int?,
     val quoteHouseDataId: Int?,
@@ -189,6 +190,7 @@ data class DatabaseQuoteRevision(
                 startDate = quote.startDate,
                 price = quote.price,
                 currency = quote.currency,
+                priceFrom = quote.priceFrom,
                 quoteApartmentDataId = when (quote.data) {
                     is SwedishApartmentData -> quote.data.internalId
                     else -> null
@@ -239,6 +241,7 @@ data class Quote(
     val updatedAt: Instant? = null,
     val price: BigDecimal? = null,
     val currency: String? = null,
+    val priceFrom: UUID? = null,
     val productType: ProductType = ProductType.UNKNOWN,
     val state: QuoteState,
     val initiatedFrom: QuoteInitiatedFrom,

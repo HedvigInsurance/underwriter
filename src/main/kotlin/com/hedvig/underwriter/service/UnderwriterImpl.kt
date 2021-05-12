@@ -30,7 +30,6 @@ import io.micrometer.core.instrument.MeterRegistry
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Component
 import org.springframework.stereotype.Service
-import java.math.BigDecimal
 import java.time.Instant
 import java.util.UUID
 
@@ -110,21 +109,22 @@ class UnderwriterImpl(
     }
 
     private fun complete(quote: Quote): Quote {
-        var price = getPriceRetrievedFromProductPricing(quote)
+        val priceResponse = getPriceRetrievedFromProductPricing(quote)
 
         // Check if we should reuse old price if customer have done this query before
-        price = requotingService.useOldOrNewPrice(quote, price)
+        val price = requotingService.useOldOrNewPrice(quote, Price.from(priceResponse))
 
         return quote.copy(
-            price = price.price.number.numberValueExact(BigDecimal::class.java),
-            currency = price.price.currency.currencyCode,
-            lineItems = price.lineItems?.map {
+            price = price.amount,
+            currency = price.currency,
+            priceFrom = price.priceFromId,
+            lineItems = price.lineItems.map {
                 LineItem(
                     type = it.type,
                     subType = it.subType,
                     amount = it.amount
                 )
-            }?.toList() ?: emptyList(),
+            }.toList(),
             state = QuoteState.QUOTED
         )
     }

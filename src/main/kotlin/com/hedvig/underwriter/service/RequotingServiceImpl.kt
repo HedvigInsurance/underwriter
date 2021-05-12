@@ -19,7 +19,6 @@ import com.hedvig.underwriter.model.birthDateMaybe
 import com.hedvig.underwriter.model.ssnMaybe
 import com.hedvig.underwriter.service.model.PersonPolicyHolder
 import com.hedvig.underwriter.serviceIntegration.priceEngine.dtos.LineItem
-import com.hedvig.underwriter.serviceIntegration.priceEngine.dtos.PriceQueryResponse
 import com.hedvig.underwriter.serviceIntegration.productPricing.ProductPricingService
 import com.hedvig.underwriter.util.logger
 import org.javamoney.moneta.Money
@@ -28,7 +27,6 @@ import java.math.BigDecimal
 import java.time.Instant
 import java.time.temporal.ChronoUnit
 import javax.money.Monetary
-import javax.money.MonetaryAmount
 import kotlin.reflect.full.memberProperties
 
 @Service
@@ -58,7 +56,7 @@ class RequotingServiceImpl(
         }
     }
 
-    override fun useOldOrNewPrice(quote: Quote, newPrice: PriceQueryResponse): PriceQueryResponse {
+    override fun useOldOrNewPrice(quote: Quote, newPrice: Price): Price {
 
         logger.debug("Check if to reuse old price for quote. Initiated from ${quote.initiatedFrom}")
 
@@ -90,7 +88,7 @@ class RequotingServiceImpl(
         val anyOlderThan30d = quotes.any() { it.createdAt.isBefore(nowMinus30d) }
         val anyChangeLessThan30d = quotes
             .filter { it.createdAt.isAfter(nowMinus30d) }
-            .all { lastPrice.price.isSameAmount(it.price) }
+            .all { lastPrice.isSameAmount(it.price) }
             .not()
 
         // If new price has not changed then use it (line items may have changed thou)
@@ -99,7 +97,7 @@ class RequotingServiceImpl(
         }
 
         // During migration to line items feature we favour the new price if last does not have any line items
-        if (lastPrice.lineItems.isNullOrEmpty() && newPrice.lineItems != null && newPrice.lineItems.isNotEmpty()) {
+        if (lastPrice.lineItems.isEmpty() && newPrice.lineItems.isNotEmpty()) {
             return newPrice
         }
 
@@ -187,36 +185,36 @@ class RequotingServiceImpl(
     private fun AgreementStatus.isAnyOf(vararg statuses: AgreementStatus): Boolean =
         statuses.any { this == it }
 
-    private fun getLastPrice(quotes: List<Quote>): PriceQueryResponse {
+    private fun getLastPrice(quotes: List<Quote>): Price {
 
         val quote = quotes.sortedBy { it.createdAt }.last()
         val lineItems = quote.lineItems.map { LineItem(it.type, it.subType, it.amount) }
 
-        return PriceQueryResponse(quote.id, Money.of(quote.price, quote.currency), lineItems)
+        return Price(Money.of(quote.price, quote.currency), lineItems, quote.id)
     }
 }
 
-fun MonetaryAmount.isSameAmount(amount: BigDecimal?): Boolean {
+fun Price.isSameAmount(amount: BigDecimal?): Boolean {
     if (amount == null) {
         return false
     }
     val other = Money.of(amount, this.currency)
-    return this.with(Monetary.getDefaultRounding()) == other.with(Monetary.getDefaultRounding())
+    return this.price.with(Monetary.getDefaultRounding()) == other.with(Monetary.getDefaultRounding())
 }
 
 fun Quote.isSame(quote: Quote) =
-    QuoteComparator.isSame(this, quote)
+    QuoteComparator.isSameQuotes(this, quote)
 
 object QuoteComparator {
 
-    val justToMakeSureNoComparatorsAreForgottenWhenAddingNewTypes: (QuoteData) -> String = fun (type: QuoteData): String =
+    val justToMakeSureNoComparatorsAreForgottenWhenAddingNewTypes = fun (type: QuoteData) =
         when (type) {
-            is SwedishApartmentData -> "Done"
-            is SwedishHouseData -> "Done"
-            is NorwegianHomeContentsData -> "Done"
-            is NorwegianTravelData -> "Done"
-            is DanishAccidentData -> "Done"
-            is DanishHomeContentsData -> "Done"
+            is SwedishApartmentData,
+            is SwedishHouseData,
+            is NorwegianHomeContentsData,
+            is NorwegianTravelData,
+            is DanishAccidentData,
+            is DanishHomeContentsData,
             is DanishTravelData -> "Done"
         }
 
@@ -305,11 +303,11 @@ object QuoteComparator {
         return fingerprint1 == fingerprint2
     }
 
-    fun isSame(quote1: Quote, quote2: Quote): Boolean {
-        return hasSameProps(quote1.data, quote2.data)
-    }
+    fun isSameQuotes(quote1: Quote, quote2: Quote): Boolean {
+        if (quote1.data::class != quote2.data::class) {
+            return false
+        }
 
-    fun isSame(data1: QuoteData, data2: QuoteData): Boolean {
-        return hasSameProps(data1, data2)
+        return hasSameProps(quote1.data, quote2.data)
     }
 }

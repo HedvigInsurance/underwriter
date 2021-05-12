@@ -10,6 +10,7 @@ import io.mockk.every
 import org.javamoney.moneta.Money
 import assertk.assertThat
 import assertk.assertions.isEqualTo
+import assertk.assertions.isNull
 import com.hedvig.productPricingObjects.dtos.Agreement
 import com.hedvig.productPricingObjects.enums.AgreementStatus
 import com.hedvig.underwriter.serviceIntegration.memberService.MemberServiceClient
@@ -17,6 +18,7 @@ import com.hedvig.underwriter.serviceIntegration.memberService.dtos.Flag
 import com.hedvig.underwriter.serviceIntegration.memberService.dtos.HelloHedvigResponseDto
 import com.hedvig.underwriter.serviceIntegration.memberService.dtos.PersonStatusDto
 import com.hedvig.underwriter.serviceIntegration.priceEngine.PriceEngineClient
+import com.hedvig.underwriter.serviceIntegration.priceEngine.dtos.LineItem
 import com.hedvig.underwriter.serviceIntegration.productPricing.ProductPricingClient
 import com.hedvig.underwriter.testhelp.QuoteClient
 import io.mockk.mockk
@@ -30,6 +32,7 @@ import org.springframework.boot.test.web.client.TestRestTemplate
 import org.springframework.http.ResponseEntity
 import org.springframework.test.context.junit4.SpringRunner
 import java.lang.RuntimeException
+import java.math.BigDecimal
 import java.time.Instant
 import java.time.temporal.ChronoUnit
 import java.util.UUID
@@ -481,6 +484,73 @@ class RequoteSamePriceIntegrationTest {
         )) {
             assertThat(price.toPlainString()).isEqualTo("20")
             assertThat(currency).isEqualTo("SEK")
+        }
+    }
+
+    @Test
+    fun `Test re-quoting of lineitems and priceFrom`() {
+
+        every { priceEngineClient.queryPrice(any()) } returns PriceQueryResponse(UUID.randomUUID(), Money.of(12, "SEK"))
+
+        // Create a quote
+        with(quoteClient.createSwedishApartmentQuote(
+            street = "Test Apa"
+        )) {
+            assertThat(price.toPlainString()).isEqualTo("12")
+            assertThat(currency).isEqualTo("SEK")
+        }
+
+        every { priceEngineClient.queryPrice(any()) } returns
+            PriceQueryResponse(
+                UUID.randomUUID(),
+                Money.of(12, "SEK"),
+                listOf(
+                    LineItem("ApType1", "ApSubType1", BigDecimal.TEN),
+                    LineItem("ApType2", "ApSubType2", BigDecimal.ONE),
+                    LineItem("ApType3", "ApSubType3", BigDecimal.ONE)
+                )
+            )
+
+        // Create same quote again, should use new price since it has line items and the old not
+        val quoteId = with(quoteClient.createSwedishApartmentQuote(
+            street = "Test Apa"
+        )) {
+            assertThat(price.toPlainString()).isEqualTo("12")
+            assertThat(currency).isEqualTo("SEK")
+
+            val quote = quoteClient.getQuote(id)!!
+            assertThat(quote.priceFrom).isNull()
+            assertThat(quote.lineItems.size).isEqualTo(3)
+            assertThat(quote.lineItems[0].amount.compareTo(BigDecimal.TEN) == 0)
+            assertThat(quote.lineItems[0].amount.compareTo(BigDecimal.ONE) == 0)
+            assertThat(quote.lineItems[0].amount.compareTo(BigDecimal.ONE) == 0)
+
+            id
+        }
+
+        every { priceEngineClient.queryPrice(any()) } returns
+            PriceQueryResponse(
+                UUID.randomUUID(),
+                Money.of(20, "SEK"),
+                listOf(
+                    LineItem("ApType1", "ApSubType1", BigDecimal.TEN),
+                    LineItem("ApType2", "ApSubType2", BigDecimal.TEN)
+                )
+            )
+
+        // Create same quote again, should use old price since price changed (and both got line items)
+        with(quoteClient.createSwedishApartmentQuote(
+            street = "Test Apa"
+        )) {
+            assertThat(price.toPlainString()).isEqualTo("12")
+            assertThat(currency).isEqualTo("SEK")
+
+            val quote = quoteClient.getQuote(id)!!
+            assertThat(quote.priceFrom).isEqualTo(quoteId)
+            assertThat(quote.lineItems.size).isEqualTo(3)
+            assertThat(quote.lineItems[0].amount.compareTo(BigDecimal.TEN) == 0)
+            assertThat(quote.lineItems[0].amount.compareTo(BigDecimal.ONE) == 0)
+            assertThat(quote.lineItems[0].amount.compareTo(BigDecimal.ONE) == 0)
         }
     }
 
