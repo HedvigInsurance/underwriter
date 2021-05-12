@@ -40,4 +40,12 @@ interface SignSessionDao {
         """
     )
     fun find(sessionId: UUID): List<UUID>
+
+    @SqlUpdate(
+        """
+                DELETE FROM sign_session_master_quote 
+                WHERE master_quote_id = :quoteId
+            """
+    )
+    fun delete(@Bind quoteId: UUID)
 }
