@@ -230,7 +230,7 @@ class GdprIntegrationTest {
     }
 
     @Test
-    fun `Test dry-run cleaning job`() {
+    fun `Test cleaning job with requested dry-run`() {
 
         val memberId = Random().nextLong().toString()
         val quoteId = createGraphQlQuote(memberId)
@@ -238,7 +238,25 @@ class GdprIntegrationTest {
         val nowMinus30d = Instant.now().plus(-30, ChronoUnit.DAYS)
         updateCreatedAt(quoteId, nowMinus30d)
 
-        gdprClient.clean(true)
+        gdprClient.clean(dryRun = true)
+
+        assertQuoteExist(quoteId)
+
+        verify(exactly = 0) { notificationServiceClient.deleteMember(memberId) }
+        verify(exactly = 0) { apiGatewayServiceClient.deleteMember(any(), memberId) }
+        verify(exactly = 0) { memberServiceClient.deleteMember(memberId) }
+    }
+
+    @Test
+    fun `Test cleaning job with requested days`() {
+
+        val memberId = Random().nextLong().toString()
+        val quoteId = createGraphQlQuote(memberId)
+
+        val nowMinus60d = Instant.now().plus(-60, ChronoUnit.DAYS)
+        updateCreatedAt(quoteId, nowMinus60d)
+
+        gdprClient.clean(days = 29)
 
         assertQuoteExist(quoteId)
 
@@ -246,7 +264,21 @@ class GdprIntegrationTest {
         verify(exactly = 0) { apiGatewayServiceClient.deleteMember(any(), memberId) }
         verify(exactly = 0) { memberServiceClient.deleteMember(memberId) }
 
-        // TODO: Add verify checks to member, lookup services when implemented
+        gdprClient.clean(days = 61)
+
+        assertQuoteExist(quoteId)
+
+        verify(exactly = 0) { notificationServiceClient.deleteMember(memberId) }
+        verify(exactly = 0) { apiGatewayServiceClient.deleteMember(any(), memberId) }
+        verify(exactly = 0) { memberServiceClient.deleteMember(memberId) }
+
+        gdprClient.clean(days = 59)
+
+        assertNoQuoteExist(quoteId)
+
+        verify(exactly = 1) { notificationServiceClient.deleteMember(memberId) }
+        verify(exactly = 1) { apiGatewayServiceClient.deleteMember(any(), memberId) }
+        verify(exactly = 1) { memberServiceClient.deleteMember(memberId) }
     }
 
     @Test
@@ -263,8 +295,6 @@ class GdprIntegrationTest {
         verify(exactly = 0) { notificationServiceClient.deleteMember(memberId) }
         verify(exactly = 0) { apiGatewayServiceClient.deleteMember(any(), memberId) }
         verify(exactly = 0) { memberServiceClient.deleteMember(memberId) }
-
-        // TODO: Add verify checks to member, lookup services when implemented
     }
 
     private fun createMutation() =

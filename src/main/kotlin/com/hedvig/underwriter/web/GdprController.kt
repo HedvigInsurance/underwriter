@@ -15,9 +15,9 @@ class GdprController(
 ) {
     @PostMapping("/clean")
     @LogCall
-    fun clean(@RequestParam("dry-run") dryRun: Boolean?): ResponseEntity<out Any> {
+    fun clean(@RequestParam("dry-run") dryRun: Boolean?, @RequestParam("days") days: Long?): ResponseEntity<out Any> {
 
-        gdprService.clean(dryRun)
+        gdprService.clean(dryRun, days)
 
         return ResponseEntity.noContent().build()
     }
