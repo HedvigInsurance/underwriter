@@ -9,6 +9,7 @@ import com.hedvig.underwriter.serviceIntegration.notificationService.Notificatio
 import com.hedvig.underwriter.util.logger
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Service
+import java.lang.IllegalArgumentException
 import java.time.Instant
 import java.time.temporal.ChronoUnit
 import java.util.UUID
@@ -28,26 +29,31 @@ class GdprServiceImpl(
     @Value("\${features.gdpr.dry-run:false}")
     private var dryRunConfig: Boolean = false
 
-    override fun clean(dryRun: Boolean?) {
+    override fun clean(requestedDryRun: Boolean?, requestedDays: Long?) {
         try {
-            val isDryRun = dryRun ?: this.dryRunConfig
+            val dryRun = requestedDryRun ?: this.dryRunConfig
+            val days = requestedDays ?: this.daysConfig
 
-            run(isDryRun)
+            if (days < this.daysConfig) {
+                throw IllegalArgumentException("Days to clean cannot be less than ${this.daysConfig}")
+            }
+
+            run(dryRun, days)
         } catch (e: Exception) {
             logger.error("Failed to finish executing cleaning job: $e", e)
         }
     }
 
-    private fun run(dryRun: Boolean) {
+    private fun run(dryRun: Boolean, days: Long) {
 
-        logger.info("Clean out quotes older than $daysConfig days ${if (dryRun) "(DRY-RUN)" else ""}")
+        logger.info("Clean out quotes older than $days days ${if (dryRun) "(DRY-RUN)" else ""}")
 
-        if (daysConfig <= 0) {
+        if (days <= 0) {
             logger.info("Cleaning disabled")
             return
         }
 
-        val quotesToDelete = getQuotesToDelete(daysConfig)
+        val quotesToDelete = getQuotesToDelete(days)
         val membersToDelete = getMembersToDelete(quotesToDelete)
 
         logger.info("Found ${quotesToDelete.size} quote(s) to delete")

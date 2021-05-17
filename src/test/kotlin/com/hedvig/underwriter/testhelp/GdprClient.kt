@@ -12,7 +12,19 @@ class GdprClient {
     @Autowired
     private lateinit var restTemplate: TestRestTemplate
 
-    fun clean(dryRun: Boolean = false): ResponseEntity<String> {
-        return restTemplate.postForEntity("/_/v1/gdpr/clean${if (dryRun) "?dry-run=true" else ""}")
+    fun clean(dryRun: Boolean? = null, days: Int? = null): ResponseEntity<String> {
+        val queryStrings = mutableListOf<String>()
+
+        if (dryRun != null) {
+            queryStrings.add("dry-run=$dryRun")
+        }
+
+        if (days != null) {
+            queryStrings.add("days=$days")
+        }
+
+        val query = queryStrings.joinToString("&", "?")
+
+        return restTemplate.postForEntity("/_/v1/gdpr/clean$query")
     }
 }
