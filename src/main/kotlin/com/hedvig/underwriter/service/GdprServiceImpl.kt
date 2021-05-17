@@ -32,13 +32,15 @@ class GdprServiceImpl(
     override fun clean(requestedDryRun: Boolean?, requestedDays: Long?) {
         try {
             val dryRun = requestedDryRun ?: this.dryRunConfig
-            val days = requestedDays ?: this.daysConfig
+            var days = requestedDays ?: this.daysConfig
 
-            if (days < this.daysConfig) {
-                throw IllegalArgumentException("Days to clean cannot be less than ${this.daysConfig}")
+            // Ignore requested days if disabled or less than configured days
+            if (this.daysConfig < 0 || days < this.daysConfig) {
+                days = this.daysConfig
             }
 
             run(dryRun, days)
+
         } catch (e: Exception) {
             logger.error("Failed to finish executing cleaning job: $e", e)
         }

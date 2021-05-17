@@ -253,16 +253,19 @@ class GdprIntegrationTest {
         val memberId = Random().nextLong().toString()
         val quoteId = createGraphQlQuote(memberId)
 
-        val nowMinus60d = Instant.now().plus(-60, ChronoUnit.DAYS)
-        updateCreatedAt(quoteId, nowMinus60d)
+        val nowMinus20d = Instant.now().plus(-20, ChronoUnit.DAYS)
+        updateCreatedAt(quoteId, nowMinus20d)
 
-        gdprClient.clean(days = 29)
+        gdprClient.clean(days = 10)
 
         assertQuoteExist(quoteId)
 
         verify(exactly = 0) { notificationServiceClient.deleteMember(memberId) }
         verify(exactly = 0) { apiGatewayServiceClient.deleteMember(any(), memberId) }
         verify(exactly = 0) { memberServiceClient.deleteMember(memberId) }
+
+        val nowMinus60d = Instant.now().plus(-60, ChronoUnit.DAYS)
+        updateCreatedAt(quoteId, nowMinus60d)
 
         gdprClient.clean(days = 61)
 
