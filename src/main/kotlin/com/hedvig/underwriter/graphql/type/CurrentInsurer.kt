@@ -1,41 +1,20 @@
 package com.hedvig.underwriter.graphql.type
 
+import com.hedvig.underwriter.model.InsuranceCompany
+
 data class CurrentInsurer(
     val id: String,
     val displayName: String,
     val switchable: Boolean
 ) {
     companion object {
-        private val swedishInsurerMap = mapOf(
-            "if" to Pair("If", false),
-            "Folksam" to Pair("Folksam", true),
-            "Trygg-Hansa" to Pair("Trygg-Hansa", true),
-            "Länsförsäkringar" to Pair("Länsförsäkringar", false),
-            "Länsförsäkringar Stockholm" to Pair("Länsförsäkringar Stockholm", true),
-            "Moderna" to Pair("Moderna", false),
-            "Gjensidige" to Pair("Gjensidige", false),
-            "Vardia" to Pair("Vardia", false),
-            "Tre Kronor" to Pair("Tre Kronor", true),
-            "ICA" to Pair("Ica", true),
-            "Dina Försäkringar" to Pair("Dina Försäkringar", false),
-            "Aktsam" to Pair("Aktsam", true),
-            "other" to Pair("Other", false)
-        )
-        private val norwegianInsurerMap = mapOf(
-            "If NO" to Pair("If", true),
-            "Fremtind" to Pair("Fremtind", true),
-            "Gjensidige NO" to Pair("Gjensidige", true),
-            "Tryg" to Pair("Tryg", true),
-            "Eika" to Pair("Eika", true),
-            "Frende" to Pair("Frende", true),
-            "Storebrand" to Pair("Storebrand", true),
-            "Codan" to Pair("Codan", true)
+        fun from(insuranceCompany: InsuranceCompany) = CurrentInsurer(
+            id = insuranceCompany.id,
+            displayName = insuranceCompany.displayName,
+            switchable = insuranceCompany.switchable
         )
 
-        private val allInsurers = swedishInsurerMap + norwegianInsurerMap
-
-        fun create(id: String) = allInsurers[id]?.let {
-            CurrentInsurer(id, it.first, it.second)
-        } ?: throw IllegalArgumentException("Unknown id($id) when creating CurrentInsurer")
+        fun create(id: String) = InsuranceCompany.allInsurers[id]?.let { from(it) }
+            ?: throw IllegalArgumentException("Unknown id($id) when creating CurrentInsurer")
     }
 }

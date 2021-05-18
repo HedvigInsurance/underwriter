@@ -115,7 +115,7 @@ class CreateContractsFromQuotesSavesContractIdAndContractIdTest {
         signServiceImpl.signQuoteFromRapio(
             quoteId,
             SignQuoteRequestDto(
-                Name("Mr Test", "Tester"), null, LocalDate.of(2020, 1, 1), "a@email.com"
+                Name("Mr Test", "Tester"), null, LocalDate.of(2020, 1, 1), "if", "a@email.com"
             )
         )
 
