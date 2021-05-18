@@ -15,6 +15,6 @@ data class CurrentInsurer(
         )
 
         fun create(id: String) = InsuranceCompany.allInsurers[id]?.let { from(it) }
-            ?: throw IllegalArgumentException("Unknown id($id) when creating CurrentInsurer")
+            ?: throw IllegalArgumentException("Unknown id when creating CurrentInsurer (id=$id)")
     }
 }
