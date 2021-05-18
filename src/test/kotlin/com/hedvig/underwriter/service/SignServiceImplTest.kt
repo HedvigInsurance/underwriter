@@ -141,7 +141,7 @@ class SignServiceImplTest {
         every { memberService.signQuote(any(), any()) } returns Right(UnderwriterQuoteSignResponse(1234, true))
         every { memberService.isSsnAlreadySignedMemberEntity(any()) } returns IsSsnAlreadySignedMemberResponse(false)
 
-        cut.signQuoteFromRapio(quoteId, SignQuoteRequestDto(Name("", ""), null, LocalDate.now(), "if", "null"))
+        cut.signQuoteFromRapio(quoteId, SignQuoteRequestDto(Name("", ""), null, LocalDate.now(), null, "null"))
         verify { notificationService.postSignUpdate(ofType(Quote::class)) }
     }
 
