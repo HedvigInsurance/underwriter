@@ -1,7 +1,7 @@
 package com.hedvig.underwriter.config
 
 import com.coxautodev.graphql.tools.SchemaParserDictionary
-import com.hedvig.underwriter.graphql.type.ExtraBuilding
+import com.hedvig.underwriter.graphql.type.ExtraBuildingValue
 import com.hedvig.underwriter.graphql.type.IncompleteQuoteDetails
 import com.hedvig.underwriter.graphql.type.QuoteDetails
 import com.hedvig.underwriter.graphql.type.QuoteResult
@@ -49,20 +49,7 @@ class GraphQLConfig {
                     StartSignResponse.DanishBankIdSession::class.java,
                     StartSignResponse.SimpleSignSession::class.java,
                     StartSignResponse.FailedToStartSign::class.java,
-                    ExtraBuilding.ExtraBuildingGarage::class.java,
-                    ExtraBuilding.ExtraBuildingCarport::class.java,
-                    ExtraBuilding.ExtraBuildingShed::class.java,
-                    ExtraBuilding.ExtraBuildingStorehouse::class.java,
-                    ExtraBuilding.ExtraBuildingFriggebod::class.java,
-                    ExtraBuilding.ExtraBuildingAttefall::class.java,
-                    ExtraBuilding.ExtraBuildingOuthouse::class.java,
-                    ExtraBuilding.ExtraBuildingGuesthouse::class.java,
-                    ExtraBuilding.ExtraBuildingGazebo::class.java,
-                    ExtraBuilding.ExtraBuildingGreenhouse::class.java,
-                    ExtraBuilding.ExtraBuildingSauna::class.java,
-                    ExtraBuilding.ExtraBuildingBarn::class.java,
-                    ExtraBuilding.ExtraBuildingBoathouse::class.java,
-                    ExtraBuilding.ExtraBuildingOther::class.java
+                    ExtraBuildingValue::class.java
                 )
             )
     }
