@@ -11,7 +11,7 @@ data class InsuranceCompany(
 
         private val other = InsuranceCompany("other", "Other", false)
 
-        val insurersByCountry = mapOf(
+        val insurersByCountryCode = mapOf(
             CountryCode.SE to setOf(
                 InsuranceCompany("if", "If", false),
                 InsuranceCompany("Folksam", "Folksam", true),
