@@ -20,7 +20,7 @@ class InsuranceCompanyController(
     @GetMapping
     @LogCall
     fun getInsuranceCompanies(@RequestParam countryCode: CountryCode): ResponseEntity<List<InsuranceCompanyDto>> {
-        return ResponseEntity.ok(insuranceCompanyService.getInsuranceCompanies(countryCode).map { it.toDto() })
+        return ResponseEntity.ok(insuranceCompanyService.getInsuranceCompaniesByCountryCode(countryCode).map { it.toDto() })
     }
 
 }

@@ -40,6 +40,6 @@ data class InsuranceCompany(
             )
         )
 
-        val allInsurers = insurersByCountry.values.flatten().toSet().associateBy { it.id }
+        val allInsurers = insurersByCountryCode.values.flatten().toSet().associateBy { it.id }
     }
 }

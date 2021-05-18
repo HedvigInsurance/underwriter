@@ -47,7 +47,7 @@ internal class InsuranceCompanyServiceImplTest {
             )
         )
 
-        InsuranceCompany.insurersByCountry.forEach {
+        InsuranceCompany.insurersByCountryCode.forEach {
             assertEquals(insurerIds[it.key]!!.toList(), it.value.map { it.id })
         }
     }

@@ -4,5 +4,5 @@ import com.hedvig.underwriter.model.InsuranceCompany
 import com.neovisionaries.i18n.CountryCode
 
 interface InsuranceCompanyService {
-    fun getInsuranceCompanies(countryCode: CountryCode): Set<InsuranceCompany>
+    fun getInsuranceCompaniesByCountryCode(countryCode: CountryCode): Set<InsuranceCompany>
 }

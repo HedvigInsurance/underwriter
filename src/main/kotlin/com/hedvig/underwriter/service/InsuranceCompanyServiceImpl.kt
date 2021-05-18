@@ -7,5 +7,5 @@ import org.springframework.stereotype.Service
 @Service
 class InsuranceCompanyServiceImpl : InsuranceCompanyService {
     override fun getInsuranceCompaniesByCountryCode(countryCode: CountryCode): Set<InsuranceCompany> =
-        InsuranceCompany.insurersByCountry[countryCode] ?: emptySet()
+        InsuranceCompany.insurersByCountryCode[countryCode] ?: emptySet()
 }
