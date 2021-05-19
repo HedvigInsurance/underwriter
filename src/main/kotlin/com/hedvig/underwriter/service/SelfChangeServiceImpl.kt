@@ -1,6 +1,7 @@
 package com.hedvig.underwriter.service
 
 import com.hedvig.underwriter.model.QuoteRepository
+import com.hedvig.underwriter.model.QuoteState
 import com.hedvig.underwriter.serviceIntegration.productPricing.ProductPricingService
 import org.springframework.stereotype.Service
 import java.util.UUID
@@ -20,7 +21,7 @@ class SelfChangeServiceImpl(
         changes.forEach { change ->
             val quote = quotes.first { change.quoteId == it.id }
             quoteRepository.update(
-                quote.copy(contractId = change.contractId, agreementId = change.agreementId)
+                quote.copy(contractId = change.contractId, agreementId = change.agreementId, state = QuoteState.SIGNED)
             )
         }
     }
