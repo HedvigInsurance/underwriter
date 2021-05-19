@@ -131,6 +131,7 @@ class QuoteRepositoryImpl(private val jdbi: Jdbi) : QuoteRepository {
             updatedAt = databaseQuote.timestamp,
             price = databaseQuote.price,
             currency = databaseQuote.currency,
+            priceFrom = databaseQuote.priceFrom,
             productType = databaseQuote.productType,
             state = databaseQuote.state,
             initiatedFrom = databaseQuote.initiatedFrom!!,

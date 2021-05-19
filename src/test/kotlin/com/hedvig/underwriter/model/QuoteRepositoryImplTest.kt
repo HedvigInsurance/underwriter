@@ -994,6 +994,7 @@ class QuoteRepositoryImplTest {
 
         expected::class.memberProperties
             .filterNot { it.name == "updatedAt" }
+            .filterNot { it.name == "revisionId" }
             .filterNot { it.name == "lineItems" } // Tested separately below
             .forEach { prop ->
                 if (prop.name == "data") {

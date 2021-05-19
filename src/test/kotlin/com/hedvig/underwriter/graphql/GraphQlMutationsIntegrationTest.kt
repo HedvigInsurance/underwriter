@@ -16,6 +16,7 @@ import com.hedvig.underwriter.model.QuoteInitiatedFrom
 import com.hedvig.underwriter.model.birthDateFromNorwegianSsn
 import com.hedvig.underwriter.service.DebtChecker
 import com.hedvig.underwriter.service.QuoteService
+import com.hedvig.underwriter.service.RequotingService
 import com.hedvig.underwriter.service.SignService
 import com.hedvig.underwriter.serviceIntegration.memberService.MemberService
 import com.hedvig.underwriter.serviceIntegration.notificationService.NotificationService
@@ -61,6 +62,9 @@ internal class GraphQlMutationsIntegrationTest {
     lateinit var priceEngineService: PriceEngineService
 
     @MockkBean(relaxed = true)
+    lateinit var requotingService: RequotingService
+
+    @MockkBean(relaxed = true)
     lateinit var notificationService: NotificationService
 
     @MockkBean
@@ -93,6 +97,8 @@ internal class GraphQlMutationsIntegrationTest {
                 UUID.randomUUID(),
                 Money.of(BigDecimal.ONE, "SEK")
             )
+
+        every { requotingService.useOldOrNewPrice(any(), any()) } answers { secondArg() }
     }
 
     @Test
