@@ -228,6 +228,7 @@ class QuoteMapper(
         extraBuilding: ExtraBuilding,
         locale: Locale
     ): ExtraBuildingValue = ExtraBuildingValue(
+        type = com.hedvig.underwriter.graphql.type.ExtraBuildingType.valueOf(extraBuilding.type.name),
         area = extraBuilding.area,
         hasWaterConnected = extraBuilding.hasWaterConnected,
         displayName = extractDisplayName(extraBuilding.type, locale)

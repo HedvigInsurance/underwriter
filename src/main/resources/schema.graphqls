@@ -346,12 +346,14 @@ type CurrentInsurer {
 union ExtraBuilding = ExtraBuildingValue
 
 interface ExtraBuildingCore {
+    type: ExtraBuildingType!
     area: Int!
     displayName: String!
     hasWaterConnected: Boolean!
 }
 
 type ExtraBuildingValue implements ExtraBuildingCore {
+    type: ExtraBuildingType!
     area: Int!
     displayName: String!
     hasWaterConnected: Boolean!
