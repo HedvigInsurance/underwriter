@@ -10,4 +10,9 @@ enum class Partner(val campaignCode: String? = null) {
     SPIFF,
     TJENSTETORGET,
     FORSIKRINGSPORTALEN,
+    SAMLINO,
+    FINDFORSIKRING,
+    FORSIKRINGSGUIDEN,
+    KEY_HOLE,
+    COPENHAGEN_SALES
 }
