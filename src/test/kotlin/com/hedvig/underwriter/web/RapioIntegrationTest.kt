@@ -3,7 +3,6 @@ package com.hedvig.underwriter.web
 import com.hedvig.underwriter.model.Market
 import com.hedvig.underwriter.model.NorwegianHomeContentsData
 import com.hedvig.underwriter.model.NorwegianTravelData
-import com.hedvig.underwriter.model.Quote
 import com.hedvig.underwriter.serviceIntegration.memberService.dtos.IsSsnAlreadySignedMemberResponse
 import com.hedvig.underwriter.serviceIntegration.memberService.dtos.UnderwriterQuoteSignResponse
 import com.hedvig.underwriter.serviceIntegration.memberService.dtos.UpdateSsnRequest
@@ -11,8 +10,6 @@ import com.hedvig.underwriter.serviceIntegration.notificationService.Notificatio
 import com.hedvig.underwriter.serviceIntegration.priceEngine.dtos.PriceQueryRequest
 import com.hedvig.underwriter.serviceIntegration.priceEngine.dtos.PriceQueryResponse
 import com.hedvig.underwriter.serviceIntegration.productPricing.dtos.contract.CreateContractResponse
-import com.hedvig.underwriter.web.dtos.CompleteQuoteResponseDto
-import com.hedvig.underwriter.web.dtos.SignedQuoteResponseDto
 import com.hedvig.underwriter.web.dtos.UnderwriterQuoteSignRequest
 import com.ninjasquad.springmockk.MockkBean
 import io.mockk.every
@@ -21,10 +18,10 @@ import org.javamoney.moneta.Money
 import assertk.assertThat
 import assertk.assertions.isEmpty
 import assertk.assertions.isEqualTo
-import assertk.assertions.isFailure
 import assertk.assertions.isInstanceOf
 import assertk.assertions.isNull
 import assertk.assertions.matchesPredicate
+import assertk.assertions.startsWith
 import com.hedvig.graphql.commons.type.MonetaryAmountV2
 import com.hedvig.productPricingObjects.dtos.AgreementQuote
 import com.hedvig.underwriter.graphql.type.InsuranceCost
@@ -42,18 +39,11 @@ import com.hedvig.underwriter.serviceIntegration.priceEngine.PriceEngineClient
 import com.hedvig.underwriter.serviceIntegration.productPricing.ProductPricingClient
 import com.hedvig.underwriter.serviceIntegration.productPricing.dtos.CalculateBundleInsuranceCostRequest
 import com.hedvig.underwriter.serviceIntegration.productPricing.dtos.contract.CreateContractsRequest
-import com.hedvig.underwriter.web.dtos.QuoteBundleResponseDto
-import com.hedvig.underwriter.web.dtos.SignedQuotesResponseDto
+import com.hedvig.underwriter.testhelp.QuoteClient
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
-import org.springframework.boot.test.web.client.TestRestTemplate
-import org.springframework.boot.test.web.client.postForObject
-import org.springframework.http.HttpEntity
-import org.springframework.http.HttpHeaders
-import org.springframework.http.HttpMethod
-import org.springframework.http.MediaType
 import org.springframework.http.ResponseEntity
 import org.springframework.test.context.junit4.SpringRunner
 import java.time.Instant
@@ -66,7 +56,7 @@ import kotlin.random.Random.Default.nextLong
 class RapioIntegrationTest {
 
     @Autowired
-    private lateinit var restTemplate: TestRestTemplate
+    private lateinit var quoteClient: QuoteClient
 
     @MockkBean(relaxed = true)
     lateinit var notificationServiceClient: NotificationServiceClient
@@ -110,7 +100,7 @@ class RapioIntegrationTest {
         every { priceEngineClient.queryPrice(capture(peQueryPriceRequest)) } returns PriceQueryResponse(UUID.randomUUID(), Money.of(12, "NOK"))
 
         // Create quote
-        val quoteResponse = createNorwegianTravelQuote()
+        val quoteResponse = quoteClient.createNorwegianTravelQuote()
 
         // Validate quote response
         assertThat(quoteResponse.price.toString()).isEqualTo("12")
@@ -118,14 +108,21 @@ class RapioIntegrationTest {
         assertThat(quoteResponse.validTo.isAfter(now)).isEqualTo(true)
 
         // Sign quote
-        val signResponse = signQuote(quoteResponse.id, "Apan", "Apansson", ssn, "apan@apansson.se", today.toString())
+        val signResponse = quoteClient.signQuote(
+            quoteId = quoteResponse.id,
+            firstName = "Apan",
+            lastName = "Apansson",
+            ssn = ssn,
+            email = "apan@apansson.se",
+            startDate = today.toString()
+        )
 
         // Validate sign response
         assertThat(signResponse.memberId).isEqualTo(memberId)
         assertThat(signResponse.market).isEqualTo(Market.NORWAY)
 
         // Get quote
-        val quote = getQuote(quoteResponse.id)
+        val quote = quoteClient.getQuote(quoteResponse.id)!!
 
         // Validate stored quote
         assertThat(quote.id).isEqualTo(quoteResponse.id)
@@ -146,7 +143,7 @@ class RapioIntegrationTest {
         assertThat(quote.data).isInstanceOf(NorwegianTravelData::class.java)
         val data = quote.data as NorwegianTravelData
         assertThat(data.ssn).isEqualTo(ssn)
-        assertThat(data.birthDate.toString()).isEqualTo("1988-01-01")
+        assertThat(data.birthDate.toString()).isEqualTo("1944-08-04")
         assertThat(data.firstName).isEqualTo("Apan")
         assertThat(data.lastName).isEqualTo("Apansson")
         assertThat(data.email).isEqualTo("apan@apansson.se")
@@ -172,14 +169,14 @@ class RapioIntegrationTest {
             assertThat(captured.phoneNumber).isNull()
             assertThat(captured.address).isNull()
             assertThat(captured.memberId).isEqualTo(memberId)
-            assertThat(captured.birthDate.toString()).isEqualTo("1988-01-01")
+            assertThat(captured.birthDate.toString()).isEqualTo("1944-08-04")
         }
 
         // Validate request to Price Enging
         with(peQueryPriceRequest) {
             assertThat(captured.holderMemberId).isNull()
             assertThat(captured.quoteId).isEqualTo(quoteResponse.id)
-            assertThat(captured.holderBirthDate.toString()).isEqualTo("1988-01-01")
+            assertThat(captured.holderBirthDate.toString()).isEqualTo("1944-08-04")
             assertThat(captured.numberCoInsured).isEqualTo(1)
             assertThat(captured.lineOfBusiness.name).isEqualTo("REGULAR")
         }
@@ -227,69 +224,32 @@ class RapioIntegrationTest {
         every { productPricingClient.createContract(any(), any()) } returns listOf(CreateContractResponse(UUID.randomUUID(), agreementId, contractId))
         every { priceEngineClient.queryPrice(any()) } returns PriceQueryResponse(UUID.randomUUID(), Money.of(12, "NOK"))
 
-        val quoteResponse = createNorwegianTravelQuote("1912-12-12")
+        val quoteResponse = quoteClient.createNorwegianTravelQuote("1912-12-12")
 
         assertThat(quoteResponse.price.toString(), "12")
         assertThat(quoteResponse.currency, "NOK")
         assertThat(quoteResponse.validTo.isAfter(now)).isEqualTo(true)
 
-        val signRequestNoSsn = """
-            {
-                "name": {
-                    "firstName": "Apan",
-                    "lastName": "Banansson"
-                },
-                "startDate": "$today",
-                "email": "apan@apansson.se"
-            }
-        """.trimIndent()
+        val response1 = quoteClient.signQuoteRaw(
+            quoteId = quoteResponse.id,
+            firstName = "Apan",
+            lastName = "Banansson",
+            email = "apan@apansson.se"
+        )
 
-        assertThat {
-            postJson<SignedQuoteResponseDto>("/_/v1/quotes/${quoteResponse.id}/sign", signRequestNoSsn)!!
-        }.isFailure()
+        assertThat(response1.statusCodeValue).isEqualTo(422)
+        assertThat(response1.body!!.contains("no ssn"))
 
-        val signRequestInvalidSsn = """
-            {
-                "name": {
-                    "firstName": "Apan",
-                    "lastName": "Banansson"
-                },
-                "ssn": "11077900000",
-                "startDate": "$today",
-                "email": "apan@apansson.se"
-            }
-        """.trimIndent()
+        val response2 = quoteClient.signQuoteRaw(
+            quoteId = quoteResponse.id,
+            ssn = "11077900000",
+            firstName = "Apan",
+            lastName = "Banansson",
+            email = "apan@apansson.se"
+        )
 
-        assertThat {
-            postJson<SignedQuoteResponseDto>("/_/v1/quotes/${quoteResponse.id}/sign", signRequestInvalidSsn)!!
-        }.isFailure()
-    }
-
-    @Test
-    fun `Create Norwegian travel quote with ssn fails`() {
-
-        val quoteRequestWithSsn = """
-            {
-                "firstName":null,
-                "lastName":null,
-                "currentInsurer":null,
-                "birthDate":"1912-12-12",
-                "ssn":11077941012,
-                "quotingPartner":"HEDVIG",
-                "productType":"TRAVEL",
-                "incompleteQuoteData":{
-                    "type":"norwegianTravel",
-                    "coInsured":1,
-                    "youth":false
-                },
-                "shouldComplete":true,
-                "underwritingGuidelinesBypassedBy":null
-            }
-        """.trimIndent()
-
-        assertThat {
-            postJson<CompleteQuoteResponseDto>("/_/v1/quotes", quoteRequestWithSsn)!!
-        }.isFailure()
+        assertThat(response2.statusCodeValue).isEqualTo(500)
+        assertThat(response2.body!!.contains("Invalid Norwegian SSN"))
     }
 
     @Test
@@ -322,7 +282,7 @@ class RapioIntegrationTest {
         every { priceEngineClient.queryPrice(capture(peQueryPriceRequest)) } returns PriceQueryResponse(UUID.randomUUID(), Money.of(12, "NOK"))
 
         // Create quote
-        val quoteResponse = createNorwegianHomeContentQuote()
+        val quoteResponse = quoteClient.createNorwegianHomeContentQuote(birthdate = "1988-01-01", street = "ApStreet 999", livingSpace = 122)
 
         // Validate quote response
         assertThat(quoteResponse.price.toString()).isEqualTo("12")
@@ -330,14 +290,21 @@ class RapioIntegrationTest {
         assertThat(quoteResponse.validTo.isAfter(now)).isEqualTo(true)
 
         // Sign quote
-        val signResponse = signQuote(quoteResponse.id, "Apan", "Apansson", ssn, "apan@apansson.se", today.toString())
+        val signResponse = quoteClient.signQuote(
+            quoteId = quoteResponse.id,
+            firstName = "Apan",
+            lastName = "Apansson",
+            ssn = ssn,
+            email = "apan@apansson.se",
+            startDate = today.toString()
+        )
 
         // Validate sign response
         assertThat(signResponse.memberId).isEqualTo(memberId)
         assertThat(signResponse.market).isEqualTo(Market.NORWAY)
 
         // Get quote
-        val quote = getQuote(quoteResponse.id)
+        val quote = quoteClient.getQuote(quoteResponse.id)!!
 
         // Validate stored quote
         assertThat(quote.id).isEqualTo(quoteResponse.id)
@@ -363,9 +330,9 @@ class RapioIntegrationTest {
         assertThat(data.lastName).isEqualTo("Apansson")
         assertThat(data.email).isEqualTo("apan@apansson.se")
         assertThat(data.phoneNumber).isNull()
-        assertThat(data.street).isEqualTo("ApStreet")
+        assertThat(data.street).startsWith("ApStreet")
         assertThat(data.city).isEqualTo("ApCity")
-        assertThat(data.zipCode).isEqualTo("1234")
+        assertThat(data.zipCode).isEqualTo("12345")
         assertThat(data.livingSpace).isEqualTo(122)
         assertThat(data.coInsured).isEqualTo(1)
         assertThat(data.isYouth).isEqualTo(false)
@@ -387,9 +354,9 @@ class RapioIntegrationTest {
             assertThat(captured.lastName).isEqualTo("Apansson")
             assertThat(captured.email).isEqualTo("apan@apansson.se")
             assertThat(captured.phoneNumber).isNull()
-            assertThat(captured.address!!.street).isEqualTo("ApStreet")
+            assertThat(captured.address!!.street).startsWith("ApStreet")
             assertThat(captured.address!!.city).isEqualTo("ApCity")
-            assertThat(captured.address!!.zipCode).isEqualTo("1234")
+            assertThat(captured.address!!.zipCode).isEqualTo("12345")
             assertThat(captured.address!!.apartmentNo).isEqualTo("")
             assertThat(captured.address!!.floor).isEqualTo(0)
             assertThat(captured.memberId).isEqualTo(memberId)
@@ -403,7 +370,7 @@ class RapioIntegrationTest {
             assertThat(captured.holderBirthDate.toString()).isEqualTo("1988-01-01")
             assertThat(captured.numberCoInsured).isEqualTo(1)
             assertThat(captured.lineOfBusiness.name).isEqualTo("OWN")
-            assertThat(captured.postalCode).isEqualTo("1234")
+            assertThat(captured.postalCode).isEqualTo("12345")
             assertThat(captured.squareMeters).isEqualTo(122)
         }
 
@@ -427,9 +394,9 @@ class RapioIntegrationTest {
             assertThat(ppQuote.currency).isEqualTo("NOK")
             assertThat(ppQuote.currentInsurer).isNull()
             assertThat(ppQuote.address.city).isEqualTo("ApCity")
-            assertThat(ppQuote.address.postalCode).isEqualTo("1234")
+            assertThat(ppQuote.address.postalCode).isEqualTo("12345")
             assertThat(ppQuote.address.country.name).isEqualTo("NO")
-            assertThat(ppQuote.address.street).isEqualTo("ApStreet")
+            assertThat(ppQuote.address.street).startsWith("ApStreet")
             assertThat(ppQuote.address.coLine).isEqualTo(null)
             assertThat(ppQuote.coInsured.size).isEqualTo(1)
             assertThat(ppQuote.coInsured[0].firstName).isNull()
@@ -474,7 +441,16 @@ class RapioIntegrationTest {
         every { priceEngineClient.queryPrice(capture(peQueryPriceRequest)) } returns PriceQueryResponse(UUID.randomUUID(), Money.of(12, "SEK"))
 
         // Create quote
-        val quoteResponse = createSwedishHouseQuote(ssn)
+        val quoteResponse = quoteClient.createSwedishHouseQuote(
+            ssn,
+            street = "ApGatan 998",
+            livingSpace = 100,
+            householdSize = 2,
+            ancillaryArea = 10,
+            yearOfConstruction = 1980,
+            numberOfBathrooms = 2,
+            subleted = true
+        )
 
         // Validate quote response
         assertThat(quoteResponse.price.toString()).isEqualTo("12")
@@ -482,14 +458,20 @@ class RapioIntegrationTest {
         assertThat(quoteResponse.validTo.isAfter(now)).isEqualTo(true)
 
         // Sign quote
-        val signResponse = signQuote(quoteResponse.id, "Apan", "Apansson", ssn, "apan@apansson.se", today.toString())
+        val signResponse = quoteClient.signQuote(
+            quoteId = quoteResponse.id,
+            firstName = "Apan",
+            lastName = "Apansson",
+            ssn = ssn,
+            email = "apan@apansson.se",
+            startDate = today.toString())
 
         // Validate sign response
         assertThat(signResponse.memberId).isEqualTo(memberId)
         assertThat(signResponse.market).isEqualTo(Market.SWEDEN)
 
         // Get quote
-        val quote = getQuote(quoteResponse.id)
+        val quote = quoteClient.getQuote(quoteResponse.id)!!
 
         // Validate stored quote
         assertThat(quote.id).isEqualTo(quoteResponse.id)
@@ -515,9 +497,9 @@ class RapioIntegrationTest {
         assertThat(data.lastName).isEqualTo("Apansson")
         assertThat(data.email).isEqualTo("apan@apansson.se")
         assertThat(data.phoneNumber).isNull()
-        assertThat(data.street).isEqualTo("ApGatan")
+        assertThat(data.street).isEqualTo("ApGatan 998")
         assertThat(data.city).isEqualTo("ApCity")
-        assertThat(data.zipCode).isEqualTo("1234")
+        assertThat(data.zipCode).isEqualTo("12345")
         assertThat(data.livingSpace).isEqualTo(100)
         assertThat(data.householdSize).isEqualTo(2)
         assertThat(data.internalId).isNull()
@@ -527,7 +509,6 @@ class RapioIntegrationTest {
         assertThat(data.extraBuildings!![0].type.name).isEqualTo("CARPORT")
         assertThat(data.extraBuildings!![0].displayName).isNull()
         assertThat(data.extraBuildings!![0].hasWaterConnected).isEqualTo(true)
-        assertThat(data.floor).isEqualTo(0)
         assertThat(data.isSubleted).isEqualTo(true)
         assertThat(data.numberOfBathrooms).isEqualTo(2)
         assertThat(data.yearOfConstruction).isEqualTo(1980)
@@ -547,9 +528,9 @@ class RapioIntegrationTest {
             assertThat(captured.lastName).isEqualTo("Apansson")
             assertThat(captured.email).isEqualTo("apan@apansson.se")
             assertThat(captured.phoneNumber).isNull()
-            assertThat(captured.address!!.street).isEqualTo("ApGatan")
+            assertThat(captured.address!!.street).startsWith("ApGatan 998")
             assertThat(captured.address!!.city).isEqualTo("ApCity")
-            assertThat(captured.address!!.zipCode).isEqualTo("1234")
+            assertThat(captured.address!!.zipCode).isEqualTo("12345")
             assertThat(captured.address!!.apartmentNo).isEqualTo("")
             assertThat(captured.address!!.floor).isEqualTo(0)
             assertThat(captured.memberId).isEqualTo(memberId)
@@ -562,7 +543,7 @@ class RapioIntegrationTest {
             assertThat(captured.quoteId).isEqualTo(quoteResponse.id)
             assertThat(captured.holderBirthDate.toString()).isEqualTo("1991-10-11")
             assertThat(captured.numberCoInsured).isEqualTo(1)
-            assertThat(captured.postalCode).isEqualTo("1234")
+            assertThat(captured.postalCode).isEqualTo("12345")
             assertThat(captured.squareMeters).isEqualTo(100)
             assertThat(captured.ancillaryArea).isEqualTo(10)
             assertThat(captured.extraBuildings.size).isEqualTo(1)
@@ -594,9 +575,9 @@ class RapioIntegrationTest {
             assertThat(ppQuote.currency).isEqualTo("SEK")
             assertThat(ppQuote.currentInsurer).isNull()
             assertThat(ppQuote.address.city).isEqualTo("ApCity")
-            assertThat(ppQuote.address.postalCode).isEqualTo("1234")
+            assertThat(ppQuote.address.postalCode).isEqualTo("12345")
             assertThat(ppQuote.address.country.name).isEqualTo("SE")
-            assertThat(ppQuote.address.street).isEqualTo("ApGatan")
+            assertThat(ppQuote.address.street).isEqualTo("ApGatan 998")
             assertThat(ppQuote.address.coLine).isEqualTo(null)
             assertThat(ppQuote.coInsured.size).isEqualTo(1)
             assertThat(ppQuote.coInsured[0].ssn).isNull()
@@ -649,7 +630,15 @@ class RapioIntegrationTest {
         every { priceEngineClient.queryPrice(capture(peQueryPriceRequest)) } returns PriceQueryResponse(UUID.randomUUID(), Money.of(12, "SEK"))
 
         // Create quote
-        val quoteResponse = createSwedishApartmentQuote(ssn, "ApGatan", "1234", "ApCity", 122, 2, "BRF")
+        val quoteResponse = quoteClient.createSwedishApartmentQuote(
+            ssn,
+            street = "ApGatan 997",
+            zip = "1234",
+            city = "ApCity",
+            livingSpace = 122,
+            householdSize = 2,
+            subType = "BRF"
+        )
 
         // Validate quote response
         assertThat(quoteResponse.price.toString()).isEqualTo("12")
@@ -657,14 +646,20 @@ class RapioIntegrationTest {
         assertThat(quoteResponse.validTo.isAfter(now)).isEqualTo(true)
 
         // Sign quote
-        val signResponse = signQuote(quoteResponse.id, "Apan", "Apansson", ssn, "apan@apansson.se", today.toString())
+        val signResponse = quoteClient.signQuote(
+            quoteId = quoteResponse.id,
+            firstName = "Apan",
+            lastName = "Apansson",
+            ssn = ssn,
+            email = "apan@apansson.se",
+            startDate = today.toString())
 
         // Validate sign response
         assertThat(signResponse.memberId).isEqualTo(memberId)
         assertThat(signResponse.market).isEqualTo(Market.SWEDEN)
 
         // Get quote
-        val quote = getQuote(quoteResponse.id)
+        val quote = quoteClient.getQuote(quoteResponse.id)!!
 
         // Validate stored quote
         assertThat(quote.id).isEqualTo(quoteResponse.id)
@@ -690,7 +685,7 @@ class RapioIntegrationTest {
         assertThat(data.lastName).isEqualTo("Apansson")
         assertThat(data.email).isEqualTo("apan@apansson.se")
         assertThat(data.phoneNumber).isNull()
-        assertThat(data.street).isEqualTo("ApGatan")
+        assertThat(data.street).isEqualTo("ApGatan 997")
         assertThat(data.city).isEqualTo("ApCity")
         assertThat(data.zipCode).isEqualTo("1234")
         assertThat(data.livingSpace).isEqualTo(122)
@@ -714,7 +709,7 @@ class RapioIntegrationTest {
             assertThat(captured.lastName).isEqualTo("Apansson")
             assertThat(captured.email).isEqualTo("apan@apansson.se")
             assertThat(captured.phoneNumber).isNull()
-            assertThat(captured.address!!.street).isEqualTo("ApGatan")
+            assertThat(captured.address!!.street).isEqualTo("ApGatan 997")
             assertThat(captured.address!!.city).isEqualTo("ApCity")
             assertThat(captured.address!!.zipCode).isEqualTo("1234")
             assertThat(captured.address!!.apartmentNo).isEqualTo("")
@@ -756,7 +751,7 @@ class RapioIntegrationTest {
             assertThat(ppQuote.address.city).isEqualTo("ApCity")
             assertThat(ppQuote.address.postalCode).isEqualTo("1234")
             assertThat(ppQuote.address.country.name).isEqualTo("SE")
-            assertThat(ppQuote.address.street).isEqualTo("ApGatan")
+            assertThat(ppQuote.address.street).isEqualTo("ApGatan 997")
             assertThat(ppQuote.address.coLine).isEqualTo(null)
             assertThat(ppQuote.coInsured.size).isEqualTo(1)
             assertThat(ppQuote.coInsured[0].ssn).isNull()
@@ -784,11 +779,11 @@ class RapioIntegrationTest {
         every { priceEngineClient.queryPrice(any()) } returns PriceQueryResponse(UUID.randomUUID(), Money.of(100, "NOK"))
 
         // Create quotes
-        val travelQuoteResponse = createNorwegianTravelQuote()
-        val homeContentQuoteResponse = createNorwegianHomeContentQuote()
+        val travelQuoteResponse = quoteClient.createNorwegianTravelQuote()
+        val homeContentQuoteResponse = quoteClient.createNorwegianHomeContentQuote()
 
         // Get bundle cost
-        val bundleResponse = createBundle(travelQuoteResponse.id, homeContentQuoteResponse.id)
+        val bundleResponse = quoteClient.createBundle(travelQuoteResponse.id, homeContentQuoteResponse.id)
 
         assertThat(bundleResponse.bundleCost.monthlyGross.amount.toString()).isEqualTo("200.00")
         assertThat(bundleResponse.bundleCost.monthlyGross.currency).isEqualTo("NOK")
@@ -807,27 +802,27 @@ class RapioIntegrationTest {
         every { memberServiceClient.personStatus(any()) } returns ResponseEntity.status(200).body(PersonStatusDto(Flag.GREEN))
 
         // Create quotes
-        val norwayQuoteResponse1 = createNorwegianTravelQuote()
-        val norwayQuoteResponse2 = createNorwegianTravelQuote()
-        val swedishQuoteResponse1 = createSwedishApartmentQuote("199110112399")
-        val swedishQuoteResponse2 = createSwedishHouseQuote("199110112399")
+        val norwayQuoteResponse1 = quoteClient.createNorwegianTravelQuote()
+        val norwayQuoteResponse2 = quoteClient.createNorwegianTravelQuote()
+        val swedishQuoteResponse1 = quoteClient.createSwedishApartmentQuote("199110112399")
+        val swedishQuoteResponse2 = quoteClient.createSwedishHouseQuote("199110112399")
 
-        val bundleResponse1 = createBundleToResponseEntity(norwayQuoteResponse1.id, swedishQuoteResponse1.id)
+        val bundleResponse1 = quoteClient.createBundleRaw(norwayQuoteResponse1.id, swedishQuoteResponse1.id)
 
         assertThat(bundleResponse1.statusCode.value()).isEqualTo(500)
         assertThat(bundleResponse1.body).matchesPredicate { it!!.contains("Quotes belong to different markets") }
 
-        val bundleResponse2 = createBundleToResponseEntity(norwayQuoteResponse1.id, norwayQuoteResponse2.id)
+        val bundleResponse2 = quoteClient.createBundleRaw(norwayQuoteResponse1.id, norwayQuoteResponse2.id)
 
         assertThat(bundleResponse2.statusCode.value()).isEqualTo(500)
         assertThat(bundleResponse2.body).matchesPredicate { it!!.contains("Bundling not supported for quotes") }
 
-        val bundleResponse3 = createBundleToResponseEntity(swedishQuoteResponse1.id, swedishQuoteResponse2.id)
+        val bundleResponse3 = quoteClient.createBundleRaw(swedishQuoteResponse1.id, swedishQuoteResponse2.id)
 
         assertThat(bundleResponse3.statusCode.value()).isEqualTo(500)
         assertThat(bundleResponse3.body).matchesPredicate { it!!.contains("Bundling not supported for quotes") }
 
-        val bundleResponse4 = createBundleToResponseEntity(swedishQuoteResponse1.id, swedishQuoteResponse1.id)
+        val bundleResponse4 = quoteClient.createBundleRaw(swedishQuoteResponse1.id, swedishQuoteResponse1.id)
 
         assertThat(bundleResponse4.statusCode.value()).isEqualTo(500)
         assertThat(bundleResponse4.body).matchesPredicate { it!!.contains("Not all quotes found") }
@@ -872,11 +867,11 @@ class RapioIntegrationTest {
         every { priceEngineClient.queryPrice(capture(peQueryPriceRequest2)) } returns PriceQueryResponse(UUID.randomUUID(), Money.of(200, "NOK"))
 
         // Create quotes
-        val travelQuoteResponse = createNorwegianTravelQuote()
-        val homeContentQuoteResponse = createNorwegianHomeContentQuote()
+        val travelQuoteResponse = quoteClient.createNorwegianTravelQuote(birthdate = "1988-01-01")
+        val homeContentQuoteResponse = quoteClient.createNorwegianHomeContentQuote(birthdate = "1988-01-01", street = "ApStreet 996", livingSpace = 122)
 
         // Get bundle cost
-        val bundleResponse = createBundle(travelQuoteResponse.id, homeContentQuoteResponse.id)
+        val bundleResponse = quoteClient.createBundle(travelQuoteResponse.id, homeContentQuoteResponse.id)
 
         assertThat(bundleResponse.bundleCost.monthlyGross.amount.toString()).isEqualTo("200.00")
         assertThat(bundleResponse.bundleCost.monthlyGross.currency).isEqualTo("NOK")
@@ -885,7 +880,16 @@ class RapioIntegrationTest {
         assertThat(bundleResponse.bundleCost.monthlyNet.amount.toString()).isEqualTo("150.00")
         assertThat(bundleResponse.bundleCost.monthlyNet.currency).isEqualTo("NOK")
 
-        val signResponse = signQuoteBundle("Apan", "Apansson", ssn, "apan@apansson.se", today, bundleResponse, travelQuoteResponse.id, homeContentQuoteResponse.id)
+        val signResponse = quoteClient.signQuoteBundle(
+            firstName = "Apan",
+            lastName = "Apansson",
+            ssn = ssn,
+            email = "apan@apansson.se",
+            startDate = today,
+            price = bundleResponse.bundleCost.monthlyNet.amount.toDouble(),
+            currency = bundleResponse.bundleCost.monthlyNet.currency,
+            quoteIds = *arrayOf(travelQuoteResponse.id, homeContentQuoteResponse.id)
+        )
 
         assertThat(signResponse.memberId).isEqualTo(memberId)
         assertThat(signResponse.market).isEqualTo("NORWAY")
@@ -908,9 +912,9 @@ class RapioIntegrationTest {
             assertThat(captured.lastName).isEqualTo("Apansson")
             assertThat(captured.email).isEqualTo("apan@apansson.se")
             assertThat(captured.phoneNumber).isNull()
-            assertThat(captured.address!!.street).isEqualTo("ApStreet")
+            assertThat(captured.address!!.street).isEqualTo("ApStreet 996")
             assertThat(captured.address!!.city).isEqualTo("ApCity")
-            assertThat(captured.address!!.zipCode).isEqualTo("1234")
+            assertThat(captured.address!!.zipCode).isEqualTo("12345")
             assertThat(captured.address!!.apartmentNo).isEqualTo("")
             assertThat(captured.address!!.floor).isEqualTo(0)
             assertThat(captured.memberId).isEqualTo(memberId)
@@ -933,7 +937,7 @@ class RapioIntegrationTest {
             assertThat(captured.holderBirthDate.toString()).isEqualTo("1988-01-01")
             assertThat(captured.numberCoInsured).isEqualTo(1)
             assertThat(captured.lineOfBusiness.name).isEqualTo("OWN")
-            assertThat(captured.postalCode).isEqualTo("1234")
+            assertThat(captured.postalCode).isEqualTo("12345")
             assertThat(captured.squareMeters).isEqualTo(122)
         }
 
@@ -957,9 +961,9 @@ class RapioIntegrationTest {
             assertThat(ppQuote.premium).isEqualTo(homeContentQuoteResponse.price)
             assertThat(ppQuote.currency).isEqualTo("NOK")
             assertThat(ppQuote.currentInsurer).isNull()
-            assertThat(ppQuote.address.street).isEqualTo("ApStreet")
+            assertThat(ppQuote.address.street).isEqualTo("ApStreet 996")
             assertThat(ppQuote.address.city).isEqualTo("ApCity")
-            assertThat(ppQuote.address.postalCode).isEqualTo("1234")
+            assertThat(ppQuote.address.postalCode).isEqualTo("12345")
             assertThat(ppQuote.address.country.name).isEqualTo("NO")
             assertThat(ppQuote.address.coLine).isNull()
             assertThat(ppQuote.coInsured.size).isEqualTo(1)
@@ -1004,31 +1008,78 @@ class RapioIntegrationTest {
         every { memberServiceClient.personStatus(any()) } returns ResponseEntity.status(200).body(PersonStatusDto(Flag.GREEN))
 
         // Create quotes
-        val norwayQuoteResponse1 = createNorwegianTravelQuote()
-        val norwayQuoteResponse2 = createNorwegianTravelQuote()
-        val swedishQuoteResponse1 = createSwedishApartmentQuote("199110112399")
-        val swedishQuoteResponse2 = createSwedishHouseQuote("199110112399")
+        val norwayQuoteResponse1 = quoteClient.createNorwegianTravelQuote()
+        val norwayQuoteResponse2 = quoteClient.createNorwegianTravelQuote()
+        val swedishQuoteResponse1 = quoteClient.createSwedishApartmentQuote("199110112399")
+        val swedishQuoteResponse2 = quoteClient.createSwedishHouseQuote("199110112399")
 
-        val signResponse1 = signQuoteBundleToResponseEntity("Apa", "Apansson", "11077941012", "apan@apanson.se", LocalDate.now(), 10.0, "NOK", norwayQuoteResponse1.id, swedishQuoteResponse1.id)
+        // Cannot mix quotes from different markets
+        val signResponse1 = quoteClient.signQuoteBundleRaw(
+            firstName = "Apan",
+            lastName = "Apansson",
+            ssn = "199110112399",
+            email = "apan@apansson.se",
+            startDate = LocalDate.now(),
+            price = 10.0,
+            currency = "NOK",
+            quoteIds = *arrayOf(norwayQuoteResponse1.id, swedishQuoteResponse1.id)
+        )
 
         assertThat(signResponse1.statusCode.value()).isEqualTo(500)
 
-        val signResponse2 = signQuoteBundleToResponseEntity("Apa", "Apansson", "11077941012", "apan@apanson.se", LocalDate.now(), 10.0, "NOK", norwayQuoteResponse1.id, norwayQuoteResponse2.id)
+        // Cannot bundle two of the same
+        val signResponse2 = quoteClient.signQuoteBundleRaw(
+            firstName = "Apan",
+            lastName = "Apansson",
+            ssn = "11077941012",
+            email = "apan@apansson.se",
+            startDate = LocalDate.now(),
+            price = 10.0,
+            currency = "NOK",
+            quoteIds = *arrayOf(norwayQuoteResponse1.id, norwayQuoteResponse2.id)
+        )
 
         assertThat(signResponse2.statusCode.value()).isEqualTo(422)
         assertThat(signResponse2.body).matchesPredicate { it!!.contains("Quotes can not be bundled") }
 
-        val signResponse3 = signQuoteBundleToResponseEntity("Apa", "Apansson", "199110112399", "apan@apanson.se", LocalDate.now(), 10.0, "NOK", swedishQuoteResponse1.id, swedishQuoteResponse2.id)
+        val signResponse3 = quoteClient.signQuoteBundleRaw(
+            firstName = "Apan",
+            lastName = "Apansson",
+            ssn = "199110112399",
+            email = "apan@apansson.se",
+            startDate = LocalDate.now(),
+            price = 10.0,
+            currency = "NOK",
+            quoteIds = *arrayOf(swedishQuoteResponse1.id, swedishQuoteResponse2.id)
+        )
 
         assertThat(signResponse3.statusCode.value()).isEqualTo(422)
         assertThat(signResponse3.body).matchesPredicate { it!!.contains("Quotes can not be bundled") }
 
-        val signResponse4 = signQuoteBundleToResponseEntity("Apa", "Apansson", "199110112399", "apan@apanson.se", LocalDate.now(), 10.0, "NOK", swedishQuoteResponse1.id, swedishQuoteResponse1.id)
+        val signResponse4 = quoteClient.signQuoteBundleRaw(
+            firstName = "Apan",
+            lastName = "Apansson",
+            ssn = "11077941012",
+            email = "apan@apansson.se",
+            startDate = LocalDate.now(),
+            price = 10.0,
+            currency = "NOK",
+            quoteIds = *arrayOf(swedishQuoteResponse1.id, swedishQuoteResponse1.id)
+        )
 
         assertThat(signResponse4.statusCode.value()).isEqualTo(422)
         assertThat(signResponse4.body).matchesPredicate { it!!.contains("not all quotes found") }
 
-        val signResponse5 = signQuoteBundleToResponseEntity("Apa", "Apansson", "199110112399", "apan@apanson.se", LocalDate.now(), 10.0, "NOK", swedishQuoteResponse1.id)
+        val signResponse5 = quoteClient.signQuoteBundleRaw(
+            firstName = "Apan",
+            lastName = "Apansson",
+            ssn = "199110112399",
+            email = "apan@apansson.se",
+            startDate = LocalDate.now(),
+            price = 10.0,
+            currency = "NOK",
+            quoteIds = *arrayOf(swedishQuoteResponse1.id)
+        )
 
         assertThat(signResponse5.statusCode.value()).isEqualTo(500)
         assertThat(signResponse5.body).matchesPredicate { it!!.contains("Not a bundle") }
@@ -1058,16 +1109,33 @@ class RapioIntegrationTest {
         every { productPricingClient.createContract(any(), any()) } returns listOf(CreateContractResponse(UUID.randomUUID(), UUID.randomUUID(), UUID.randomUUID()))
 
         // Create quotes
-        val norwayQuoteResponse1 = createNorwegianTravelQuote()
-        val norwayQuoteResponse2 = createNorwegianHomeContentQuote()
+        val norwayQuoteResponse1 = quoteClient.createNorwegianTravelQuote()
+        val norwayQuoteResponse2 = quoteClient.createNorwegianHomeContentQuote()
 
-        val signResponse1 = signQuoteBundleToResponseEntity("Apa", "Apansson", "11077941012", "apan@apanson.se", LocalDate.now(), 10.0, "NOK", norwayQuoteResponse1.id, norwayQuoteResponse2.id)
+        val signResponse1 = quoteClient.signQuoteBundleRaw(
+            firstName = "Apa",
+            lastName = "Apansson",
+            ssn = "11077941012",
+            email = "apan@apanson.se",
+            startDate = LocalDate.now(),
+            price = 10.0,
+            currency = "NOK",
+            quoteIds = *arrayOf(norwayQuoteResponse1.id, norwayQuoteResponse2.id)
+        )
 
         assertThat(signResponse1.statusCode.value()).isEqualTo(422)
         assertThat(signResponse1.body).matchesPredicate { it!!.contains("bundle price") }
 
-        val signResponse2 = signQuoteBundleToResponseEntity("Apa", "Apansson", "11077941012", "apan@apanson.se", LocalDate.now(), null, null, norwayQuoteResponse1.id, norwayQuoteResponse2.id)
-
+        val signResponse2 = quoteClient.signQuoteBundleRaw(
+            firstName = "Apa",
+            lastName = "Apansson",
+            ssn = "11077941012",
+            email = "apan@apanson.se",
+            startDate = LocalDate.now(),
+            price = null,
+            currency = null,
+            quoteIds = *arrayOf(norwayQuoteResponse1.id, norwayQuoteResponse2.id)
+        )
         assertThat(signResponse2.statusCode.value()).isEqualTo(200)
     }
 
@@ -1101,7 +1169,12 @@ class RapioIntegrationTest {
         every { priceEngineClient.queryPrice(capture(peQueryPriceRequest)) } returns PriceQueryResponse(UUID.randomUUID(), Money.of(12, "DKK"))
 
         // Create quote
-        val quoteResponse = createDanishHomeContentQuote()
+        val quoteResponse = quoteClient.createDanishHomeContentQuote(
+            birthdate = "1988-01-01",
+            street = "ApStreet 995",
+            apartment = "4",
+            floor = "st",
+            livingSpace = 122)
 
         // Validate quote response
         assertThat(quoteResponse.price.toString()).isEqualTo("12")
@@ -1109,14 +1182,21 @@ class RapioIntegrationTest {
         assertThat(quoteResponse.validTo.isAfter(now)).isEqualTo(true)
 
         // Sign quote
-        val signResponse = signQuote(quoteResponse.id, "Apan", "Apansson", ssn, "apan@apansson.se", today.toString())
+        val signResponse = quoteClient.signQuote(
+            quoteId = quoteResponse.id,
+            firstName = "Apan",
+            lastName = "Apansson",
+            ssn = ssn,
+            email = "apan@apansson.se",
+            startDate = today.toString()
+        )
 
         // Validate sign response
         assertThat(signResponse.memberId).isEqualTo(memberId)
         assertThat(signResponse.market).isEqualTo(Market.DENMARK)
 
         // Get quote
-        val quote = getQuote(quoteResponse.id)
+        val quote = quoteClient.getQuote(quoteResponse.id)!!
 
         // Validate stored quote
         assertThat(quote.id).isEqualTo(quoteResponse.id)
@@ -1143,7 +1223,7 @@ class RapioIntegrationTest {
         assertThat(data.lastName).isEqualTo("Apansson")
         assertThat(data.email).isEqualTo("apan@apansson.se")
         assertThat(data.phoneNumber).isNull()
-        assertThat(data.street).isEqualTo("ApStreet")
+        assertThat(data.street).startsWith("ApStreet")
         assertThat(data.city).isEqualTo("ApCity")
         assertThat(data.zipCode).isEqualTo("1234")
         assertThat(data.apartment).isEqualTo("4")
@@ -1169,7 +1249,7 @@ class RapioIntegrationTest {
             assertThat(captured.lastName).isEqualTo("Apansson")
             assertThat(captured.email).isEqualTo("apan@apansson.se")
             assertThat(captured.phoneNumber).isNull()
-            assertThat(captured.address!!.street).isEqualTo("ApStreet")
+            assertThat(captured.address!!.street).startsWith("ApStreet")
             assertThat(captured.address!!.city).isEqualTo("ApCity")
             assertThat(captured.address!!.zipCode).isEqualTo("1234")
             assertThat(captured.address!!.apartmentNo).isEqualTo("4")
@@ -1189,7 +1269,7 @@ class RapioIntegrationTest {
             assertThat(captured.squareMeters).isEqualTo(122)
             assertThat(captured.floor).isEqualTo("st")
             assertThat(captured.apartment).isEqualTo("4")
-            assertThat(captured.street).isEqualTo("ApStreet")
+            assertThat(captured.street).startsWith("ApStreet")
             assertThat(captured.city).isEqualTo("ApCity")
         }
 
@@ -1215,7 +1295,7 @@ class RapioIntegrationTest {
             assertThat(ppQuote.address.city).isEqualTo("ApCity")
             assertThat(ppQuote.address.postalCode).isEqualTo("1234")
             assertThat(ppQuote.address.country.name).isEqualTo("DK")
-            assertThat(ppQuote.address.street).isEqualTo("ApStreet")
+            assertThat(ppQuote.address.street).startsWith("ApStreet")
             assertThat(ppQuote.address.coLine).isEqualTo(null)
             assertThat(ppQuote.address.apartment).isEqualTo("4")
             assertThat(ppQuote.address.floor).isEqualTo("st")
@@ -1258,7 +1338,7 @@ class RapioIntegrationTest {
         every { priceEngineClient.queryPrice(capture(peQueryPriceRequest)) } returns PriceQueryResponse(UUID.randomUUID(), Money.of(12, "DKK"))
 
         // Create quote
-        val quoteResponse = createDanishAccidentQuote()
+        val quoteResponse = quoteClient.createDanishAccidentQuote(birthdate = "1988-01-01", street = "ApStreet 993", apartment = "4", floor = "st")
 
         // Validate quote response
         assertThat(quoteResponse.price.toString()).isEqualTo("12")
@@ -1266,14 +1346,21 @@ class RapioIntegrationTest {
         assertThat(quoteResponse.validTo.isAfter(now)).isEqualTo(true)
 
         // Sign quote
-        val signResponse = signQuote(quoteResponse.id, "Apan", "Apansson", ssn, "apan@apansson.se", today.toString())
+        val signResponse = quoteClient.signQuote(
+            quoteId = quoteResponse.id,
+            firstName = "Apan",
+            lastName = "Apansson",
+            ssn = ssn,
+            email = "apan@apansson.se",
+            startDate = today.toString()
+        )
 
         // Validate sign response
         assertThat(signResponse.memberId).isEqualTo(memberId)
         assertThat(signResponse.market).isEqualTo(Market.DENMARK)
 
         // Get quote
-        val quote = getQuote(quoteResponse.id)
+        val quote = quoteClient.getQuote(quoteResponse.id)!!
 
         // Validate stored quote
         assertThat(quote.id).isEqualTo(quoteResponse.id)
@@ -1300,7 +1387,7 @@ class RapioIntegrationTest {
         assertThat(data.lastName).isEqualTo("Apansson")
         assertThat(data.email).isEqualTo("apan@apansson.se")
         assertThat(data.phoneNumber).isNull()
-        assertThat(data.street).isEqualTo("ApStreet")
+        assertThat(data.street).startsWith("ApStreet")
         assertThat(data.city).isEqualTo("ApCity")
         assertThat(data.zipCode).isEqualTo("1234")
         assertThat(data.apartment).isEqualTo("4")
@@ -1324,7 +1411,7 @@ class RapioIntegrationTest {
             assertThat(captured.lastName).isEqualTo("Apansson")
             assertThat(captured.email).isEqualTo("apan@apansson.se")
             assertThat(captured.phoneNumber).isNull()
-            assertThat(captured.address!!.street).isEqualTo("ApStreet")
+            assertThat(captured.address!!.street).startsWith("ApStreet")
             assertThat(captured.address!!.city).isEqualTo("ApCity")
             assertThat(captured.address!!.zipCode).isEqualTo("1234")
             assertThat(captured.address!!.apartmentNo).isEqualTo("4")
@@ -1342,7 +1429,7 @@ class RapioIntegrationTest {
             assertThat(captured.postalCode).isEqualTo("1234")
             assertThat(captured.floor).isEqualTo("st")
             assertThat(captured.apartment).isEqualTo("4")
-            assertThat(captured.street).isEqualTo("ApStreet")
+            assertThat(captured.street).startsWith("ApStreet")
             assertThat(captured.city).isEqualTo("ApCity")
         }
 
@@ -1368,7 +1455,7 @@ class RapioIntegrationTest {
             assertThat(ppQuote.address.city).isEqualTo("ApCity")
             assertThat(ppQuote.address.postalCode).isEqualTo("1234")
             assertThat(ppQuote.address.country.name).isEqualTo("DK")
-            assertThat(ppQuote.address.street).isEqualTo("ApStreet")
+            assertThat(ppQuote.address.street).startsWith("ApStreet")
             assertThat(ppQuote.address.coLine).isEqualTo(null)
             assertThat(ppQuote.address.apartment).isEqualTo("4")
             assertThat(ppQuote.address.floor).isEqualTo("st")
@@ -1409,7 +1496,12 @@ class RapioIntegrationTest {
         every { priceEngineClient.queryPrice(capture(peQueryPriceRequest)) } returns PriceQueryResponse(UUID.randomUUID(), Money.of(12, "DKK"))
 
         // Create quote
-        val quoteResponse = createDanishTravelQuote()
+        val quoteResponse = quoteClient.createDanishTravelQuote(
+            birthdate = "1988-01-01",
+            street = "ApStreet 992",
+            apartment = "4",
+            floor = "st"
+        )
 
         // Validate quote response
         assertThat(quoteResponse.price.toString()).isEqualTo("12")
@@ -1417,14 +1509,21 @@ class RapioIntegrationTest {
         assertThat(quoteResponse.validTo.isAfter(now)).isEqualTo(true)
 
         // Sign quote
-        val signResponse = signQuote(quoteResponse.id, "Apan", "Apansson", ssn, "apan@apansson.se", today.toString())
+        val signResponse = quoteClient.signQuote(
+            quoteId = quoteResponse.id,
+            firstName = "Apan",
+            lastName = "Apansson",
+            ssn = ssn,
+            email = "apan@apansson.se",
+            startDate = today.toString()
+        )
 
         // Validate sign response
         assertThat(signResponse.memberId).isEqualTo(memberId)
         assertThat(signResponse.market).isEqualTo(Market.DENMARK)
 
         // Get quote
-        val quote = getQuote(quoteResponse.id)
+        val quote = quoteClient.getQuote(quoteResponse.id)!!
 
         // Validate stored quote
         assertThat(quote.id).isEqualTo(quoteResponse.id)
@@ -1451,7 +1550,7 @@ class RapioIntegrationTest {
         assertThat(data.lastName).isEqualTo("Apansson")
         assertThat(data.email).isEqualTo("apan@apansson.se")
         assertThat(data.phoneNumber).isNull()
-        assertThat(data.street).isEqualTo("ApStreet")
+        assertThat(data.street).startsWith("ApStreet")
         assertThat(data.city).isEqualTo("ApCity")
         assertThat(data.zipCode).isEqualTo("1234")
         assertThat(data.apartment).isEqualTo("4")
@@ -1475,7 +1574,7 @@ class RapioIntegrationTest {
             assertThat(captured.lastName).isEqualTo("Apansson")
             assertThat(captured.email).isEqualTo("apan@apansson.se")
             assertThat(captured.phoneNumber).isNull()
-            assertThat(captured.address!!.street).isEqualTo("ApStreet")
+            assertThat(captured.address!!.street).startsWith("ApStreet")
             assertThat(captured.address!!.city).isEqualTo("ApCity")
             assertThat(captured.address!!.zipCode).isEqualTo("1234")
             assertThat(captured.address!!.apartmentNo).isEqualTo("4")
@@ -1493,7 +1592,7 @@ class RapioIntegrationTest {
             assertThat(captured.postalCode).isEqualTo("1234")
             assertThat(captured.floor).isEqualTo("st")
             assertThat(captured.apartment).isEqualTo("4")
-            assertThat(captured.street).isEqualTo("ApStreet")
+            assertThat(captured.street).startsWith("ApStreet")
             assertThat(captured.city).isEqualTo("ApCity")
         }
 
@@ -1519,7 +1618,7 @@ class RapioIntegrationTest {
             assertThat(ppQuote.address.city).isEqualTo("ApCity")
             assertThat(ppQuote.address.postalCode).isEqualTo("1234")
             assertThat(ppQuote.address.country.name).isEqualTo("DK")
-            assertThat(ppQuote.address.street).isEqualTo("ApStreet")
+            assertThat(ppQuote.address.street).startsWith("ApStreet")
             assertThat(ppQuote.address.coLine).isEqualTo(null)
             assertThat(ppQuote.address.apartment).isEqualTo("4")
             assertThat(ppQuote.address.floor).isEqualTo("st")
@@ -1528,316 +1627,5 @@ class RapioIntegrationTest {
             assertThat(ppQuote.coInsured[0].lastName).isNull()
             assertThat(ppQuote.coInsured[0].ssn).isNull()
         }
-    }
-
-    private fun createNorwegianTravelQuote(birthdate: String = "1988-01-01", coInsured: Int = 1, youth: Boolean = false): CompleteQuoteResponseDto {
-        val request = """
-            {
-                "firstName":null,
-                "lastName":null,
-                "currentInsurer":null,
-                "birthDate":"$birthdate",
-                "ssn":null,
-                "quotingPartner":"HEDVIG",
-                "productType":"TRAVEL",
-                "incompleteQuoteData":{
-                    "type":"norwegianTravel",
-                    "coInsured":$coInsured,
-                    "youth":$youth
-                },
-                "shouldComplete":true,
-                "underwritingGuidelinesBypassedBy":null
-            }
-        """.trimIndent()
-
-        return postJson("/_/v1/quotes", request)!!
-    }
-
-    private fun createNorwegianHomeContentQuote(birthdate: String = "1988-01-01", street: String = "ApStreet", zip: String = "1234", city: String = "ApCity", livingSpace: Int = 122, coInsured: Int = 1, youth: Boolean = false, subType: String = "OWN"): CompleteQuoteResponseDto {
-        val request = """
-            {
-                "firstName": null,
-                "lastName": null,
-                "currentInsurer": null,
-                "birthDate": "$birthdate",
-                "ssn": null,
-                "quotingPartner": "HEDVIG",
-                "productType": "HOME_CONTENT",
-                "incompleteQuoteData": {
-                    "type": "norwegianHomeContents",
-                    "street": "$street",
-                    "zipCode": "$zip",
-                    "city": "$city",
-                    "livingSpace": $livingSpace,
-                    "coInsured": $coInsured,
-                    "youth": $youth,
-                    "subType": "$subType"
-                },
-                "shouldComplete": true,
-                "underwritingGuidelinesBypassedBy": null
-            }
-        """.trimIndent()
-
-        return postJson("/_/v1/quotes", request)!!
-    }
-
-    private fun createDanishHomeContentQuote(birthdate: String = "1988-01-01", street: String = "ApStreet", zip: String = "1234", city: String = "ApCity", livingSpace: Int = 122, coInsured: Int = 1, youth: Boolean = false, subType: String = "OWN"): CompleteQuoteResponseDto {
-        val request = """
-            {
-                "firstName": null,
-                "lastName": null,
-                "currentInsurer": null,
-                "birthDate": "$birthdate",
-                "ssn": null,
-                "quotingPartner": "HEDVIG",
-                "productType": "HOME_CONTENT",
-                "incompleteQuoteData": {
-                    "type": "danishHomeContents",
-                    "street": "$street",
-                    "zipCode": "$zip",
-                    "city": "$city",
-                    "livingSpace": $livingSpace,
-                    "coInsured": $coInsured,
-                    "student": $youth,
-                    "subType": "$subType",
-                    "apartment": "4",
-                    "floor": "st"
-                },
-                "shouldComplete": true,
-                "underwritingGuidelinesBypassedBy": null
-            }
-        """.trimIndent()
-
-        return postJson("/_/v1/quotes", request)!!
-    }
-
-    private fun createDanishAccidentQuote(birthdate: String = "1988-01-01", street: String = "ApStreet", zip: String = "1234", city: String = "ApCity", coInsured: Int = 1, youth: Boolean = false): CompleteQuoteResponseDto {
-        val request = """
-            {
-                "firstName": null,
-                "lastName": null,
-                "currentInsurer": null,
-                "birthDate": "$birthdate",
-                "ssn": null,
-                "quotingPartner": "HEDVIG",
-                "productType": "ACCIDENT",
-                "incompleteQuoteData": {
-                    "type": "danishAccident",
-                    "street": "$street",
-                    "zipCode": "$zip",
-                    "city": "$city",
-                    "coInsured": $coInsured,
-                    "student": $youth,
-                    "apartment": "4",
-                    "floor": "st"
-                },
-                "shouldComplete": true,
-                "underwritingGuidelinesBypassedBy": null
-            }
-        """.trimIndent()
-
-        return postJson("/_/v1/quotes", request)!!
-    }
-
-    private fun createDanishTravelQuote(birthdate: String = "1988-01-01", street: String = "ApStreet", zip: String = "1234", city: String = "ApCity", coInsured: Int = 1, youth: Boolean = false): CompleteQuoteResponseDto {
-        val request = """
-            {
-                "firstName": null,
-                "lastName": null,
-                "currentInsurer": null,
-                "birthDate": "$birthdate",
-                "ssn": null,
-                "quotingPartner": "HEDVIG",
-                "productType": "TRAVEL",
-                "incompleteQuoteData": {
-                    "type": "danishTravel",
-                    "street": "$street",
-                    "zipCode": "$zip",
-                    "city": "$city",
-                    "coInsured": $coInsured,
-                    "student": $youth,
-                    "apartment": "4",
-                    "floor": "st"
-                },
-                "shouldComplete": true,
-                "underwritingGuidelinesBypassedBy": null
-            }
-        """.trimIndent()
-
-        return postJson("/_/v1/quotes", request)!!
-    }
-
-    private fun createSwedishApartmentQuote(ssn: String, street: String = "ApGatan", zip: String = "1234", city: String = "ApCity", livingSpace: Int = 122, housholdSize: Int = 1, subType: String = "BRF"): CompleteQuoteResponseDto {
-        val request = """           
-            {
-                "firstName": null,
-                "lastName": null,
-                "currentInsurer": null,
-                "birthDate": null,
-                "ssn": "$ssn",
-                "quotingPartner": "HEDVIG",
-                "productType": "APARTMENT",
-                "incompleteQuoteData": {
-                    "type": "apartment",
-                    "street": "$street",
-                    "zipCode": "$zip",
-                    "city": "$city",
-                    "livingSpace": $livingSpace,
-                    "householdSize": $housholdSize,
-                    "floor": 0,
-                    "subType": "$subType"
-                },
-                "shouldComplete": true
-            }
-        """.trimIndent()
-
-        return postJson("/_/v1/quotes", request)!!
-    }
-
-    private fun createSwedishHouseQuote(ssn: String, street: String = "ApGatan", zip: String = "1234", city: String = "ApCity", livingSpace: Int = 100, housholdSize: Int = 2, ancillaryArea: Int = 10, yearOfConstruction: Int = 1980, numberOfBathrooms: Int = 2, subleted: Boolean = true): CompleteQuoteResponseDto {
-        val request = """           
-            {
-                "firstName": null,
-                "lastName": null,
-                "currentInsurer": null,
-                "birthDate": null,
-                "ssn": "$ssn",
-                "quotingPartner": "HEDVIG",
-                "productType": "HOUSE",
-                "incompleteQuoteData": {
-                    "type": "house",
-                    "street": "$street",
-                    "zipCode": "$zip",
-                    "city": "$city",
-                    "livingSpace": $livingSpace,
-                    "householdSize": $housholdSize,
-                    "ancillaryArea": $ancillaryArea,
-                    "yearOfConstruction": $yearOfConstruction,
-                    "numberOfBathrooms": $numberOfBathrooms,
-                    "extraBuildings": [{
-                        "id": null,
-                        "type": "CARPORT",
-                        "area": 11,
-                        "hasWaterConnected": true
-                    }],
-                    "floor": 0,
-                    "subleted": $subleted
-                },
-                "shouldComplete": true
-            }
-        """.trimIndent()
-
-        return postJson("/_/v1/quotes", request)!!
-    }
-
-    private fun createBundleToResponseEntity(vararg quoteIds: UUID): ResponseEntity<String> {
-        val ids = quoteIds.joinToString("\", \"", "\"", "\"")
-
-        val request = """
-            {"quoteIds": [$ids]}
-        """.trimIndent()
-
-        return postJsonToResponseEntity("/_/v1/quotes/bundle", request)
-    }
-
-    private fun createBundle(vararg quoteIds: UUID): QuoteBundleResponseDto {
-
-        val ids = quoteIds.joinToString("\", \"", "\"", "\"")
-
-        val request = """
-            { "quoteIds": [$ids] }
-        """.trimIndent()
-
-        return postJson("/_/v1/quotes/bundle", request)!!
-    }
-
-    private fun signQuote(quoteId: UUID, firstName: String, lastName: String, ssn: String, email: String, startDate: String): SignedQuoteResponseDto {
-        val request = """
-            {
-                "name": {
-                    "firstName": "$firstName",
-                    "lastName": "$lastName"
-                },
-                "ssn": "$ssn",
-                "startDate": "$startDate",
-                "email": "$email"
-            }
-        """.trimIndent()
-
-        return postJson("/_/v1/quotes/$quoteId/sign", request)!!
-    }
-
-    private fun signQuoteBundle(firstName: String, lastName: String, ssn: String, email: String, startDate: LocalDate, quoteBundle: QuoteBundleResponseDto, vararg quoteIds: UUID): SignedQuotesResponseDto {
-        return signQuoteBundle(firstName, lastName, ssn, email, startDate, quoteBundle.bundleCost.monthlyNet.amount.toDouble(), quoteBundle.bundleCost.monthlyNet.currency, *quoteIds)
-    }
-
-    private fun signQuoteBundle(firstName: String, lastName: String, ssn: String, email: String, startDate: LocalDate, price: Double?, currency: String?, vararg quoteIds: UUID): SignedQuotesResponseDto {
-        val currencyString = currency?.let { "\"" + currency + "\"" }
-
-        val request = """
-            {
-                "name": {
-                    "firstName": "$firstName",
-                    "lastName": "$lastName"
-                },
-                "ssn": "$ssn",
-                "startDate": "$startDate",
-                "email": "$email",
-                "quoteIds": [${quoteIds.joinToString("\", \"", "\"", "\"")}],
-                "price": $price,
-                "currency": $currencyString
-            }
-        """.trimIndent()
-
-        return postJson("/_/v1/quotes/bundle/signFromRapio", request)!!
-    }
-
-    private fun signQuoteBundleToResponseEntity(firstName: String, lastName: String, ssn: String, email: String, startDate: LocalDate, price: Double?, currency: String?, vararg quoteIds: UUID): ResponseEntity<String> {
-        val currencyString = currency?.let { "\"" + currency + "\"" }
-
-        val request = """
-            {
-                "name": {
-                    "firstName": "$firstName",
-                    "lastName": "$lastName"
-                },
-                "ssn": "$ssn",
-                "startDate": "$startDate",
-                "email": "$email",
-                "quoteIds": [${quoteIds.joinToString("\", \"", "\"", "\"")}],
-                "price": $price,
-                "currency": $currencyString
-            }
-        """.trimIndent()
-
-        return postJsonToResponseEntity("/_/v1/quotes/bundle/signFromRapio", request)
-    }
-
-    private fun getQuote(quoteId: UUID): Quote {
-        return restTemplate.getForObject("/_/v1/quotes/$quoteId", Quote::class.java)
-    }
-
-    private inline fun <reified T : Any> postJson(url: String, data: String): T? {
-
-        val headers = HttpHeaders()
-        headers.accept = listOf(MediaType.APPLICATION_JSON)
-        headers.contentType = MediaType.APPLICATION_JSON
-
-        return restTemplate
-            .postForObject(
-                url,
-                HttpEntity(
-                    data, headers
-                )
-            )
-    }
-
-    private fun postJsonToResponseEntity(url: String, data: String): ResponseEntity<String> {
-
-        val headers = HttpHeaders()
-        headers.accept = listOf(MediaType.APPLICATION_JSON)
-        headers.contentType = MediaType.APPLICATION_JSON
-
-        return restTemplate.exchange(url, HttpMethod.POST, HttpEntity(data, headers), String::class.java)
     }
 }

@@ -46,7 +46,7 @@ data class SwedishHouseData(
     val extraBuildings: List<ExtraBuilding>? = null,
     @get:JvmName("getIsSubleted")
     val isSubleted: Boolean? = null,
-    val floor: Int? = 0,
+    val floor: Int? = 0, // NOT USED
     @JsonIgnore
     val internalId: Int? = null
 ) : QuoteData(), HomeInsurance, PersonPolicyHolder<SwedishHouseData> {
