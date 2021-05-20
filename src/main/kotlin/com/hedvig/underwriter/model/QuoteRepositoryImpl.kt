@@ -190,7 +190,10 @@ class QuoteRepositoryImpl(private val jdbi: Jdbi) : QuoteRepository {
         return jdbi.inTransaction<List<Quote>, RuntimeException> { h ->
             val dao = h.attach<QuoteDao>()
             val ids = dao.findOldQuoteIdsToDelete(before)
-            findQuotes(ids, h)
+
+            ids.chunked(500)
+                .map { findQuotes(it, h) }
+                .flatten()
         }
     }
 
