@@ -22,5 +22,4 @@ class InsuranceCompanyController(
     fun getInsuranceCompanies(@RequestParam countryCode: CountryCode): ResponseEntity<List<InsuranceCompanyDto>> {
         return ResponseEntity.ok(insuranceCompanyService.getInsuranceCompaniesByCountryCode(countryCode).map { it.toDto() })
     }
-
 }

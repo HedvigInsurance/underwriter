@@ -3,9 +3,9 @@ package com.hedvig.underwriter.service
 import com.hedvig.underwriter.model.InsuranceCompany
 import com.neovisionaries.i18n.CountryCode
 import org.junit.Before
+import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertNotNull
 import org.junit.jupiter.api.Test
-
-import org.junit.jupiter.api.Assertions.*
 
 internal class InsuranceCompanyServiceImplTest {
 

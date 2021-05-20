@@ -210,10 +210,11 @@ class QuoteServiceImpl(
             return this
         }
 
+        // Only keep words without numbers or non alphabetic letters
         val street = quote.data.street?.let {
             it
                 .split(" ")
-                .filter { it.chars().noneMatch(Character::isDigit) }
+                .filter { it.chars().allMatch(Character::isLetter) }
                 .joinToString(" ")
         }
 

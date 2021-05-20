@@ -2,7 +2,6 @@ package com.hedvig.underwriter.service
 
 import arrow.core.Right
 import arrow.core.getOrElse
-import arrow.core.left
 import com.hedvig.underwriter.model.Name
 import com.hedvig.underwriter.model.Partner
 import com.hedvig.underwriter.model.Quote
@@ -12,7 +11,6 @@ import com.hedvig.underwriter.model.QuoteState
 import com.hedvig.underwriter.model.SignSessionRepository
 import com.hedvig.underwriter.model.email
 import com.hedvig.underwriter.model.ssn
-import com.hedvig.underwriter.service.exceptions.ErrorException
 import com.hedvig.underwriter.service.model.StartSignErrors
 import com.hedvig.underwriter.service.model.StartSignResponse
 import com.hedvig.underwriter.service.quotesSignDataStrategies.SignStrategyService
@@ -50,7 +48,6 @@ import org.junit.Test
 import org.springframework.http.ResponseEntity
 import java.time.LocalDate
 import java.util.UUID
-import org.junit.jupiter.api.assertThrows
 
 class SignServiceImplTest {
 
