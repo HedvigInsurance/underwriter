@@ -16,6 +16,7 @@ import com.hedvig.underwriter.model.QuoteInitiatedFrom
 import com.hedvig.underwriter.model.QuoteRepository
 import com.hedvig.underwriter.model.QuoteState
 import com.hedvig.underwriter.model.email
+import com.hedvig.underwriter.model.ssnMaybe
 import com.hedvig.underwriter.model.validTo
 import com.hedvig.underwriter.service.exceptions.NotFoundException
 import com.hedvig.underwriter.service.exceptions.QuoteNotFoundException
@@ -195,6 +196,7 @@ class QuoteServiceImpl(
             deletedAt = Instant.now(),
             type = quote.data::class.simpleName ?: "-",
             memberId = quote.memberId,
+            hashedSsn = quote.ssnMaybe?.hashCode().toString(),
             quote = quote.toMaskedJsonString(objectMapper).anonymiseStreetNumber(quote),
             revs = revs.toMaskedJsonString(objectMapper)
         )

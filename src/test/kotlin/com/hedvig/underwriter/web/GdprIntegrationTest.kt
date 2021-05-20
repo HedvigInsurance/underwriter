@@ -11,6 +11,7 @@ import org.javamoney.moneta.Money
 import assertk.assertThat
 import assertk.assertions.isEqualTo
 import assertk.assertions.isGreaterThan
+import assertk.assertions.isNotEqualTo
 import assertk.assertions.isNotNull
 import assertk.assertions.isNull
 import com.graphql.spring.boot.test.GraphQLTestTemplate
@@ -89,14 +90,14 @@ class GdprIntegrationTest {
     fun setup() {
 
         // Added this snippet to make sure we do not forget to add cleaning/deletion tests for new types when added
-        val makeSureAllTypesAreTested: (QuoteData) -> Unit = fun (type: QuoteData) {
+        val makeSureAllTypesAreTested = fun (type: QuoteData) {
             when (type) {
-                is SwedishApartmentData -> "Done"
-                is SwedishHouseData -> "Done"
-                is NorwegianHomeContentsData -> "Done"
-                is NorwegianTravelData -> "Done"
-                is DanishAccidentData -> "Done"
-                is DanishHomeContentsData -> "Done"
+                is SwedishApartmentData,
+                is SwedishHouseData,
+                is NorwegianHomeContentsData,
+                is NorwegianTravelData,
+                is DanishAccidentData,
+                is DanishHomeContentsData,
                 is DanishTravelData -> "Done"
             }
         }
@@ -204,6 +205,37 @@ class GdprIntegrationTest {
     }
 
     @Test
+    fun `Test hashed ssn for deleted quotes`() {
+
+        val ssn1quote1 = quoteClient.createSwedishApartmentQuote(ssn = "199205262398")
+        val ssn1quote2 = quoteClient.createSwedishApartmentQuote(ssn = "199205262398")
+        val ssn2quote1 = quoteClient.createSwedishApartmentQuote(ssn = "199507272392")
+
+        val now = Instant.now()
+        val nowMinus30d = now.plus(-30, ChronoUnit.DAYS)
+
+        updateCreatedAt(ssn1quote1.id, nowMinus30d)
+        updateCreatedAt(ssn1quote2.id, nowMinus30d)
+        updateCreatedAt(ssn2quote1.id, nowMinus30d)
+
+        gdprClient.clean()
+
+        assertNoQuoteExist(ssn1quote1.id)
+        assertNoQuoteExist(ssn1quote2.id)
+        assertNoQuoteExist(ssn2quote1.id)
+
+        val ssn1Quote1Hash = getDeletedQuoteFromDb(ssn1quote1.id).hashedSsn
+        val ssn1Quote2Hash = getDeletedQuoteFromDb(ssn1quote2.id).hashedSsn
+        val ssn2Quote1Hash = getDeletedQuoteFromDb(ssn2quote1.id).hashedSsn
+
+        assertThat(ssn1Quote1Hash).isNotNull()
+        assertThat(ssn1Quote2Hash).isNotNull()
+        assertThat(ssn2Quote1Hash).isNotNull()
+        assertThat(ssn1Quote1Hash).isEqualTo(ssn1Quote2Hash)
+        assertThat(ssn1Quote1Hash).isNotEqualTo(ssn2Quote1Hash)
+    }
+
+    @Test
     fun `Test quote cleaning job is not removing quotes with an agreement`() {
 
         val seApartmentRsp = quoteClient.createSwedishApartmentQuote()
@@ -268,6 +300,14 @@ class GdprIntegrationTest {
         updateCreatedAt(quoteId, nowMinus60d)
 
         gdprClient.clean(days = 61)
+
+        assertQuoteExist(quoteId)
+
+        verify(exactly = 0) { notificationServiceClient.deleteMember(memberId) }
+        verify(exactly = 0) { apiGatewayServiceClient.deleteMember(any(), memberId) }
+        verify(exactly = 0) { memberServiceClient.deleteMember(memberId) }
+
+        gdprClient.clean(days = 59, dryRun = true)
 
         assertQuoteExist(quoteId)
 
@@ -468,6 +508,7 @@ class GdprIntegrationTest {
         val deletedAt: Instant,
         val type: String,
         val memberId: String?,
+        val hashedSsn: String?,
         val quote: String,
         val revs: String
     )
