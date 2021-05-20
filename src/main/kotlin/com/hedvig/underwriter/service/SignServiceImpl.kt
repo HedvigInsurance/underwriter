@@ -312,7 +312,7 @@ class SignServiceImpl(
                 if (data !is PersonPolicyHolder<*>) {
                     throw ErrorException(ErrorCodes.INVALID_STATE, "Quote type is not supported: ${data::class.java}")
                 }
-                if(startDate == null && currentInsurer == null) {
+                if (startDate == null && currentInsurer == null) {
                     throw ErrorException(ErrorCodes.INVALID_STATE, "currentInsurer is required when startDate is null")
                 }
             }
