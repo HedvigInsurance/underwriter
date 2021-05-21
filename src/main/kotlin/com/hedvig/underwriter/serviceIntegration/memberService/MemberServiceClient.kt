@@ -28,7 +28,7 @@ import org.springframework.web.bind.annotation.RequestMapping
     name = "memberServiceClient",
     url = "\${hedvig.member-service.url:member-service}"
 )
-@ConditionalOnProperty("hedvig.integration.fakes", havingValue = "false")
+@ConditionalOnProperty("hedvig.integration.fakes", havingValue = "false", matchIfMissing = true)
 interface MemberServiceClient {
 
     @PostMapping("v2/member/helloHedvig")
