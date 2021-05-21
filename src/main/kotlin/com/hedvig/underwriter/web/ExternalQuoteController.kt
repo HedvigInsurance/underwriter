@@ -7,8 +7,8 @@ import com.hedvig.underwriter.model.QuoteInitiatedFrom
 import com.hedvig.underwriter.service.QuoteService
 import com.hedvig.underwriter.service.model.QuoteRequest
 import com.hedvig.libs.logging.calls.LogCall
-import com.hedvig.underwriter.model.Quote
 import com.hedvig.underwriter.web.dtos.ExternalQuoteRequestDto
+import com.hedvig.underwriter.web.dtos.QuoteDto
 import com.hedvig.underwriter.web.dtos.UpdateQuoteContractDto
 import java.util.UUID
 import org.springframework.http.ResponseEntity
@@ -53,9 +53,9 @@ class ExternalQuoteController(
     @LogCall
     fun getQuote(
         @PathVariable id: UUID
-    ): ResponseEntity<Quote> {
+    ): ResponseEntity<QuoteDto> {
         val quote = quoteService.getQuote(id) ?: return ResponseEntity.notFound().build()
-        return ResponseEntity.ok(quote)
+        return ResponseEntity.ok(QuoteDto.from(quote))
     }
 
     @PutMapping("/{quoteId}/contract")
@@ -68,7 +68,7 @@ class ExternalQuoteController(
             quoteId, body.contractId, body.agreementId
         ).bimap(
             { ResponseEntity.status(422).body(it) },
-            { ResponseEntity.status(200).body(it) }
+            { ResponseEntity.status(200).body(QuoteDto.from(it)) }
         ).getOrHandle { it }
     }
 }
