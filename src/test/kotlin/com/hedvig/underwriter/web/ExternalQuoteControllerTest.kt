@@ -6,6 +6,7 @@ import com.hedvig.underwriter.serviceIntegration.memberService.dtos.PersonStatus
 import com.hedvig.underwriter.serviceIntegration.priceEngine.dtos.PriceQueryResponse
 import java.math.BigDecimal
 import java.time.Instant
+import java.time.LocalDate
 import java.util.UUID
 import org.assertj.core.api.Assertions.assertThat
 import org.javamoney.moneta.Money
@@ -37,11 +38,20 @@ internal class ExternalQuoteControllerTest {
     }
 
     @Test
-    fun `can create a quote`() {
+    fun `can create a basic quote`() {
         val response = createQuote()
         assertThat(response.id).isNotNull()
         assertThat(response.price).isEqualTo(BigDecimal("100"))
         assertThat(response.currency).isEqualTo("SEK")
+    }
+
+    @Test
+    fun `gets 422 underwriting guidelines breached if too young`() {
+        val response = createQuote(HttpStatus.UNPROCESSABLE_ENTITY) {
+            birthDate = LocalDate.of(2017, 1, 1)
+            ssn = "201701012393"
+        }
+        assertThat(response.breachedUnderwritingGuidelines).isNotEmpty
     }
 
     @Test
@@ -72,15 +82,18 @@ internal class ExternalQuoteControllerTest {
         assertThat(response.body!!.agreementId).isEqualTo(agreementId)
     }
 
-    private fun createQuote(): CreateQuoteOutput {
-        val body = mapOf(
-            "memberId" to "mid1",
-            "firstName" to "Test",
-            "lastName" to "Tester",
-            "birthDate" to "1991-07-27",
-            "ssn" to "199107273097",
-            "startDate" to "2021-06-01",
-            "swedishApartmentData" to mapOf(
+    private fun createQuote(
+        expectedHttpCode: HttpStatus = HttpStatus.OK,
+        bodyChanges: CreateQuoteInput.() -> Unit = {}
+    ): CreateQuoteOutput {
+        val body = CreateQuoteInput(
+            memberId = "mid",
+            firstName = "Test",
+            lastName = "Tester",
+            birthDate = LocalDate.of(1991, 7, 27),
+            ssn = "199107273097",
+            startDate = LocalDate.of(2021, 6, 1),
+            swedishApartmentData = mutableMapOf(
                 "street" to "Fakestreet 123",
                 "zipCode" to "12345",
                 "livingSpace" to 44,
@@ -88,11 +101,12 @@ internal class ExternalQuoteControllerTest {
                 "subType" to "RENT"
             )
         )
+        body.bodyChanges()
 
         val response = template.postForEntity(
             "/quotes", body, CreateQuoteOutput::class.java
         )
-        assertThat(response.statusCode).isEqualTo(HttpStatus.OK)
+        assertThat(response.statusCode).isEqualTo(expectedHttpCode)
         return response.body!!
     }
 
@@ -103,6 +117,16 @@ internal class ExternalQuoteControllerTest {
         assertThat(response.statusCode).isEqualTo(HttpStatus.OK)
         return response.body!!
     }
+
+    private data class CreateQuoteInput(
+        var memberId: String? = null,
+        var firstName: String? = null,
+        var lastName: String? = null,
+        var birthDate: LocalDate? = null,
+        var ssn: String? = null,
+        var startDate: LocalDate? = null,
+        var swedishApartmentData: MutableMap<String, Any>? = null
+    )
 
     private data class CreateQuoteOutput(
         val id: UUID? = null,
