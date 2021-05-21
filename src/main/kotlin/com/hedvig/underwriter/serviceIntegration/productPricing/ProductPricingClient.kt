@@ -1,8 +1,6 @@
 package com.hedvig.underwriter.serviceIntegration.productPricing
 
 import com.hedvig.productPricingObjects.dtos.Agreement
-import com.hedvig.productPricingObjects.dtos.SelfChangeRequest
-import com.hedvig.productPricingObjects.dtos.SelfChangeResult
 import com.hedvig.underwriter.graphql.type.InsuranceCost
 import com.hedvig.underwriter.serviceIntegration.productPricing.dtos.AddAgreementRequest
 import com.hedvig.underwriter.serviceIntegration.productPricing.dtos.CalculateBundleInsuranceCostRequest
@@ -14,6 +12,8 @@ import com.hedvig.underwriter.serviceIntegration.productPricing.dtos.contract.Ad
 import com.hedvig.underwriter.serviceIntegration.productPricing.dtos.contract.CreateContractResponse
 import com.hedvig.underwriter.serviceIntegration.productPricing.dtos.contract.CreateContractsRequest
 import feign.Headers
+import java.util.UUID
+import javax.validation.Valid
 import org.springframework.cloud.openfeign.FeignClient
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.GetMapping
@@ -21,8 +21,6 @@ import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestHeader
-import java.util.UUID
-import javax.validation.Valid
 
 @Headers("Accept: application/json;charset=utf-8")
 @FeignClient(
@@ -75,10 +73,4 @@ interface ProductPricingClient {
     fun getAgreement(
         @PathVariable agreementId: UUID
     ): ResponseEntity<Agreement>
-
-    @PostMapping("/contracts/selfChange")
-    fun selfChangeContracts(
-        @RequestHeader("Hedvig.token") memberId: String,
-        @RequestBody body: SelfChangeRequest
-    ): SelfChangeResult
 }

@@ -1,7 +1,6 @@
 package com.hedvig.underwriter.serviceIntegration.productPricing
 
 import com.hedvig.productPricingObjects.dtos.Agreement
-import com.hedvig.productPricingObjects.dtos.SelfChangeResult
 import com.hedvig.underwriter.graphql.type.InsuranceCost
 import com.hedvig.underwriter.model.Quote
 import com.hedvig.underwriter.serviceIntegration.productPricing.dtos.CalculateBundleInsuranceCostRequest
@@ -39,6 +38,4 @@ interface ProductPricingService {
     fun createContractsFromQuotesNoMandate(quotes: List<Quote>): List<CreateContractResponse>
 
     fun getAgreement(agreementId: UUID): Agreement
-
-    fun selfChangeContracts(memberId: String, quotes: List<Quote>): SelfChangeResult
 }

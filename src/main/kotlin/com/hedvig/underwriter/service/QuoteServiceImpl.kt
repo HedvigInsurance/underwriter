@@ -164,6 +164,18 @@ class QuoteServiceImpl(
         return transformCompleteQuoteReturn(breachedGuidelinesOrQuote, quoteId)
     }
 
+    override fun bindQuoteToContract(
+        quoteId: UUID,
+        contractId: UUID,
+        agreementId: UUID
+    ): Either<ErrorResponseDto, Quote> {
+        return findQuoteOrError(quoteId)
+            .map { quote ->
+                val updated = quote.copy(contractId = contractId, agreementId = agreementId, state = QuoteState.SIGNED)
+                quoteRepository.update(updated)
+            }
+    }
+
     override fun expireQuote(id: UUID): Quote? {
         return quoteRepository.expireQuote(id)
     }
