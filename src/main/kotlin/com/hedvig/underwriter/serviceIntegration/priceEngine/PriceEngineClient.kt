@@ -13,7 +13,7 @@ import org.springframework.web.bind.annotation.RequestBody
     name = "priceEngineClient",
     url = "\${hedvig.price-engine.url:price-engine}"
 )
-@ConditionalOnProperty("hedvig.integration.fakes", havingValue = "false", matchIfMissing = true)
+@ConditionalOnProperty("hedvig.integrations.fakes", havingValue = "false", matchIfMissing = true)
 interface PriceEngineClient {
     @PostMapping("/_/price/engine/query/price")
     fun queryPrice(
