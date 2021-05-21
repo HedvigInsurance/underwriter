@@ -12,10 +12,8 @@ import com.hedvig.underwriter.serviceIntegration.memberService.dtos.UnderwriterS
 import com.hedvig.underwriter.serviceIntegration.memberService.dtos.UpdateSsnRequest
 import com.hedvig.underwriter.web.dtos.UnderwriterQuoteSignRequest
 import feign.Headers
-import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.cloud.openfeign.FeignClient
-import org.springframework.context.annotation.Profile
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.DeleteMapping
 import org.springframework.web.bind.annotation.GetMapping

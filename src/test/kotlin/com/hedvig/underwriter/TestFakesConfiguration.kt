@@ -29,7 +29,7 @@ class TestFakesConfiguration {
     val memberServiceClient: FakeMemberServiceClient = FakeMemberServiceClient()
 }
 
-class FakePriceEngineClient: PriceEngineClient {
+class FakePriceEngineClient : PriceEngineClient {
 
     var response: PriceQueryResponse? = null
 
@@ -38,7 +38,7 @@ class FakePriceEngineClient: PriceEngineClient {
     }
 }
 
-class FakeMemberServiceClient: MemberServiceClient {
+class FakeMemberServiceClient : MemberServiceClient {
 
     var personStatus: PersonStatusDto? = null
 
@@ -93,5 +93,4 @@ class FakeMemberServiceClient: MemberServiceClient {
     override fun deleteMember(memberId: String): ResponseEntity<*> {
         TODO("Not yet implemented")
     }
-
 }

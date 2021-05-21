@@ -9,7 +9,6 @@ import com.hedvig.underwriter.serviceIntegration.notificationService.Notificatio
 import com.hedvig.underwriter.util.logger
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Service
-import java.lang.IllegalArgumentException
 import java.time.Instant
 import java.time.temporal.ChronoUnit
 import java.util.UUID
@@ -40,7 +39,6 @@ class GdprServiceImpl(
             }
 
             run(dryRun, days)
-
         } catch (e: Exception) {
             logger.error("Failed to finish executing cleaning job: $e", e)
         }
