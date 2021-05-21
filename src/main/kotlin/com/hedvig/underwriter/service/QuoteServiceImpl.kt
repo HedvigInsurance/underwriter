@@ -16,6 +16,7 @@ import com.hedvig.underwriter.model.QuoteInitiatedFrom
 import com.hedvig.underwriter.model.QuoteRepository
 import com.hedvig.underwriter.model.QuoteState
 import com.hedvig.underwriter.model.email
+import com.hedvig.underwriter.model.ssnMaybe
 import com.hedvig.underwriter.model.validTo
 import com.hedvig.underwriter.service.exceptions.NotFoundException
 import com.hedvig.underwriter.service.exceptions.QuoteNotFoundException
@@ -37,6 +38,7 @@ import com.hedvig.underwriter.web.dtos.ErrorResponseDto
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
 import java.lang.IllegalStateException
+import java.security.MessageDigest
 import java.time.Instant
 import java.util.UUID
 
@@ -195,6 +197,7 @@ class QuoteServiceImpl(
             deletedAt = Instant.now(),
             type = quote.data::class.simpleName ?: "-",
             memberId = quote.memberId,
+            hashedSsn = quote.ssnMaybe?.sha1,
             quote = quote.toMaskedJsonString(objectMapper).anonymiseStreetNumber(quote),
             revs = revs.toMaskedJsonString(objectMapper)
         )
@@ -373,3 +376,11 @@ fun assertQuoteIsNotSignedOrExpired(quote: Quote): ErrorResponseDto? {
     }
     return null
 }
+
+val String.sha1: String
+    get() {
+        val bytes = MessageDigest.getInstance("SHA-1").digest(this.toByteArray())
+        return bytes.joinToString("") {
+            "%02x".format(it)
+        }
+    }

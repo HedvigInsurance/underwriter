@@ -98,3 +98,6 @@ databaseChangeLog:
   - include:
       file: ./migrations/20210520-1557-add-missing-fk-indexes.sql
       relativeToChangelogFile: true
+  - include:
+      file: ./migrations/20210520-1600-added-deleted-quotes-hashed-ssn.sql
+      relativeToChangelogFile: true

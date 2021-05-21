@@ -631,6 +631,7 @@ interface QuoteDao {
                 deleted_at,
                 type,
                 member_id,
+                hashed_ssn,
                 quote,
                 revs
             )
@@ -640,6 +641,7 @@ interface QuoteDao {
                 :deletedAt,
                 :type,
                 :memberId,
+                :hashedSsn,
                 CAST(:quote as jsonb),
                 CAST(:revs as jsonb)
             )

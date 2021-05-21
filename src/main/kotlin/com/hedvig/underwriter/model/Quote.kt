@@ -591,6 +591,7 @@ data class DeletedQuote(
     val deletedAt: Instant,
     val type: String,
     val memberId: String? = null,
+    val hashedSsn: String? = null,
     val quote: String,
     val revs: String
 )
