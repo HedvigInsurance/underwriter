@@ -37,8 +37,8 @@ import com.hedvig.underwriter.web.dtos.ErrorCodes
 import com.hedvig.underwriter.web.dtos.ErrorResponseDto
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
-import org.springframework.util.DigestUtils
 import java.lang.IllegalStateException
+import java.security.MessageDigest
 import java.time.Instant
 import java.util.UUID
 
@@ -197,7 +197,7 @@ class QuoteServiceImpl(
             deletedAt = Instant.now(),
             type = quote.data::class.simpleName ?: "-",
             memberId = quote.memberId,
-            hashedSsn = quote.ssnMaybe?.md5(),
+            hashedSsn = quote.ssnMaybe?.sha1,
             quote = quote.toMaskedJsonString(objectMapper).anonymiseStreetNumber(quote),
             revs = revs.toMaskedJsonString(objectMapper)
         )
@@ -377,5 +377,10 @@ fun assertQuoteIsNotSignedOrExpired(quote: Quote): ErrorResponseDto? {
     return null
 }
 
-fun String.md5() =
-    DigestUtils.md5DigestAsHex(this.toByteArray())
+val String.sha1: String
+    get() {
+        val bytes = MessageDigest.getInstance("SHA-1").digest(this.toByteArray())
+        return bytes.joinToString("") {
+            "%02x".format(it)
+        }
+    }
