@@ -90,9 +90,9 @@ internal class ExternalQuoteControllerTest {
         val updatedQ1 = getQuote(q1.id).assert2xx().body<Quote>()
         val updatedQ2 = getQuote(q2.id).assert2xx().body<Quote>()
 
-        assertThat(result.updatedContracts[0]["contractId"]).isEqualTo(cid1)
-        assertThat(result.createdContracts[0]["contractId"]).isEqualTo(cid3)
-        assertThat(result.terminatedContractIds[0]).isEqualTo(cid2)
+        assertThat(result.updatedContractIds).isEqualTo(listOf(cid1))
+        assertThat(result.createdContractIds).isEqualTo(listOf(cid3))
+        assertThat(result.terminatedContractIds).isEqualTo(listOf(cid2))
 
         assertThat(updatedQ1.contractId).isEqualTo(cid1)
         assertThat(updatedQ2.contractId).isEqualTo(cid3)
@@ -153,8 +153,8 @@ internal class ExternalQuoteControllerTest {
     )
 
     private data class SelfChangeQuoteOutput(
-        val updatedContracts: List<Map<String, UUID>>,
-        val createdContracts: List<Map<String, UUID>>,
+        val updatedContractIds: List<UUID>,
+        val createdContractIds: List<UUID>,
         val terminatedContractIds: List<UUID>
     )
 }

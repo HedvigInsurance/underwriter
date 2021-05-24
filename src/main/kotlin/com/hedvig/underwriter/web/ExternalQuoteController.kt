@@ -78,24 +78,14 @@ class ExternalQuoteController(
     )
 
     data class SelfChangeToQuotesOutput(
-        val updatedContracts: List<ContractChange>,
-        val createdContracts: List<ContractChange>,
+        val updatedContractIds: List<UUID>,
+        val createdContractIds: List<UUID>,
         val terminatedContractIds: List<UUID>
     ) {
-        data class ContractChange(
-            val quoteId: UUID,
-            val agreementId: UUID,
-            val contractId: UUID
-        )
-
         companion object {
             fun from(result: SelfChangeResult) = SelfChangeToQuotesOutput(
-                updatedContracts = result.updatedContracts.map {
-                    ContractChange(it.quoteId, it.agreementId, it.contractId)
-                },
-                createdContracts = result.createdContracts.map {
-                    ContractChange(it.quoteId, it.agreementId, it.contractId)
-                },
+                updatedContractIds = result.updatedContracts.map { it.contractId },
+                createdContractIds = result.createdContracts.map { it.contractId },
                 terminatedContractIds = result.terminatedContractIds
             )
         }
