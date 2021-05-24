@@ -1,6 +1,8 @@
 package com.hedvig.underwriter.serviceIntegration.productPricing
 
 import com.hedvig.productPricingObjects.dtos.Agreement
+import com.hedvig.productPricingObjects.dtos.SelfChangeRequest
+import com.hedvig.productPricingObjects.dtos.SelfChangeResult
 import com.hedvig.underwriter.graphql.type.InsuranceCost
 import com.hedvig.underwriter.model.Quote
 import com.hedvig.underwriter.serviceIntegration.productPricing.dtos.AddAgreementRequest
@@ -10,6 +12,7 @@ import com.hedvig.underwriter.serviceIntegration.productPricing.dtos.RedeemCampa
 import com.hedvig.underwriter.serviceIntegration.productPricing.dtos.SignedQuoteRequest
 import com.hedvig.underwriter.serviceIntegration.productPricing.dtos.contract.CreateContractResponse
 import com.hedvig.underwriter.serviceIntegration.productPricing.dtos.contract.CreateContractsRequest
+import com.hedvig.underwriter.serviceIntegration.productPricing.dtos.mappers.OutgoingMapper
 import com.hedvig.underwriter.web.dtos.AddAgreementFromQuoteRequest
 import com.hedvig.underwriter.web.dtos.SignRequest
 import java.util.UUID
@@ -65,4 +68,13 @@ class ProductPricingServiceImpl @Autowired constructor(
 
     override fun getAgreement(agreementId: UUID): Agreement =
         productPricingClient.getAgreement(agreementId).body!!
+
+    override fun selfChangeContracts(memberId: String, contractIds: List<UUID>, quotes: List<Quote>): SelfChangeResult =
+        productPricingClient.selfChangeContracts(
+            SelfChangeRequest(
+                memberId = memberId,
+                contractIds = contractIds,
+                quotes = quotes.map { OutgoingMapper.toQuote(it) }
+            )
+        )
 }

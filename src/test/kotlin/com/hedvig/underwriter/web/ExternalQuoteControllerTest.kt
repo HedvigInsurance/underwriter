@@ -1,5 +1,6 @@
 package com.hedvig.underwriter.web
 
+import com.hedvig.productPricingObjects.dtos.SelfChangeResult
 import com.hedvig.underwriter.TestFakesConfiguration
 import com.hedvig.underwriter.serviceIntegration.memberService.dtos.Flag
 import com.hedvig.underwriter.serviceIntegration.memberService.dtos.PersonStatusDto
@@ -79,6 +80,43 @@ internal class ExternalQuoteControllerTest {
         assertThat(response.agreementId).isEqualTo(agreementId)
     }
 
+    @Test
+    fun `selfChange - can flush quotes into the new contracts`() {
+
+        val q1 = createQuote().body<CreateQuoteOutput>()
+        val q2 = createQuote().body<CreateQuoteOutput>()
+        val cid1 = UUID.randomUUID()
+        val cid2 = UUID.randomUUID()
+        val cid3 = UUID.randomUUID()
+
+        config.productPricingClient.selfChangeResult = SelfChangeResult(
+            updatedContracts = listOf(SelfChangeResult.ContractChange(q1.id!!, UUID.randomUUID(), cid1)),
+            createdContracts = listOf(SelfChangeResult.ContractChange(q2.id!!, UUID.randomUUID(), cid3)),
+            terminatedContractIds = listOf(cid2)
+        )
+
+        val result = client.post(
+            uri = "/quotes/selfChange",
+            body = SelfChangeQuoteInput(
+                contractIds = listOf(cid1, cid2),
+                quoteIds = listOf(q1.id, q2.id)
+            ),
+            headers = mapOf(
+                "Hedvig.token" to "mid1"
+            )
+        ).assert2xx().body<SelfChangeQuoteOutput>()
+
+        val updatedQ1 = getQuote(q1.id).assert2xx().body<Quote>()
+        val updatedQ2 = getQuote(q2.id).assert2xx().body<Quote>()
+
+        assertThat(result.updatedContracts[0]["contractId"]).isEqualTo(cid1)
+        assertThat(result.createdContracts[0]["contractId"]).isEqualTo(cid3)
+        assertThat(result.terminatedContractIds[0]).isEqualTo(cid2)
+
+        assertThat(updatedQ1.contractId).isEqualTo(cid1)
+        assertThat(updatedQ2.contractId).isEqualTo(cid3)
+    }
+
     private fun createQuote(
         bodyChanges: CreateQuoteInput.() -> Unit = {}
     ): TestHttpClient.Response {
@@ -126,5 +164,16 @@ internal class ExternalQuoteControllerTest {
         val id: UUID,
         val contractId: UUID? = null,
         val agreementId: UUID? = null
+    )
+
+    private data class SelfChangeQuoteInput(
+        val contractIds: List<UUID>,
+        val quoteIds: List<UUID>
+    )
+
+    private data class SelfChangeQuoteOutput(
+        val updatedContracts: List<Map<String, UUID>>,
+        val createdContracts: List<Map<String, UUID>>,
+        val terminatedContractIds: List<UUID>
     )
 }

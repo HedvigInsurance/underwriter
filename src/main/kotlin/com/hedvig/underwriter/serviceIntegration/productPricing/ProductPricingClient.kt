@@ -1,6 +1,8 @@
 package com.hedvig.underwriter.serviceIntegration.productPricing
 
 import com.hedvig.productPricingObjects.dtos.Agreement
+import com.hedvig.productPricingObjects.dtos.SelfChangeRequest
+import com.hedvig.productPricingObjects.dtos.SelfChangeResult
 import com.hedvig.underwriter.graphql.type.InsuranceCost
 import com.hedvig.underwriter.serviceIntegration.productPricing.dtos.AddAgreementRequest
 import com.hedvig.underwriter.serviceIntegration.productPricing.dtos.CalculateBundleInsuranceCostRequest
@@ -14,6 +16,7 @@ import com.hedvig.underwriter.serviceIntegration.productPricing.dtos.contract.Cr
 import feign.Headers
 import java.util.UUID
 import javax.validation.Valid
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.cloud.openfeign.FeignClient
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.GetMapping
@@ -27,6 +30,7 @@ import org.springframework.web.bind.annotation.RequestHeader
     name = "productPricingClient",
     url = "\${hedvig.product-pricing.url:product-pricing}"
 )
+@ConditionalOnProperty("hedvig.integrations.fakes", havingValue = "false", matchIfMissing = true)
 interface ProductPricingClient {
 
     @PostMapping("/_/underwriter/{memberId}/signed/quote")
@@ -73,4 +77,7 @@ interface ProductPricingClient {
     fun getAgreement(
         @PathVariable agreementId: UUID
     ): ResponseEntity<Agreement>
+
+    @PostMapping("/_/contracts/selfChange")
+    fun selfChangeContracts(@RequestBody request: SelfChangeRequest): SelfChangeResult
 }
