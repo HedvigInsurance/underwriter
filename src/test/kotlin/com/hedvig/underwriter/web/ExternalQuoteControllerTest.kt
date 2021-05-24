@@ -62,25 +62,6 @@ internal class ExternalQuoteControllerTest {
     }
 
     @Test
-    fun `can update contractId and agreementId on quote`() {
-        val contractId = UUID.randomUUID()
-        val agreementId = UUID.randomUUID()
-        val body = mapOf(
-            "contractId" to contractId,
-            "agreementId" to agreementId
-        )
-        val created = createQuote().body<CreateQuoteOutput>()
-        val response = client.put(
-            "/quotes/${created.id}/contract",
-            body
-        ).assert2xx().body<Quote>()
-
-        assertThat(response.id).isEqualTo(created.id)
-        assertThat(response.contractId).isEqualTo(contractId)
-        assertThat(response.agreementId).isEqualTo(agreementId)
-    }
-
-    @Test
     fun `selfChange - can flush quotes into the new contracts`() {
 
         val q1 = createQuote().body<CreateQuoteOutput>()

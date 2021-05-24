@@ -32,8 +32,6 @@ interface QuoteService {
         underwritingGuidelinesBypassedBy: String?
     ): Either<ErrorResponseDto, CompleteQuoteResponseDto>
 
-    fun bindQuoteToContract(quoteId: UUID, contractId: UUID, agreementId: UUID): Either<ErrorResponseDto, Quote>
-
     fun updateQuote(
         quoteRequest: QuoteRequest,
         id: UUID,

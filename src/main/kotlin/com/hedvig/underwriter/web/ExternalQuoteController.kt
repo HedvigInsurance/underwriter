@@ -11,7 +11,6 @@ import com.hedvig.productPricingObjects.dtos.SelfChangeResult
 import com.hedvig.underwriter.service.SelfChangeService
 import com.hedvig.underwriter.web.dtos.ExternalQuoteRequestDto
 import com.hedvig.underwriter.web.dtos.QuoteDto
-import com.hedvig.underwriter.web.dtos.UpdateQuoteContractDto
 import java.util.UUID
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.PostMapping
@@ -21,7 +20,6 @@ import org.springframework.web.bind.annotation.RestController
 import javax.servlet.http.HttpServletRequest
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
-import org.springframework.web.bind.annotation.PutMapping
 import org.springframework.web.bind.annotation.RequestHeader
 
 @RestController
@@ -60,20 +58,6 @@ class ExternalQuoteController(
     ): ResponseEntity<QuoteDto> {
         val quote = quoteService.getQuote(id) ?: return ResponseEntity.notFound().build()
         return ResponseEntity.ok(QuoteDto.from(quote))
-    }
-
-    @PutMapping("/{quoteId}/contract")
-    @LogCall
-    fun bindQuoteToContract(
-        @PathVariable quoteId: UUID,
-        @RequestBody body: UpdateQuoteContractDto
-    ): ResponseEntity<out Any> {
-        return quoteService.bindQuoteToContract(
-            quoteId, body.contractId, body.agreementId
-        ).bimap(
-            { ResponseEntity.status(422).body(it) },
-            { ResponseEntity.status(200).body(QuoteDto.from(it)) }
-        ).getOrHandle { it }
     }
 
     @PostMapping("/selfChange")

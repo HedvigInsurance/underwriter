@@ -34,11 +34,10 @@ import com.hedvig.underwriter.web.dtos.BreachedGuideline
 import com.hedvig.underwriter.web.dtos.CompleteQuoteResponseDto
 import com.hedvig.underwriter.web.dtos.ErrorCodes
 import com.hedvig.underwriter.web.dtos.ErrorResponseDto
-import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.stereotype.Service
-import java.lang.IllegalStateException
 import java.time.Instant
 import java.util.UUID
+import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.stereotype.Service
 
 @Service
 class QuoteServiceImpl(
@@ -162,18 +161,6 @@ class QuoteServiceImpl(
         )
 
         return transformCompleteQuoteReturn(breachedGuidelinesOrQuote, quoteId)
-    }
-
-    override fun bindQuoteToContract(
-        quoteId: UUID,
-        contractId: UUID,
-        agreementId: UUID
-    ): Either<ErrorResponseDto, Quote> {
-        return findQuoteOrError(quoteId)
-            .map { quote ->
-                val updated = quote.copy(contractId = contractId, agreementId = agreementId, state = QuoteState.SIGNED)
-                quoteRepository.update(updated)
-            }
     }
 
     override fun expireQuote(id: UUID): Quote? {
