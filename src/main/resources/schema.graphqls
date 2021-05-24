@@ -342,107 +342,18 @@ type CurrentInsurer {
     switchable: Boolean
 }
 
-union ExtraBuilding =
-    ExtraBuildingGarage
-    | ExtraBuildingCarport
-    | ExtraBuildingShed
-    | ExtraBuildingStorehouse
-    | ExtraBuildingFriggebod
-    | ExtraBuildingAttefall
-    | ExtraBuildingOuthouse
-    | ExtraBuildingGuesthouse
-    | ExtraBuildingGazebo
-    | ExtraBuildingGreenhouse
-    | ExtraBuildingSauna
-    | ExtraBuildingBarn
-    | ExtraBuildingBoathouse
-    | ExtraBuildingOther
+# These are duplicated in multiple services, and must match what is currently spelled out in Giraffe
+union ExtraBuilding = ExtraBuildingValue
 
 interface ExtraBuildingCore {
+    type: ExtraBuildingType!
     area: Int!
     displayName: String!
     hasWaterConnected: Boolean!
 }
 
-type ExtraBuildingGarage implements ExtraBuildingCore {
-    area: Int!
-    displayName: String!
-    hasWaterConnected: Boolean!
-}
-
-type ExtraBuildingCarport implements ExtraBuildingCore {
-    area: Int!
-    displayName: String!
-    hasWaterConnected: Boolean!
-}
-
-type ExtraBuildingShed implements ExtraBuildingCore {
-    area: Int!
-    displayName: String!
-    hasWaterConnected: Boolean!
-}
-
-type ExtraBuildingStorehouse implements ExtraBuildingCore {
-    area: Int!
-    displayName: String!
-    hasWaterConnected: Boolean!
-}
-
-type ExtraBuildingFriggebod implements ExtraBuildingCore {
-    area: Int!
-    displayName: String!
-    hasWaterConnected: Boolean!
-}
-
-type ExtraBuildingAttefall implements ExtraBuildingCore {
-    area: Int!
-    displayName: String!
-    hasWaterConnected: Boolean!
-}
-
-type ExtraBuildingOuthouse implements ExtraBuildingCore {
-    area: Int!
-    displayName: String!
-    hasWaterConnected: Boolean!
-}
-
-type ExtraBuildingGuesthouse implements ExtraBuildingCore {
-    area: Int!
-    displayName: String!
-    hasWaterConnected: Boolean!
-}
-
-type ExtraBuildingGazebo implements ExtraBuildingCore {
-    area: Int!
-    displayName: String!
-    hasWaterConnected: Boolean!
-}
-
-type ExtraBuildingGreenhouse implements ExtraBuildingCore {
-    area: Int!
-    displayName: String!
-    hasWaterConnected: Boolean!
-}
-
-type ExtraBuildingSauna implements ExtraBuildingCore {
-    area: Int!
-    displayName: String!
-    hasWaterConnected: Boolean!
-}
-
-type ExtraBuildingBarn implements ExtraBuildingCore {
-    area: Int!
-    displayName: String!
-    hasWaterConnected: Boolean!
-}
-
-type ExtraBuildingBoathouse implements ExtraBuildingCore {
-    area: Int!
-    displayName: String!
-    hasWaterConnected: Boolean!
-}
-
-type ExtraBuildingOther implements ExtraBuildingCore {
+type ExtraBuildingValue implements ExtraBuildingCore {
+    type: ExtraBuildingType!
     area: Int!
     displayName: String!
     hasWaterConnected: Boolean!

@@ -1,7 +1,7 @@
 package com.hedvig.underwriter.graphql.type.depricated
 
 import com.hedvig.underwriter.graphql.type.ApartmentType
-import com.hedvig.underwriter.graphql.type.ExtraBuilding
+import com.hedvig.underwriter.graphql.type.ExtraBuildingValue
 import com.hedvig.libs.logging.masking.Masked
 
 @Deprecated("Use QuoteDetails")
@@ -20,7 +20,7 @@ sealed class CompleteQuoteDetails {
         val householdSize: Int,
         val livingSpace: Int,
         val ancillarySpace: Int,
-        val extraBuildings: List<ExtraBuilding.ExtraBuildingCore>,
+        val extraBuildings: List<ExtraBuildingValue>,
         val numberOfBathrooms: Int,
         val yearOfConstruction: Int,
         val isSubleted: Boolean

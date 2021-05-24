@@ -90,5 +90,14 @@ databaseChangeLog:
       file: ./migrations/20210505-1123-add-quote-line-items.sql
       relativeToChangelogFile: true
   - include:
+      file: ./migrations/20210511-1400-quote-revisions-price-from.sql
+      relativeToChangelogFile: true
+  - include:
       file: ./migrations/20210512-1557-add-indexes.sql
+      relativeToChangelogFile: true
+  - include:
+      file: ./migrations/20210520-1557-add-missing-fk-indexes.sql
+      relativeToChangelogFile: true
+  - include:
+      file: ./migrations/20210520-1600-added-deleted-quotes-hashed-ssn.sql
       relativeToChangelogFile: true

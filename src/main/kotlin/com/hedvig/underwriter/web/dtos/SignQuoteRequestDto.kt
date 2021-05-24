@@ -8,5 +8,6 @@ data class SignQuoteRequestDto(
     @Masked val name: Name?,
     @Masked val ssn: String?,
     val startDate: LocalDate?,
+    val insuranceCompany: String? = null,
     @Masked val email: String
 )

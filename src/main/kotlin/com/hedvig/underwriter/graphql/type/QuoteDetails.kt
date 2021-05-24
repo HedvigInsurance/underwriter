@@ -28,7 +28,7 @@ sealed class QuoteDetails {
         val householdSize: Int,
         val livingSpace: Int,
         val ancillarySpace: Int,
-        val extraBuildings: List<ExtraBuilding.ExtraBuildingCore>,
+        val extraBuildings: List<ExtraBuildingValue>,
         val numberOfBathrooms: Int,
         val yearOfConstruction: Int,
         val isSubleted: Boolean

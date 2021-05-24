@@ -30,10 +30,11 @@ class CreateQuoteTest {
     val strategyService = mockk<QuoteStrategyService>()
     val priceEngineService = mockk<PriceEngineService>()
     val quoteRepository = mockk<QuoteRepository>()
+    val requotingService = RequotingServiceImpl(mockk(relaxed = true), mockk())
     val metrics = mockk<UnderwriterImpl.BreachedGuidelinesCounter>(relaxed = true)
 
     val cut = QuoteServiceImpl(
-        UnderwriterImpl(priceEngineService, strategyService, mockk(relaxed = true), mockk(), metrics),
+        UnderwriterImpl(priceEngineService, strategyService, requotingService, mockk(), metrics),
         mockk(),
         mockk(),
         quoteRepository,

@@ -16,17 +16,18 @@ import org.javamoney.moneta.Money
 import org.junit.jupiter.api.Test
 import java.util.UUID
 
-class QuoteServiceUpdateQuotes {
+class QuoteServiceUpdateQuotesTest {
 
     @Test
     fun clear_old_breached_underwriting_guidelines() {
 
         val quoteRepository = mockk<QuoteRepository>()
         val priceEngine = mockk<PriceEngineService>()
-
+        val requotingService = RequotingServiceImpl(mockk(relaxed = true), mockk(relaxed = true))
         val quoteStrategyService = mockk<QuoteStrategyService>(relaxed = true)
+
         val cut = QuoteServiceImpl(
-            UnderwriterImpl(priceEngine, quoteStrategyService, mockk(relaxed = true), mockk(), mockk()),
+            UnderwriterImpl(priceEngine, quoteStrategyService, requotingService, mockk(), mockk()),
             mockk(relaxed = true),
             mockk(relaxed = true),
             quoteRepository,

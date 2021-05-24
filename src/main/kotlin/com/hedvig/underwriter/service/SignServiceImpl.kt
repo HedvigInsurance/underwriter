@@ -215,13 +215,14 @@ class SignServiceImpl(
         return try {
             val response = signQuotesFromRapio(
                 SignQuotesRequestDto(
-                    listOf(quoteId),
-                    request.name,
-                    request.ssn,
-                    request.startDate,
-                    request.email,
-                    null,
-                    null
+                    quoteIds = listOf(quoteId),
+                    name = request.name,
+                    ssn = request.ssn,
+                    startDate = request.startDate,
+                    insuranceCompany = request.insuranceCompany,
+                    email = request.email,
+                    price = null,
+                    currency = null
                 )
             )
 
@@ -248,8 +249,9 @@ class SignServiceImpl(
             .map { updateEmailFromRequest(it, request.email) }
             .map { updateSsnFromRequest(it, request.ssn) }
             .map { updateStartTimeFromRequest(it, request.startDate) }
+            .map { updateCurrentInsurerFromRequest(it, request.insuranceCompany) }
 
-        validateQuotesToSign(quotes)
+        validateQuotesToSignFromRapio(quotes)
         validateBundlePrice(quotes, request.price, request.currency)
 
         val memberId = getCreateMember(quotes)
@@ -268,7 +270,7 @@ class SignServiceImpl(
         return response
     }
 
-    private fun validateQuotesToSign(quotes: List<Quote>) {
+    private fun validateQuotesToSignFromRapio(quotes: List<Quote>) {
 
         val memberIds = quotes.mapNotNull { it.memberId }.toSet()
         if (memberIds.size > 1) {
@@ -309,6 +311,9 @@ class SignServiceImpl(
                 }
                 if (data !is PersonPolicyHolder<*>) {
                     throw ErrorException(ErrorCodes.INVALID_STATE, "Quote type is not supported: ${data::class.java}")
+                }
+                if (startDate == null && currentInsurer == null) {
+                    throw ErrorException(ErrorCodes.INVALID_STATE, "currentInsurer is required when startDate is null")
                 }
             }
         }
@@ -522,6 +527,14 @@ private fun updateSsnFromRequest(
     }
 
     return quote.copy(data = quote.data.updateSsn(ssn = ssn))
+}
+
+private fun updateCurrentInsurerFromRequest(quote: Quote, currentInsurer: String?): Quote {
+    if (currentInsurer.isNullOrBlank()) {
+        return quote
+    }
+
+    return quote.copy(currentInsurer = currentInsurer)
 }
 
 private fun updateEmailFromRequest(

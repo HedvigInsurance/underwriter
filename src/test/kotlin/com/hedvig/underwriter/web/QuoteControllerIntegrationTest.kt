@@ -110,7 +110,8 @@ class QuoteControllerIntegrationTest {
               "lastName": "Svensson"
             },
             "startDate": null,
-            "email": "s@hedvig.com"
+            "email": "s@hedvig.com",
+            "insuranceCompany": "other"
             }
         """.trimIndent()
 
