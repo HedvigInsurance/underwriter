@@ -60,9 +60,9 @@ class ExternalQuoteController(
         return ResponseEntity.ok(QuoteDto.from(quote))
     }
 
-    @PostMapping("/selfChange")
+    @PostMapping("/connectToContracts")
     @LogCall
-    fun selfChangeToQuotes(
+    fun connectToContracts(
         @RequestHeader("Hedvig.token") memberId: String,
         @RequestBody body: SelfChangeToQuotesInput
     ): SelfChangeToQuotesOutput {

@@ -77,7 +77,7 @@ internal class ExternalQuoteControllerTest {
         )
 
         val result = client.post(
-            uri = "/quotes/selfChange",
+            uri = "/quotes/connectToContracts",
             body = SelfChangeQuoteInput(
                 contractIds = listOf(cid1, cid2),
                 quoteIds = listOf(q1.id, q2.id)
