@@ -3,6 +3,7 @@ package com.hedvig.underwriter.testhelp
 import assertk.assertThat
 import assertk.assertions.isBetween
 import assertk.assertions.isEqualTo
+import com.fasterxml.jackson.core.type.TypeReference
 import com.fasterxml.jackson.databind.ObjectMapper
 import org.springframework.boot.test.web.client.TestRestTemplate
 import org.springframework.http.HttpEntity
@@ -41,7 +42,7 @@ class TestHttpClient(
                 }
             )
         }
-        val entity = template.exchange(uri, method, httpEntity, Map::class.java)
+        val entity = template.exchange(uri, method, httpEntity, Any::class.java)
         return Response(mapper, entity)
     }
 
@@ -61,11 +62,11 @@ class TestHttpClient(
         }
 
         inline fun <reified T> body(): T {
-            return body(T::class.java)
+            return body(object : TypeReference<T>() {})
         }
 
         @PublishedApi
-        internal fun <T> body(type: Class<T>): T {
+        internal fun <T> body(type: TypeReference<T>): T {
             return mapper.convertValue(entity.body, type)
         }
     }
