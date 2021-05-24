@@ -4,6 +4,7 @@ import com.hedvig.underwriter.TestFakesConfiguration
 import com.hedvig.underwriter.serviceIntegration.memberService.dtos.Flag
 import com.hedvig.underwriter.serviceIntegration.memberService.dtos.PersonStatusDto
 import com.hedvig.underwriter.serviceIntegration.priceEngine.dtos.PriceQueryResponse
+import com.hedvig.underwriter.testhelp.TestHttpClient
 import java.math.BigDecimal
 import java.time.Instant
 import java.time.LocalDate
@@ -14,16 +15,13 @@ import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
-import org.springframework.boot.test.web.client.TestRestTemplate
-import org.springframework.http.HttpEntity
-import org.springframework.http.HttpMethod
 import org.springframework.http.HttpStatus
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 internal class ExternalQuoteControllerTest {
 
     @Autowired
-    lateinit var template: TestRestTemplate
+    lateinit var client: TestHttpClient
 
     @Autowired
     lateinit var config: TestFakesConfiguration
@@ -39,7 +37,7 @@ internal class ExternalQuoteControllerTest {
 
     @Test
     fun `can create a basic quote`() {
-        val response = createQuote()
+        val response = createQuote().assert2xx().body<CreateQuoteOutput>()
         assertThat(response.id).isNotNull()
         assertThat(response.price).isEqualTo(BigDecimal("100"))
         assertThat(response.currency).isEqualTo("SEK")
@@ -47,17 +45,18 @@ internal class ExternalQuoteControllerTest {
 
     @Test
     fun `gets 422 underwriting guidelines breached if too young`() {
-        val response = createQuote(HttpStatus.UNPROCESSABLE_ENTITY) {
+        val response = createQuote {
             birthDate = LocalDate.of(2017, 1, 1)
             ssn = "201701012393"
-        }
+        }.assertStatus(HttpStatus.UNPROCESSABLE_ENTITY).body<CreateQuoteOutput>()
+
         assertThat(response.breachedUnderwritingGuidelines).isNotEmpty
     }
 
     @Test
     fun `can get a quote by id`() {
-        val created = createQuote()
-        val response = getQuote(created.id!!)
+        val created = createQuote().body<CreateQuoteOutput>()
+        val response = getQuote(created.id!!).body<Quote>()
         assertThat(response.id).isEqualTo(created.id)
     }
 
@@ -69,23 +68,20 @@ internal class ExternalQuoteControllerTest {
             "contractId" to contractId,
             "agreementId" to agreementId
         )
-        val created = createQuote()
-        val response = template.exchange(
+        val created = createQuote().body<CreateQuoteOutput>()
+        val response = client.put(
             "/quotes/${created.id}/contract",
-            HttpMethod.PUT,
-            HttpEntity(body),
-            Quote::class.java
-        )
-        assertThat(response.statusCode).isEqualTo(HttpStatus.OK)
-        assertThat(response.body!!.id).isEqualTo(created.id)
-        assertThat(response.body!!.contractId).isEqualTo(contractId)
-        assertThat(response.body!!.agreementId).isEqualTo(agreementId)
+            body
+        ).assert2xx().body<Quote>()
+
+        assertThat(response.id).isEqualTo(created.id)
+        assertThat(response.contractId).isEqualTo(contractId)
+        assertThat(response.agreementId).isEqualTo(agreementId)
     }
 
     private fun createQuote(
-        expectedHttpCode: HttpStatus = HttpStatus.OK,
         bodyChanges: CreateQuoteInput.() -> Unit = {}
-    ): CreateQuoteOutput {
+    ): TestHttpClient.Response {
         val body = CreateQuoteInput(
             memberId = "mid",
             firstName = "Test",
@@ -103,20 +99,10 @@ internal class ExternalQuoteControllerTest {
         )
         body.bodyChanges()
 
-        val response = template.postForEntity(
-            "/quotes", body, CreateQuoteOutput::class.java
-        )
-        assertThat(response.statusCode).isEqualTo(expectedHttpCode)
-        return response.body!!
+        return client.post("/quotes", body)
     }
 
-    private fun getQuote(id: UUID): Quote {
-        val response = template.getForEntity(
-            "/quotes/$id", Quote::class.java
-        )
-        assertThat(response.statusCode).isEqualTo(HttpStatus.OK)
-        return response.body!!
-    }
+    private fun getQuote(id: UUID): TestHttpClient.Response = client.get("/quotes/$id")
 
     private data class CreateQuoteInput(
         var memberId: String? = null,
