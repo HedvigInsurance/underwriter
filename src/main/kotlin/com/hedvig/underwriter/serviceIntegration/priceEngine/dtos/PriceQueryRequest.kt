@@ -11,6 +11,7 @@ import com.hedvig.underwriter.model.DanishHomeContentsType
 import com.hedvig.underwriter.model.DanishTravelData
 import com.hedvig.underwriter.model.NorwegianHomeContentsData
 import com.hedvig.underwriter.model.NorwegianTravelData
+import com.hedvig.underwriter.model.Partner
 import com.hedvig.underwriter.model.SwedishApartmentData
 import com.hedvig.underwriter.model.SwedishHouseData
 import com.hedvig.underwriter.model.birthDateFromSwedishSsn
@@ -84,20 +85,27 @@ sealed class PriceQueryRequest {
         val lineOfBusiness: SwedishApartmentLineOfBusiness,
         val squareMeters: Int,
         val postalCode: String,
-        val dataCollectionId: UUID?
+        val dataCollectionId: UUID?,
+        val partner: Partner
     ) : PriceQueryRequest() {
         companion object {
-            fun from(quoteId: UUID, memberId: String?, data: SwedishApartmentData, dataCollectionId: UUID?) =
-                SwedishApartment(
-                    holderMemberId = memberId,
-                    quoteId = quoteId,
-                    holderBirthDate = data.birthDate ?: data.ssn!!.birthDateFromSwedishSsn(),
-                    numberCoInsured = data.householdSize!! - 1,
-                    lineOfBusiness = OutgoingMapper.toLineOfBusiness(data.subType!!),
-                    squareMeters = data.livingSpace!!,
-                    postalCode = data.zipCode!!,
-                    dataCollectionId = dataCollectionId
-                )
+            fun from(
+                quoteId: UUID,
+                memberId: String?,
+                data: SwedishApartmentData,
+                dataCollectionId: UUID?,
+                partner: Partner
+            ) = SwedishApartment(
+                holderMemberId = memberId,
+                quoteId = quoteId,
+                holderBirthDate = data.birthDate ?: data.ssn!!.birthDateFromSwedishSsn(),
+                numberCoInsured = data.householdSize!! - 1,
+                lineOfBusiness = OutgoingMapper.toLineOfBusiness(data.subType!!),
+                squareMeters = data.livingSpace!!,
+                postalCode = data.zipCode!!,
+                dataCollectionId = dataCollectionId,
+                partner = partner
+            )
         }
     }
 

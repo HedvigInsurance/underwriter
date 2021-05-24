@@ -132,7 +132,13 @@ class UnderwriterImpl(
     private fun getPriceRetrievedFromProductPricing(quote: Quote): PriceQueryResponse {
         return when (quote.data) {
             is SwedishApartmentData -> priceEngineService.querySwedishApartmentPrice(
-                PriceQueryRequest.SwedishApartment.from(quote.id, quote.memberId, quote.data, quote.dataCollectionId)
+                PriceQueryRequest.SwedishApartment.from(
+                    quoteId = quote.id,
+                    memberId = quote.memberId,
+                    data = quote.data,
+                    dataCollectionId = quote.dataCollectionId,
+                    partner = quote.attributedTo
+                )
             )
             is SwedishHouseData -> priceEngineService.querySwedishHousePrice(
                 PriceQueryRequest.SwedishHouse.from(quote.id, quote.memberId, quote.data, quote.dataCollectionId)
