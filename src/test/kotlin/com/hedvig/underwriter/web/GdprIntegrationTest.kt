@@ -1,6 +1,5 @@
 package com.hedvig.underwriter.web
 
-import com.hedvig.underwriter.serviceIntegration.memberService.dtos.IsSsnAlreadySignedMemberResponse
 import com.hedvig.underwriter.serviceIntegration.memberService.dtos.UnderwriterQuoteSignResponse
 import com.hedvig.underwriter.serviceIntegration.notificationService.NotificationServiceClient
 import com.hedvig.underwriter.serviceIntegration.priceEngine.dtos.PriceQueryResponse
@@ -103,12 +102,9 @@ class GdprIntegrationTest {
         }
 
         every { memberServiceClient.personStatus(any()) } returns ResponseEntity.status(200).body(PersonStatusDto(Flag.GREEN))
-        every { memberServiceClient.checkPersonDebt(any()) } returns ResponseEntity.status(200).body(null)
-        every { memberServiceClient.checkIsSsnAlreadySignedMemberEntity(any()) } returns IsSsnAlreadySignedMemberResponse(false)
         every { memberServiceClient.createMember() } returns ResponseEntity.status(200).body(HelloHedvigResponseDto("12345"))
-        every { memberServiceClient.updateMemberSsn(any(), any()) } returns Unit
         every { memberServiceClient.signQuote(any(), any()) } returns ResponseEntity.status(200).body(UnderwriterQuoteSignResponse(1L, true))
-        every { memberServiceClient.finalizeOnBoarding(any(), any()) } returns ResponseEntity.status(200).body("")
+        every { productPricingClient.hasContract(any(), any()) } returns ResponseEntity.status(200).body(false)
         every { productPricingClient.createContract(any(), any()) } returns listOf(CreateContractResponse(UUID.randomUUID(), UUID.randomUUID(), UUID.randomUUID()))
         every { productPricingClient.getAgreement(any()) } returns ResponseEntity.status(200).body(activeAgreement)
         every { productPricingClient.calculateInsuranceCost(any(), any()) } returns ResponseEntity.status(200).body(InsuranceCost(
@@ -257,6 +253,27 @@ class GdprIntegrationTest {
         verify(exactly = 1) { notificationServiceClient.deleteMember(memberId) }
         verify(exactly = 1) { apiGatewayServiceClient.deleteMember(any(), memberId) }
         verify(exactly = 1) { memberServiceClient.deleteMember(memberId) }
+        verify(exactly = 1) { productPricingClient.hasContract(memberId, any()) }
+
+        // TODO: Add verify checks to member and lookup services when implemented
+    }
+
+    @Test
+    fun `Test cleaning quote with member having contract in PP but not in UW`() {
+
+        val memberId = Random().nextLong().toString()
+
+        every { productPricingClient.hasContract(memberId, any()) } returns ResponseEntity.status(200).body(true)
+
+        val quoteId = createGraphQlQuote(memberId)
+
+        assertCleanJob(quoteId)
+
+        // Since member has a contract in PP it should not be deleted...
+        verify(exactly = 0) { notificationServiceClient.deleteMember(memberId) }
+        verify(exactly = 0) { apiGatewayServiceClient.deleteMember(any(), memberId) }
+        verify(exactly = 0) { memberServiceClient.deleteMember(memberId) }
+        verify(exactly = 1) { productPricingClient.hasContract(memberId, any()) }
 
         // TODO: Add verify checks to member and lookup services when implemented
     }
