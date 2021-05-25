@@ -141,28 +141,34 @@ class UnderwriterImpl(
                 )
             )
             is SwedishHouseData -> priceEngineService.querySwedishHousePrice(
-                PriceQueryRequest.SwedishHouse.from(quote.id, quote.memberId, quote.data, quote.dataCollectionId)
+                PriceQueryRequest.SwedishHouse.from(
+                    quote.id,
+                    quote.memberId,
+                    quote.attributedTo,
+                    quote.data,
+                    quote.dataCollectionId
+                )
             )
             is NorwegianHomeContentsData -> priceEngineService.queryNorwegianHomeContentPrice(
-                PriceQueryRequest.NorwegianHomeContent.from(quote.id, quote.memberId, quote.data)
+                PriceQueryRequest.NorwegianHomeContent.from(quote.id, quote.memberId, quote.attributedTo, quote.data)
             )
             is NorwegianTravelData -> priceEngineService.queryNorwegianTravelPrice(
-                PriceQueryRequest.NorwegianTravel.from(quote.id, quote.memberId, quote.data)
+                PriceQueryRequest.NorwegianTravel.from(quote.id, quote.memberId, quote.attributedTo, quote.data)
             )
             is DanishHomeContentsData -> {
 //                do we need the dataCollectionId or is this just for Sweden?
                 priceEngineService.queryDanishHomeContentPrice(
-                    PriceQueryRequest.DanishHomeContent.from(quote.id, quote.memberId, quote.data)
+                    PriceQueryRequest.DanishHomeContent.from(quote.id, quote.memberId, quote.attributedTo, quote.data)
                 )
             }
             is DanishAccidentData -> {
                 priceEngineService.queryDanishAccidentPrice(
-                    PriceQueryRequest.DanishAccident.from(quote.id, quote.memberId, quote.data)
+                    PriceQueryRequest.DanishAccident.from(quote.id, quote.memberId, quote.attributedTo, quote.data)
                 )
             }
             is DanishTravelData -> {
                 priceEngineService.queryDanishTravelPrice(
-                    PriceQueryRequest.DanishTravel.from(quote.id, quote.memberId, quote.data)
+                    PriceQueryRequest.DanishTravel.from(quote.id, quote.memberId, quote.attributedTo, quote.data)
                 )
             }
         }
