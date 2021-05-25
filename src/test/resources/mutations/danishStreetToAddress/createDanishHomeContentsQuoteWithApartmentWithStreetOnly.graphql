@@ -1,0 +1,60 @@
+mutation {
+    createQuote(input: {
+        id: "2b9e3b30-5c87-11ea-aa95-fbfb43d88ae5"
+        firstName: "first"
+        lastName: "family"
+        birthDate: "1961-12-21"
+        email: "test@email.com"
+        danishHomeContents: {
+            street: "Kungsgatan 2"
+            livingSpace: 30
+            apartment: null
+            floor: null
+            city: null
+            zipCode: "1234"
+            bbrId: "123"
+            coInsured: 0
+            isStudent: false
+            type: RENT
+        }
+    }) {
+        ... on UnderwritingLimitsHit {
+            limits {
+                description
+            }
+        }
+        ... on CompleteQuote {
+            id
+            insuranceCost {
+                monthlyGross {
+                    amount
+                    currency
+                }
+                monthlyDiscount {
+                    amount
+                    currency
+                }
+                monthlyNet {
+                    amount
+                    currency
+                }
+                freeUntil
+            }
+            quoteDetails {
+                ... on DanishHomeContentsDetails {
+                    coInsured
+                    street
+                    apartment
+                    floor
+                    city
+                    zipCode
+                    bbrId
+                    livingSpace
+                    coInsured
+                    isStudent
+                    danishHomeContentType: type
+                }
+            }
+        }
+    }
+}

@@ -20,7 +20,6 @@ import com.hedvig.underwriter.serviceIntegration.productPricing.ProductPricingSe
 import com.ninjasquad.springmockk.MockkBean
 import io.mockk.every
 import org.javamoney.moneta.Money
-import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.springframework.beans.factory.annotation.Autowired
@@ -63,29 +62,6 @@ class MutationIntegrationDanishStreetToAddressTest {
 
     @Autowired
     lateinit var objectMapper: ObjectMapper
-
-    @Before
-    fun setup() {
-        every {
-            priceEngineService.querySwedishApartmentPrice(
-                any()
-            )
-        } returns
-            PriceQueryResponse(
-                UUID.randomUUID(),
-                Money.of(BigDecimal.ONE, "SEK")
-            )
-
-        every {
-            priceEngineService.querySwedishHousePrice(
-                any()
-            )
-        } returns
-            PriceQueryResponse(
-                UUID.randomUUID(),
-                Money.of(BigDecimal.ONE, "SEK")
-            )
-    }
 
     @Test
     fun `splits address data from street when address data is input in street field only`() {
@@ -136,17 +112,170 @@ class MutationIntegrationDanishStreetToAddressTest {
         val createQuote = response.readTree()["data"]["createQuote"]
 
         assert(response.isOk)
-        assert(createQuote["id"].textValue() == "2b9e3b30-5c87-11ea-aa95-fbfb43d88ae5")
-        assert(createQuote["insuranceCost"]["monthlyGross"]["amount"].textValue() == "9999.00")
-        assert(createQuote["insuranceCost"]["monthlyGross"]["currency"].textValue() == "DKK")
         assertThat(createQuote["quoteDetails"]["street"].textValue()).isEqualTo("Kungsgatan 2")
         assertThat(createQuote["quoteDetails"]["apartment"].textValue()).isEqualTo("1")
         assertThat(createQuote["quoteDetails"]["floor"].textValue()).isEqualTo("4")
-        assert(createQuote["quoteDetails"]["zipCode"].textValue() == "1234")
-        assert(createQuote["quoteDetails"]["livingSpace"].intValue() == 30)
-        assert(createQuote["quoteDetails"]["coInsured"].intValue() == 0)
-        assert(createQuote["quoteDetails"]["isStudent"].booleanValue() == false)
-        assert(createQuote["quoteDetails"]["danishHomeContentType"].textValue() == "RENT")
-        assert(createQuote["quoteDetails"]["bbrId"].textValue() == "123")
+    }
+
+    @Test
+    fun `doesn't crash if street was an empty string`() {
+        every { debtChecker.passesDebtCheck(any()) } returns listOf()
+
+        every {
+            priceEngineService.queryDanishHomeContentPrice(
+                PriceQueryRequest.DanishHomeContent(
+                    holderMemberId = "123",
+                    quoteId = UUID.fromString("2b9e3b30-5c87-11ea-aa95-fbfb43d88ae5"),
+                    holderBirthDate = LocalDate.of(1961, 12, 21),
+                    numberCoInsured = 0,
+                    postalCode = "1234",
+                    squareMeters = 30,
+                    bbrId = "123",
+                    apartment = "1",
+                    floor = "4",
+                    street = "Kungsgatan 2",
+                    city = null,
+                    student = false,
+                    housingType = DanishHomeContentsType.RENT
+                )
+            )
+        } returns
+            PriceQueryResponse(
+                UUID.randomUUID(),
+                Money.of(BigDecimal.ONE, "DKK")
+            )
+
+        every {
+            productPricingService.calculateInsuranceCost(
+                Money.of(BigDecimal(9999), "DKK"), "123"
+            )
+        } returns
+            InsuranceCost(
+                MonetaryAmountV2.of(BigDecimal.ONE, "DKK"),
+                MonetaryAmountV2.of(BigDecimal.ONE, "DKK"),
+                MonetaryAmountV2.of(BigDecimal.ONE, "DKK"),
+                null
+            )
+
+        graphQLTestTemplate.addHeader("hedvig.token", "123")
+
+        val response = graphQLTestTemplate.perform(
+            "/mutations/danishStreetToAddress/createDanishHomeContentsQuoteWithStreetAsEmptyString.graphql",
+            null
+        )
+        val createQuote = response.readTree()["data"]["createQuote"]
+
+        assert(response.isOk)
+        assertThat(createQuote["quoteDetails"]["street"].textValue()).isEqualTo("")
+        assertThat(createQuote["quoteDetails"]["apartment"].textValue()).isEqualTo(null)
+        assertThat(createQuote["quoteDetails"]["floor"].textValue()).isEqualTo(null)
+    }
+
+    @Test
+    fun `if apartment and floor aren't null use these values instead getting values from street`() {
+        every { debtChecker.passesDebtCheck(any()) } returns listOf()
+
+        every {
+            priceEngineService.queryDanishHomeContentPrice(
+                PriceQueryRequest.DanishHomeContent(
+                    holderMemberId = "123",
+                    quoteId = UUID.fromString("2b9e3b30-5c87-11ea-aa95-fbfb43d88ae5"),
+                    holderBirthDate = LocalDate.of(1961, 12, 21),
+                    numberCoInsured = 0,
+                    postalCode = "1234",
+                    squareMeters = 30,
+                    bbrId = "123",
+                    apartment = "tr.",
+                    floor = "k9",
+                    street = "Kungsgatan 2",
+                    city = null,
+                    student = false,
+                    housingType = DanishHomeContentsType.RENT
+                )
+            )
+        } returns
+            PriceQueryResponse(
+                UUID.randomUUID(),
+                Money.of(BigDecimal.ONE, "DKK")
+            )
+
+        every {
+            productPricingService.calculateInsuranceCost(
+                Money.of(BigDecimal(9999), "DKK"), "123"
+            )
+        } returns
+            InsuranceCost(
+                MonetaryAmountV2.of(BigDecimal.ONE, "DKK"),
+                MonetaryAmountV2.of(BigDecimal.ONE, "DKK"),
+                MonetaryAmountV2.of(BigDecimal.ONE, "DKK"),
+                null
+            )
+
+        graphQLTestTemplate.addHeader("hedvig.token", "123")
+
+        val response = graphQLTestTemplate.perform(
+            "/mutations/danishStreetToAddress/createDanishHomeContentsQuoteWithApartmentAndStreetNotNull.graphql",
+            null
+        )
+        val createQuote = response.readTree()["data"]["createQuote"]
+
+        assert(response.isOk)
+        assertThat(createQuote["quoteDetails"]["street"].textValue()).isEqualTo("Kungsgatan 2")
+        assertThat(createQuote["quoteDetails"]["apartment"].textValue()).isEqualTo("tr.")
+        assertThat(createQuote["quoteDetails"]["floor"].textValue()).isEqualTo("k9")
+    }
+
+    @Test
+    fun `if street has a weird format, format it before saving`() {
+        every { debtChecker.passesDebtCheck(any()) } returns listOf()
+
+        every {
+            priceEngineService.queryDanishHomeContentPrice(
+                PriceQueryRequest.DanishHomeContent(
+                    holderMemberId = "123",
+                    quoteId = UUID.fromString("2b9e3b30-5c87-11ea-aa95-fbfb43d88ae5"),
+                    holderBirthDate = LocalDate.of(1961, 12, 21),
+                    numberCoInsured = 0,
+                    postalCode = "1234",
+                    squareMeters = 30,
+                    bbrId = "123",
+                    apartment = "1",
+                    floor = "4",
+                    street = "Kungsgatan 2",
+                    city = null,
+                    student = false,
+                    housingType = DanishHomeContentsType.RENT
+                )
+            )
+        } returns
+            PriceQueryResponse(
+                UUID.randomUUID(),
+                Money.of(BigDecimal.ONE, "DKK")
+            )
+
+        every {
+            productPricingService.calculateInsuranceCost(
+                Money.of(BigDecimal(9999), "DKK"), "123"
+            )
+        } returns
+            InsuranceCost(
+                MonetaryAmountV2.of(BigDecimal.ONE, "DKK"),
+                MonetaryAmountV2.of(BigDecimal.ONE, "DKK"),
+                MonetaryAmountV2.of(BigDecimal.ONE, "DKK"),
+                null
+            )
+
+        graphQLTestTemplate.addHeader("hedvig.token", "123")
+
+        val response = graphQLTestTemplate.perform(
+            "/mutations/danishStreetToAddress/createDanishHomeContentsQuoteWithStrangeStreetFormat.graphql",
+            null
+        )
+        val createQuote = response.readTree()["data"]["createQuote"]
+
+        assert(response.isOk)
+        assertThat(createQuote["quoteDetails"]["street"].textValue()).isEqualTo("Kungsgatan 2")
+        assertThat(createQuote["quoteDetails"]["apartment"].textValue()).isEqualTo("4")
+        assertThat(createQuote["quoteDetails"]["floor"].textValue()).isEqualTo("1")
     }
 }

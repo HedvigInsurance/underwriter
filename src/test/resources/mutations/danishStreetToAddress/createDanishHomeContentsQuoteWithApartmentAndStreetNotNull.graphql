@@ -6,10 +6,10 @@ mutation {
         birthDate: "1961-12-21"
         email: "test@email.com"
         danishHomeContents: {
-            street: "Kungsgatan 2, 1., 4"
+            street: "Kungsgatan 2"
             livingSpace: 30
-            apartment: null
-            floor: null
+            apartment: "tr."
+            floor: "k9"
             city: null
             zipCode: "1234"
             bbrId: "123"
