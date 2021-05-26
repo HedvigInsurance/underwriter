@@ -14,5 +14,13 @@ enum class Partner(val campaignCode: String? = null) {
     FINDFORSIKRING,
     FORSIKRINGSGUIDEN,
     KEY_HOLE,
-    COPENHAGEN_SALES
+    COPENHAGEN_SALES,
+    CHARLIE,
+    FLYTTSMART,
+    PAMIND,
+    MECENAT,
+    HAPPENS,
+    SAMBLA,
+    PEACH,
+    MMG,
 }

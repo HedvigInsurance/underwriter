@@ -60,6 +60,16 @@ class ProductPricingServiceImpl @Autowired constructor(
     ): List<CreateContractResponse> =
         productPricingClient.createContract(CreateContractsRequest.from(quotes, signedRequest), token)
 
+    override fun hasContract(memberId: String): Boolean {
+        val response = productPricingClient.hasContract(memberId, null)
+
+        if (response.statusCode.isError) {
+            throw RuntimeException("Failed check contracts for member $memberId: $response")
+        }
+
+        return response.body!!
+    }
+
     override fun createContractsFromQuotesNoMandate(quotes: List<Quote>): List<CreateContractResponse> =
         productPricingClient.createContract(request = CreateContractsRequest.fromQuotesNoMandate(quotes), token = null)
 
