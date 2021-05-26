@@ -1,6 +1,5 @@
 package com.hedvig.underwriter.web
 
-import com.hedvig.underwriter.serviceIntegration.memberService.dtos.IsSsnAlreadySignedMemberResponse
 import com.hedvig.underwriter.serviceIntegration.memberService.dtos.UnderwriterQuoteSignResponse
 import com.hedvig.underwriter.serviceIntegration.notificationService.NotificationServiceClient
 import com.hedvig.underwriter.serviceIntegration.priceEngine.dtos.PriceQueryResponse
@@ -53,13 +52,13 @@ class RequoteSamePriceIntegrationTest {
     @MockkBean(relaxed = true)
     lateinit var notificationServiceClient: NotificationServiceClient
 
-    @MockkBean
+    @MockkBean(relaxed = true)
     lateinit var priceEngineClient: PriceEngineClient
 
-    @MockkBean
+    @MockkBean(relaxed = true)
     lateinit var memberServiceClient: MemberServiceClient
 
-    @MockkBean
+    @MockkBean(relaxed = true)
     lateinit var productPricingClient: ProductPricingClient
 
     val activeAgreement = Agreement.SwedishApartment(UUID.randomUUID(), mockk(), mockk(), mockk(), null, AgreementStatus.ACTIVE, mockk(), mockk(), 0, 100)
@@ -67,12 +66,8 @@ class RequoteSamePriceIntegrationTest {
     @Before
     fun setup() {
         every { memberServiceClient.personStatus(any()) } returns ResponseEntity.status(200).body(PersonStatusDto(Flag.GREEN))
-        every { memberServiceClient.checkPersonDebt(any()) } returns ResponseEntity.status(200).body(null)
-        every { memberServiceClient.checkIsSsnAlreadySignedMemberEntity(any()) } returns IsSsnAlreadySignedMemberResponse(false)
         every { memberServiceClient.createMember() } returns ResponseEntity.status(200).body(HelloHedvigResponseDto("12345"))
-        every { memberServiceClient.updateMemberSsn(any(), any()) } returns Unit
         every { memberServiceClient.signQuote(any(), any()) } returns ResponseEntity.status(200).body(UnderwriterQuoteSignResponse(1L, true))
-        every { memberServiceClient.finalizeOnBoarding(any(), any()) } returns ResponseEntity.status(200).body("")
         every { productPricingClient.createContract(any(), any()) } returns listOf(CreateContractResponse(UUID.randomUUID(), UUID.randomUUID(), UUID.randomUUID()))
         every { productPricingClient.getAgreement(any()) } returns ResponseEntity.status(200).body(activeAgreement)
         every { priceEngineClient.queryPrice(any()) } returns PriceQueryResponse(UUID.randomUUID(), Money.of(12, "NOK"))
@@ -86,7 +81,7 @@ class RequoteSamePriceIntegrationTest {
         // Create a quote
         with(quoteClient.createSwedishApartmentQuote(
             street = "Test Apa",
-            memberId =  "1234"
+            memberId = "1234"
         )) {
             assertThat(price.toPlainString()).isEqualTo("12")
             assertThat(currency).isEqualTo("SEK")
@@ -97,7 +92,7 @@ class RequoteSamePriceIntegrationTest {
         // Create same quote again, should reuse old price
         with(quoteClient.createSwedishApartmentQuote(
             street = "Test Apa",
-            memberId =  "1234"
+            memberId = "1234"
         )) {
             assertThat(price.toPlainString()).isEqualTo("12")
             assertThat(currency).isEqualTo("SEK")
@@ -106,7 +101,7 @@ class RequoteSamePriceIntegrationTest {
         // Create quote with another address, should trigger the new price
         with(quoteClient.createSwedishApartmentQuote(
             street = "Another Test Apa",
-            memberId =  "1234"
+            memberId = "1234"
             )) {
             assertThat(price.toPlainString()).isEqualTo("20")
             assertThat(currency).isEqualTo("SEK")
@@ -115,7 +110,7 @@ class RequoteSamePriceIntegrationTest {
         // Create quote with another livingspace, should trigger the new price
         with(quoteClient.createSwedishApartmentQuote(
             street = "Test Apa",
-            memberId =  "1234",
+            memberId = "1234",
             livingSpace = 112
         )) {
             assertThat(price.toPlainString()).isEqualTo("20")
@@ -125,7 +120,7 @@ class RequoteSamePriceIntegrationTest {
         // Create quote with another householdSize, should trigger the new price
         with(quoteClient.createSwedishApartmentQuote(
             street = "Test Apa",
-            memberId =  "1234",
+            memberId = "1234",
             householdSize = 2
         )) {
             assertThat(price.toPlainString()).isEqualTo("20")
@@ -135,7 +130,7 @@ class RequoteSamePriceIntegrationTest {
         // Create quote with another subType, should trigger the new price
         with(quoteClient.createSwedishApartmentQuote(
             street = "Test Apa",
-            memberId =  "1234",
+            memberId = "1234",
             subType = "RENT"
         )) {
             assertThat(price.toPlainString()).isEqualTo("20")
@@ -145,7 +140,7 @@ class RequoteSamePriceIntegrationTest {
         // Create quote with another name, should reuse old price
         with(quoteClient.createSwedishApartmentQuote(
             street = "Test Apa",
-            memberId =  "1234",
+            memberId = "1234",
             firstName = "Diddy"
         )) {
             assertThat(price.toPlainString()).isEqualTo("12")
@@ -155,7 +150,7 @@ class RequoteSamePriceIntegrationTest {
         // Create quote with another email, should reuse old price
         with(quoteClient.createSwedishApartmentQuote(
             street = "Test Apa",
-            memberId =  "1234",
+            memberId = "1234",
             email = "diddy@kong.com"
         )) {
             assertThat(price.toPlainString()).isEqualTo("12")
@@ -165,7 +160,7 @@ class RequoteSamePriceIntegrationTest {
         // Create quote with another phoneNumber, should reuse old price
         with(quoteClient.createSwedishApartmentQuote(
             street = "Test Apa",
-            memberId =  "1234",
+            memberId = "1234",
             phoneNumber = "46987654321"
         )) {
             assertThat(price.toPlainString()).isEqualTo("12")
@@ -173,18 +168,18 @@ class RequoteSamePriceIntegrationTest {
         }
 
         // Create quote with another memberid, should reuse old price
-       with(quoteClient.createSwedishApartmentQuote(
-           street = "Test Apa",
-           memberId = "1553"
-       )) {
-           assertThat(price.toPlainString()).isEqualTo("12")
-           assertThat(currency).isEqualTo("SEK")
-       }
+        with(quoteClient.createSwedishApartmentQuote(
+            street = "Test Apa",
+            memberId = "1553"
+        )) {
+            assertThat(price.toPlainString()).isEqualTo("12")
+            assertThat(currency).isEqualTo("SEK")
+        }
 
         // Create quote with another ssn/birthdate, should trigger the new price
         with(quoteClient.createSwedishApartmentQuote(
             street = "Test Apa",
-            memberId =  "1234",
+            memberId = "1234",
             ssn = "200001011234",
             birthdate = "2000-01-01"
         )) {
@@ -604,6 +599,21 @@ class RequoteSamePriceIntegrationTest {
             )
 
         // Create same quote again, should use old price since price changed (and both got line items)
+        with(quoteClient.createSwedishApartmentQuote(
+            street = "Test Monkey"
+        )) {
+            assertThat(price.toPlainString()).isEqualTo("12")
+            assertThat(currency).isEqualTo("SEK")
+
+            val quote = quoteClient.getQuote(id)!!
+            assertThat(quote.priceFrom).isEqualTo(quoteId)
+            assertThat(quote.lineItems.size).isEqualTo(3)
+            assertThat(quote.lineItems[0].amount.compareTo(BigDecimal.TEN) == 0)
+            assertThat(quote.lineItems[0].amount.compareTo(BigDecimal.ONE) == 0)
+            assertThat(quote.lineItems[0].amount.compareTo(BigDecimal.ONE) == 0)
+        }
+
+        // Create same quote again, should use old price since price changed
         with(quoteClient.createSwedishApartmentQuote(
             street = "Test Monkey"
         )) {
