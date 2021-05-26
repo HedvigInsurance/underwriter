@@ -20,6 +20,7 @@ enum class Partner(val campaignCode: String? = null) {
     PAMIND,
     MECENAT,
     HAPPENS,
+    HEMAVI,
     SAMBLA,
     PEACH,
     MMG,
