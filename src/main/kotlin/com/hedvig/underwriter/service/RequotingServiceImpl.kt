@@ -190,7 +190,7 @@ class RequotingServiceImpl(
         val quote = quotes.sortedBy { it.createdAt }.last()
         val lineItems = quote.lineItems.map { LineItem(it.type, it.subType, it.amount) }
 
-        return Price(Money.of(quote.price, quote.currency), lineItems, quote.id)
+        return Price(Money.of(quote.price, quote.currency), lineItems, quote.priceFrom ?: quote.id)
     }
 }
 
