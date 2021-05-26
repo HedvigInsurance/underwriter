@@ -221,10 +221,6 @@ object QuoteComparator {
     private val comparators = mapOf(
         "ssn" to ::isSameAllowNull,
         "birthDate" to ::isSameAllowNull,
-        "firstName" to ::isSameAllowNull,
-        "lastName" to ::isSameAllowNull,
-        "email" to ::isSameAllowNull,
-        "phoneNumber" to ::isSameAllowNull,
         "street" to ::isSame,
         "floor" to ::isSame,
         "zipCode" to ::isSame,
