@@ -1,10 +1,8 @@
 package com.hedvig.underwriter.web
 
 import com.hedvig.underwriter.serviceIntegration.memberService.dtos.UnderwriterQuoteSignResponse
-import com.hedvig.underwriter.serviceIntegration.notificationService.NotificationServiceClient
 import com.hedvig.underwriter.serviceIntegration.priceEngine.dtos.PriceQueryResponse
 import com.hedvig.underwriter.serviceIntegration.productPricing.dtos.contract.CreateContractResponse
-import com.ninjasquad.springmockk.MockkBean
 import io.mockk.every
 import org.javamoney.moneta.Money
 import assertk.assertThat
@@ -12,54 +10,31 @@ import assertk.assertions.isEqualTo
 import assertk.assertions.isNull
 import com.hedvig.productPricingObjects.dtos.Agreement
 import com.hedvig.productPricingObjects.enums.AgreementStatus
-import com.hedvig.underwriter.serviceIntegration.memberService.MemberServiceClient
 import com.hedvig.underwriter.serviceIntegration.memberService.dtos.Flag
 import com.hedvig.underwriter.serviceIntegration.memberService.dtos.HelloHedvigResponseDto
 import com.hedvig.underwriter.serviceIntegration.memberService.dtos.PersonStatusDto
-import com.hedvig.underwriter.serviceIntegration.priceEngine.PriceEngineClient
 import com.hedvig.underwriter.serviceIntegration.priceEngine.dtos.LineItem
-import com.hedvig.underwriter.serviceIntegration.productPricing.ProductPricingClient
+import com.hedvig.underwriter.testhelp.IntegrationTest
 import com.hedvig.underwriter.testhelp.QuoteClient
 import io.mockk.mockk
 import org.jdbi.v3.core.Jdbi
 import org.junit.Before
 import org.junit.Test
-import org.junit.runner.RunWith
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.boot.test.context.SpringBootTest
-import org.springframework.boot.test.web.client.TestRestTemplate
 import org.springframework.http.ResponseEntity
-import org.springframework.test.context.junit4.SpringRunner
 import java.lang.RuntimeException
 import java.math.BigDecimal
 import java.time.Instant
 import java.time.temporal.ChronoUnit
 import java.util.UUID
 
-@RunWith(SpringRunner::class)
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
-class RequoteSamePriceIntegrationTest {
+class RequoteSamePriceIntegrationTest : IntegrationTest() {
 
     @Autowired
     private lateinit var jdbi: Jdbi
 
     @Autowired
     private lateinit var quoteClient: QuoteClient
-
-    @Autowired
-    private lateinit var restTemplate: TestRestTemplate
-
-    @MockkBean(relaxed = true)
-    lateinit var notificationServiceClient: NotificationServiceClient
-
-    @MockkBean(relaxed = true)
-    lateinit var priceEngineClient: PriceEngineClient
-
-    @MockkBean(relaxed = true)
-    lateinit var memberServiceClient: MemberServiceClient
-
-    @MockkBean(relaxed = true)
-    lateinit var productPricingClient: ProductPricingClient
 
     val activeAgreement = Agreement.SwedishApartment(UUID.randomUUID(), mockk(), mockk(), mockk(), null, AgreementStatus.ACTIVE, mockk(), mockk(), 0, 100)
 
@@ -367,7 +342,7 @@ class RequoteSamePriceIntegrationTest {
         // Create quote with another bbrid, should not trigger the new price since its ok if old is null
         with(quoteClient.createDanishHomeContentQuote(
             street = "Test Duffy",
-            bbrid = "112"
+            bbrId = "112"
         )) {
             assertThat(price.toPlainString()).isEqualTo("12")
             assertThat(currency).isEqualTo("SEK")

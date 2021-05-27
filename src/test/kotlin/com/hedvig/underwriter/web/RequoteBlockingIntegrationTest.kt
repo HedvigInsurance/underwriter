@@ -1,13 +1,10 @@
 package com.hedvig.underwriter.web
 
-import com.hedvig.underwriter.serviceIntegration.memberService.dtos.IsSsnAlreadySignedMemberResponse
 import com.hedvig.underwriter.serviceIntegration.memberService.dtos.UnderwriterQuoteSignResponse
-import com.hedvig.underwriter.serviceIntegration.notificationService.NotificationServiceClient
 import com.hedvig.underwriter.serviceIntegration.priceEngine.dtos.PriceQueryResponse
 import com.hedvig.underwriter.serviceIntegration.productPricing.dtos.contract.CreateContractResponse
 import com.hedvig.underwriter.web.dtos.CompleteQuoteResponseDto
 import com.hedvig.underwriter.web.dtos.SignedQuoteResponseDto
-import com.ninjasquad.springmockk.MockkBean
 import io.mockk.every
 import org.javamoney.moneta.Money
 import assertk.assertThat
@@ -15,46 +12,27 @@ import assertk.assertions.contains
 import assertk.assertions.isEqualTo
 import com.hedvig.productPricingObjects.dtos.Agreement
 import com.hedvig.productPricingObjects.enums.AgreementStatus
-import com.hedvig.underwriter.serviceIntegration.memberService.MemberServiceClient
 import com.hedvig.underwriter.serviceIntegration.memberService.dtos.Flag
 import com.hedvig.underwriter.serviceIntegration.memberService.dtos.HelloHedvigResponseDto
 import com.hedvig.underwriter.serviceIntegration.memberService.dtos.PersonStatusDto
-import com.hedvig.underwriter.serviceIntegration.priceEngine.PriceEngineClient
-import com.hedvig.underwriter.serviceIntegration.productPricing.ProductPricingClient
+import com.hedvig.underwriter.testhelp.IntegrationTest
 import io.mockk.mockk
 import org.junit.Before
 import org.junit.Test
-import org.junit.runner.RunWith
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.boot.test.web.client.TestRestTemplate
 import org.springframework.http.HttpEntity
 import org.springframework.http.HttpHeaders
 import org.springframework.http.HttpMethod
 import org.springframework.http.MediaType
 import org.springframework.http.ResponseEntity
-import org.springframework.test.context.junit4.SpringRunner
 import java.time.LocalDate
 import java.util.UUID
 
-@RunWith(SpringRunner::class)
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
-class RequoteBlockingIntegrationTest {
+class RequoteBlockingIntegrationTest : IntegrationTest() {
 
     @Autowired
     private lateinit var restTemplate: TestRestTemplate
-
-    @MockkBean(relaxed = true)
-    lateinit var notificationServiceClient: NotificationServiceClient
-
-    @MockkBean
-    lateinit var priceEngineClient: PriceEngineClient
-
-    @MockkBean
-    lateinit var memberServiceClient: MemberServiceClient
-
-    @MockkBean
-    lateinit var productPricingClient: ProductPricingClient
 
     val activeAgreement = Agreement.SwedishApartment(UUID.randomUUID(), mockk(), mockk(), mockk(), null, AgreementStatus.ACTIVE, mockk(), mockk(), 0, 100)
     val inactiveAgreement = Agreement.SwedishApartment(UUID.randomUUID(), mockk(), mockk(), mockk(), null, AgreementStatus.TERMINATED, mockk(), mockk(), 0, 100)
@@ -62,12 +40,8 @@ class RequoteBlockingIntegrationTest {
     @Before
     fun setup() {
         every { memberServiceClient.personStatus(any()) } returns ResponseEntity.status(200).body(PersonStatusDto(Flag.GREEN))
-        every { memberServiceClient.checkPersonDebt(any()) } returns ResponseEntity.status(200).body(null)
-        every { memberServiceClient.checkIsSsnAlreadySignedMemberEntity(any()) } returns IsSsnAlreadySignedMemberResponse(false)
         every { memberServiceClient.createMember() } returns ResponseEntity.status(200).body(HelloHedvigResponseDto("12345"))
-        every { memberServiceClient.updateMemberSsn(any(), any()) } returns Unit
         every { memberServiceClient.signQuote(any(), any()) } returns ResponseEntity.status(200).body(UnderwriterQuoteSignResponse(1L, true))
-        every { memberServiceClient.finalizeOnBoarding(any(), any()) } returns ResponseEntity.status(200).body("")
         every { productPricingClient.createContract(any(), any()) } returns listOf(CreateContractResponse(UUID.randomUUID(), UUID.randomUUID(), UUID.randomUUID()))
         every { productPricingClient.getAgreement(any()) } returns ResponseEntity.status(200).body(activeAgreement)
         every { priceEngineClient.queryPrice(any()) } returns PriceQueryResponse(UUID.randomUUID(), Money.of(12, "NOK"))
