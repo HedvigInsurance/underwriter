@@ -1,8 +1,7 @@
 package com.hedvig.underwriter
 
 import com.hedvig.productPricingObjects.dtos.Agreement
-import com.hedvig.productPricingObjects.dtos.SelfChangeRequest
-import com.hedvig.productPricingObjects.dtos.SelfChangeResult
+import com.hedvig.productPricingObjects.enums.ContractStateFilter
 import com.hedvig.underwriter.graphql.type.InsuranceCost
 import com.hedvig.underwriter.serviceIntegration.memberService.MemberServiceClient
 import com.hedvig.underwriter.serviceIntegration.memberService.dtos.FinalizeOnBoardingRequest
@@ -23,6 +22,8 @@ import com.hedvig.underwriter.serviceIntegration.productPricing.dtos.AddAgreemen
 import com.hedvig.underwriter.serviceIntegration.productPricing.dtos.CalculateBundleInsuranceCostRequest
 import com.hedvig.underwriter.serviceIntegration.productPricing.dtos.CalculateInsuranceCostRequest
 import com.hedvig.underwriter.serviceIntegration.productPricing.dtos.RedeemCampaignDto
+import com.hedvig.underwriter.serviceIntegration.productPricing.dtos.SelfChangeRequest
+import com.hedvig.underwriter.serviceIntegration.productPricing.dtos.SelfChangeResult
 import com.hedvig.underwriter.serviceIntegration.productPricing.dtos.SignedProductResponseDto
 import com.hedvig.underwriter.serviceIntegration.productPricing.dtos.SignedQuoteRequest
 import com.hedvig.underwriter.serviceIntegration.productPricing.dtos.contract.AddAgreementResponse
@@ -133,6 +134,10 @@ class FakeProductPricingClient : ProductPricingClient {
     }
 
     override fun createContract(request: CreateContractsRequest, token: String?): List<CreateContractResponse> {
+        TODO("Not yet implemented")
+    }
+
+    override fun hasContract(memberId: String, stateFilter: ContractStateFilter?): ResponseEntity<Boolean> {
         TODO("Not yet implemented")
     }
 

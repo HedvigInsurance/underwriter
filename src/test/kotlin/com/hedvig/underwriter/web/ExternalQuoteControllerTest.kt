@@ -1,10 +1,10 @@
 package com.hedvig.underwriter.web
 
-import com.hedvig.productPricingObjects.dtos.SelfChangeResult
 import com.hedvig.underwriter.TestFakesConfiguration
 import com.hedvig.underwriter.serviceIntegration.memberService.dtos.Flag
 import com.hedvig.underwriter.serviceIntegration.memberService.dtos.PersonStatusDto
 import com.hedvig.underwriter.serviceIntegration.priceEngine.dtos.PriceQueryResponse
+import com.hedvig.underwriter.serviceIntegration.productPricing.dtos.SelfChangeResult
 import com.hedvig.underwriter.testhelp.TestHttpClient
 import java.math.BigDecimal
 import java.time.Instant
