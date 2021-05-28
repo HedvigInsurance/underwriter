@@ -1,14 +1,14 @@
 package com.hedvig.underwriter.serviceIntegration.productPricing
 
 import com.hedvig.productPricingObjects.dtos.Agreement
-import com.hedvig.productPricingObjects.dtos.SelfChangeRequest
-import com.hedvig.productPricingObjects.dtos.SelfChangeResult
 import com.hedvig.underwriter.graphql.type.InsuranceCost
 import com.hedvig.underwriter.model.Quote
 import com.hedvig.underwriter.serviceIntegration.productPricing.dtos.AddAgreementRequest
 import com.hedvig.underwriter.serviceIntegration.productPricing.dtos.CalculateBundleInsuranceCostRequest
 import com.hedvig.underwriter.serviceIntegration.productPricing.dtos.CalculateInsuranceCostRequest
 import com.hedvig.underwriter.serviceIntegration.productPricing.dtos.RedeemCampaignDto
+import com.hedvig.underwriter.serviceIntegration.productPricing.dtos.SelfChangeRequest
+import com.hedvig.underwriter.serviceIntegration.productPricing.dtos.SelfChangeResult
 import com.hedvig.underwriter.serviceIntegration.productPricing.dtos.SignedQuoteRequest
 import com.hedvig.underwriter.serviceIntegration.productPricing.dtos.contract.CreateContractResponse
 import com.hedvig.underwriter.serviceIntegration.productPricing.dtos.contract.CreateContractsRequest
