@@ -17,8 +17,8 @@ import com.hedvig.underwriter.serviceIntegration.memberService.dtos.HelloHedvigR
 import com.hedvig.underwriter.serviceIntegration.memberService.dtos.PersonStatusDto
 import com.hedvig.underwriter.testhelp.IntegrationTest
 import io.mockk.mockk
-import org.junit.Before
-import org.junit.Test
+import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.BeforeEach
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.web.client.TestRestTemplate
 import org.springframework.http.HttpEntity
@@ -37,7 +37,7 @@ class RequoteBlockingIntegrationTest : IntegrationTest() {
     val activeAgreement = Agreement.SwedishApartment(UUID.randomUUID(), mockk(), mockk(), mockk(), null, AgreementStatus.ACTIVE, mockk(), mockk(), 0, 100)
     val inactiveAgreement = Agreement.SwedishApartment(UUID.randomUUID(), mockk(), mockk(), mockk(), null, AgreementStatus.TERMINATED, mockk(), mockk(), 0, 100)
 
-    @Before
+    @BeforeEach
     fun setup() {
         every { memberServiceClient.personStatus(any()) } returns ResponseEntity.status(200).body(PersonStatusDto(Flag.GREEN))
         every { memberServiceClient.createMember() } returns ResponseEntity.status(200).body(HelloHedvigResponseDto("12345"))

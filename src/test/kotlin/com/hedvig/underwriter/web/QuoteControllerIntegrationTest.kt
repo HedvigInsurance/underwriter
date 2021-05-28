@@ -20,7 +20,7 @@ import com.hedvig.underwriter.testhelp.QuoteClient
 import io.mockk.every
 import io.mockk.slot
 import org.javamoney.moneta.Money
-import org.junit.Test
+import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.ResponseEntity
 import java.util.UUID

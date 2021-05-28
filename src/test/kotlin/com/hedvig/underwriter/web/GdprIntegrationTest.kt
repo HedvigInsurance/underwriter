@@ -33,8 +33,8 @@ import com.hedvig.underwriter.testhelp.QuoteClient
 import io.mockk.mockk
 import io.mockk.verify
 import org.jdbi.v3.core.Jdbi
-import org.junit.Before
-import org.junit.Test
+import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.BeforeEach
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.ResponseEntity
 import java.lang.RuntimeException
@@ -60,7 +60,7 @@ class GdprIntegrationTest : IntegrationTest() {
 
     val activeAgreement = Agreement.SwedishApartment(UUID.randomUUID(), mockk(), mockk(), mockk(), null, AgreementStatus.ACTIVE, mockk(), mockk(), 0, 100)
 
-    @Before
+    @BeforeEach
     fun setup() {
 
         // Added this snippet to make sure we do not forget to add cleaning/deletion tests for new types when added

@@ -36,7 +36,7 @@ import com.hedvig.underwriter.serviceIntegration.productPricing.dtos.CalculateBu
 import com.hedvig.underwriter.serviceIntegration.productPricing.dtos.contract.CreateContractsRequest
 import com.hedvig.underwriter.testhelp.IntegrationTest
 import com.hedvig.underwriter.testhelp.QuoteClient
-import org.junit.Test
+import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.ResponseEntity
 import java.time.Instant

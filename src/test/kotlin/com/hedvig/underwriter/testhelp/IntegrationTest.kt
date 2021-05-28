@@ -6,11 +6,8 @@ import com.hedvig.underwriter.serviceIntegration.notificationService.Notificatio
 import com.hedvig.underwriter.serviceIntegration.priceEngine.PriceEngineClient
 import com.hedvig.underwriter.serviceIntegration.productPricing.ProductPricingClient
 import com.ninjasquad.springmockk.MockkBean
-import org.junit.runner.RunWith
 import org.springframework.boot.test.context.SpringBootTest
-import org.springframework.test.context.junit4.SpringRunner
 
-@RunWith(SpringRunner::class)
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 class IntegrationTest {
 
