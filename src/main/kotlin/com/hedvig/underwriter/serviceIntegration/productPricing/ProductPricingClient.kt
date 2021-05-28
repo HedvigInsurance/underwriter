@@ -3,6 +3,7 @@ package com.hedvig.underwriter.serviceIntegration.productPricing
 import com.hedvig.productPricingObjects.dtos.Agreement
 import com.hedvig.productPricingObjects.dtos.SelfChangeRequest
 import com.hedvig.productPricingObjects.dtos.SelfChangeResult
+import com.hedvig.productPricingObjects.enums.ContractStateFilter
 import com.hedvig.underwriter.graphql.type.InsuranceCost
 import com.hedvig.underwriter.serviceIntegration.productPricing.dtos.AddAgreementRequest
 import com.hedvig.underwriter.serviceIntegration.productPricing.dtos.CalculateBundleInsuranceCostRequest
@@ -24,6 +25,7 @@ import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestHeader
+import org.springframework.web.bind.annotation.RequestParam
 
 @Headers("Accept: application/json;charset=utf-8")
 @FeignClient(
@@ -55,6 +57,12 @@ interface ProductPricingClient {
         @Valid @RequestBody request: CreateContractsRequest,
         @RequestHeader("Authorization") token: String?
     ): List<CreateContractResponse>
+
+    @GetMapping("/_/contracts/members/{memberId}/hasContract")
+    fun hasContract(
+        @PathVariable memberId: String,
+        @RequestParam(required = false) stateFilter: ContractStateFilter?
+    ): ResponseEntity<Boolean>
 
     @PostMapping("/_/agreements/add")
     fun addAgreement(

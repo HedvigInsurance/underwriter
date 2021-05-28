@@ -190,7 +190,7 @@ class RequotingServiceImpl(
         val quote = quotes.sortedBy { it.createdAt }.last()
         val lineItems = quote.lineItems.map { LineItem(it.type, it.subType, it.amount) }
 
-        return Price(Money.of(quote.price, quote.currency), lineItems, quote.id)
+        return Price(Money.of(quote.price, quote.currency), lineItems, quote.priceFrom ?: quote.id)
     }
 }
 
@@ -221,10 +221,6 @@ object QuoteComparator {
     private val comparators = mapOf(
         "ssn" to ::isSameAllowNull,
         "birthDate" to ::isSameAllowNull,
-        "firstName" to ::isSameAllowNull,
-        "lastName" to ::isSameAllowNull,
-        "email" to ::isSameAllowNull,
-        "phoneNumber" to ::isSameAllowNull,
         "street" to ::isSame,
         "floor" to ::isSame,
         "zipCode" to ::isSame,

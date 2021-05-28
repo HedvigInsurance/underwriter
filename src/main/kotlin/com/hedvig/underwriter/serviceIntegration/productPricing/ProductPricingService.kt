@@ -36,6 +36,8 @@ interface ProductPricingService {
         token: String?
     ): List<CreateContractResponse>
 
+    fun hasContract(memberId: String): Boolean
+
     fun createContractsFromQuotesNoMandate(quotes: List<Quote>): List<CreateContractResponse>
 
     fun getAgreement(agreementId: UUID): Agreement
