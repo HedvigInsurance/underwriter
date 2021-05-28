@@ -4,6 +4,7 @@ import arrow.core.Either
 import arrow.core.Right
 import arrow.core.flatMap
 import arrow.core.getOrHandle
+import com.hedvig.libs.logging.masking.toMaskedString
 import com.hedvig.underwriter.model.AddressData
 import com.hedvig.underwriter.model.Name
 import com.hedvig.underwriter.model.Quote
@@ -28,12 +29,10 @@ import com.hedvig.underwriter.service.quotesSignDataStrategies.SignStrategyServi
 import com.hedvig.underwriter.serviceIntegration.memberService.MemberService
 import com.hedvig.underwriter.serviceIntegration.memberService.dtos.Nationality
 import com.hedvig.underwriter.serviceIntegration.memberService.dtos.UpdateSsnRequest
+import com.hedvig.underwriter.serviceIntegration.notificationService.NotificationService
 import com.hedvig.underwriter.serviceIntegration.productPricing.ProductPricingService
 import com.hedvig.underwriter.serviceIntegration.productPricing.dtos.RedeemCampaignDto
 import com.hedvig.underwriter.util.logger
-import com.hedvig.libs.logging.masking.toMaskedString
-import com.hedvig.underwriter.model.QuoteInitiatedFrom
-import com.hedvig.underwriter.serviceIntegration.notificationService.NotificationService
 import com.hedvig.underwriter.web.dtos.ErrorCodes
 import com.hedvig.underwriter.web.dtos.ErrorResponseDto
 import com.hedvig.underwriter.web.dtos.SignQuoteFromHopeRequest
@@ -43,11 +42,11 @@ import com.hedvig.underwriter.web.dtos.SignRequest
 import com.hedvig.underwriter.web.dtos.SignedQuoteResponseDto
 import com.hedvig.underwriter.web.dtos.UnderwriterQuoteSignRequest
 import feign.FeignException
-import org.springframework.stereotype.Service
 import java.math.BigDecimal
 import java.time.Instant
 import java.time.LocalDate
 import java.util.UUID
+import org.springframework.stereotype.Service
 
 @Service
 class SignServiceImpl(
