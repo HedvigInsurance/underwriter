@@ -24,7 +24,13 @@ class QuoteClient {
     private lateinit var restTemplate: TestRestTemplate
 
     fun createSwedishApartmentQuote(
+        firstName: String? = "King",
+        lastName: String? = "Kong",
+        email: String? = "king@kong.com",
+        phoneNumber: String? = "46123456789",
+        memberId: String? = null,
         ssn: String = "199110112399",
+        birthdate: String? = null,
         street: String = "ApStreet ${RandomStringUtils.randomNumeric(2)}",
         zip: String = "12345",
         city: String = "ApCity",
@@ -32,11 +38,31 @@ class QuoteClient {
         householdSize: Int = 1,
         subType: String = "BRF"
     ): CompleteQuoteResponseDto {
-        return createSwedishApartmentQuote<CompleteQuoteResponseDto>(ssn, street, zip, city, livingSpace, householdSize, subType).body!!
+        return createSwedishApartmentQuote<CompleteQuoteResponseDto>(
+            firstName,
+            lastName,
+            email,
+            phoneNumber,
+            memberId,
+            ssn,
+            birthdate,
+            street,
+            zip,
+            city,
+            livingSpace,
+            householdSize,
+            subType
+        ).body!!
     }
 
     fun createSwedishApartmentQuoteRaw(
+        firstName: String? = null,
+        lastName: String? = null,
+        email: String? = null,
+        phoneNumber: String? = null,
+        memberId: String? = null,
         ssn: String = "199110112399",
+        birthdate: String = "19911011",
         street: String = "ApStreet ${RandomStringUtils.randomNumeric(2)}",
         zip: String = "12345",
         city: String = "ApCity",
@@ -44,7 +70,21 @@ class QuoteClient {
         householdSize: Int = 1,
         subType: String = "BRF"
     ): ResponseEntity<String> {
-        return createSwedishApartmentQuote<String>(ssn, street, zip, city, livingSpace, householdSize, subType)
+        return createSwedishApartmentQuote<String>(
+            firstName,
+            lastName,
+            email,
+            phoneNumber,
+            memberId,
+            ssn,
+            birthdate,
+            street,
+            zip,
+            city,
+            livingSpace,
+            householdSize,
+            subType
+        )
     }
 
     fun createSwedishHouseQuote(
@@ -59,7 +99,18 @@ class QuoteClient {
         numberOfBathrooms: Int = 1,
         subleted: Boolean = false
     ): CompleteQuoteResponseDto {
-        return createSwedishHouseQuote<CompleteQuoteResponseDto>(ssn, street, zip, city, livingSpace, householdSize, ancillaryArea, yearOfConstruction, numberOfBathrooms, subleted).body!!
+        return createSwedishHouseQuote<CompleteQuoteResponseDto>(
+            ssn,
+            street,
+            zip,
+            city,
+            livingSpace,
+            householdSize,
+            ancillaryArea,
+            yearOfConstruction,
+            numberOfBathrooms,
+            subleted
+        ).body!!
     }
 
     fun createSwedishHouseQuoteRaw(
@@ -74,7 +125,18 @@ class QuoteClient {
         numberOfBathrooms: Int = 1,
         subleted: Boolean = false
     ): ResponseEntity<String> {
-        return createSwedishHouseQuote<String>(ssn, street, zip, city, livingSpace, householdSize, ancillaryArea, yearOfConstruction, numberOfBathrooms, subleted)
+        return createSwedishHouseQuote<String>(
+            ssn,
+            street,
+            zip,
+            city,
+            livingSpace,
+            householdSize,
+            ancillaryArea,
+            yearOfConstruction,
+            numberOfBathrooms,
+            subleted
+        )
     }
 
     fun createNorwegianHomeContentQuote(
@@ -87,7 +149,16 @@ class QuoteClient {
         youth: Boolean = false,
         subType: String = "OWN"
     ): CompleteQuoteResponseDto {
-        return createNorwegianHomeContentQuote<CompleteQuoteResponseDto>(birthdate, street, zip, city, livingSpace, coInsured, youth, subType).body!!
+        return createNorwegianHomeContentQuote<CompleteQuoteResponseDto>(
+            birthdate,
+            street,
+            zip,
+            city,
+            livingSpace,
+            coInsured,
+            youth,
+            subType
+        ).body!!
     }
 
     fun createNorwegianHomeContentQuoteRaw(
@@ -100,7 +171,16 @@ class QuoteClient {
         youth: Boolean = false,
         subType: String = "OWN"
     ): ResponseEntity<String> {
-        return createNorwegianHomeContentQuote<String>(birthdate, street, zip, city, livingSpace, coInsured, youth, subType)
+        return createNorwegianHomeContentQuote<String>(
+            birthdate,
+            street,
+            zip,
+            city,
+            livingSpace,
+            coInsured,
+            youth,
+            subType
+        )
     }
 
     fun createNorwegianTravelQuote(
@@ -132,7 +212,19 @@ class QuoteClient {
         student: Boolean = false,
         subType: String = "OWN"
     ): CompleteQuoteResponseDto {
-        return createDanishHomeContentQuote<CompleteQuoteResponseDto>(birthdate, street, apartment, floor, bbrid, zip, city, livingSpace, coInsured, student, subType).body!!
+        return createDanishHomeContentQuote<CompleteQuoteResponseDto>(
+            birthdate,
+            street,
+            apartment,
+            floor,
+            bbrid,
+            zip,
+            city,
+            livingSpace,
+            coInsured,
+            student,
+            subType
+        ).body!!
     }
 
     fun createDanishHomeContentQuoteRaw(
@@ -148,7 +240,19 @@ class QuoteClient {
         student: Boolean = false,
         subType: String = "OWN"
     ): ResponseEntity<String> {
-        return createDanishHomeContentQuote<String>(birthdate, street, apartment, floor, bbrid, zip, city, livingSpace, coInsured, student, subType)
+        return createDanishHomeContentQuote<String>(
+            birthdate,
+            street,
+            apartment,
+            floor,
+            bbrid,
+            zip,
+            city,
+            livingSpace,
+            coInsured,
+            student,
+            subType
+        )
     }
 
     fun createDanishAccidentQuote(
@@ -162,7 +266,17 @@ class QuoteClient {
         coInsured: Int = 1,
         student: Boolean = false
     ): CompleteQuoteResponseDto {
-        return createDanishAccidentQuote<CompleteQuoteResponseDto>(birthdate, street, apartment, floor, bbrid, zip, city, coInsured, student).body!!
+        return createDanishAccidentQuote<CompleteQuoteResponseDto>(
+            birthdate,
+            street,
+            apartment,
+            floor,
+            bbrid,
+            zip,
+            city,
+            coInsured,
+            student
+        ).body!!
     }
 
     fun createDanishAccidentQuoteRaw(
@@ -177,7 +291,17 @@ class QuoteClient {
         student: Boolean = false
 
     ): ResponseEntity<String> {
-        return createDanishAccidentQuote<String>(birthdate, street, apartment, floor, bbrid, zip, city, coInsured, student)
+        return createDanishAccidentQuote<String>(
+            birthdate,
+            street,
+            apartment,
+            floor,
+            bbrid,
+            zip,
+            city,
+            coInsured,
+            student
+        )
     }
 
     fun createDanishTravelQuote(
@@ -191,7 +315,17 @@ class QuoteClient {
         coInsured: Int = 1,
         student: Boolean = false
     ): CompleteQuoteResponseDto {
-        return createDanishTravelQuote<CompleteQuoteResponseDto>(birthdate, street, apartment, floor, bbrid, zip, city, coInsured, student).body!!
+        return createDanishTravelQuote<CompleteQuoteResponseDto>(
+            birthdate,
+            street,
+            apartment,
+            floor,
+            bbrid,
+            zip,
+            city,
+            coInsured,
+            student
+        ).body!!
     }
 
     fun createDanishTravelQuoteRaw(
@@ -206,7 +340,17 @@ class QuoteClient {
         student: Boolean = false
 
     ): ResponseEntity<String> {
-        return createDanishTravelQuote<String>(birthdate, street, apartment, floor, bbrid, zip, city, coInsured, student)
+        return createDanishTravelQuote<String>(
+            birthdate,
+            street,
+            apartment,
+            floor,
+            bbrid,
+            zip,
+            city,
+            coInsured,
+            student
+        )
     }
 
     fun signQuote(
@@ -237,7 +381,12 @@ class QuoteClient {
 
         val headers = HttpHeaders()
 
-        return restTemplate.exchange("/_/v1/quotes/$quoteId", HttpMethod.DELETE, HttpEntity(null, headers), String::class.java)
+        return restTemplate.exchange(
+            "/_/v1/quotes/$quoteId",
+            HttpMethod.DELETE,
+            HttpEntity(null, headers),
+            String::class.java
+        )
     }
 
     fun getQuote(quoteId: UUID): Quote? {
@@ -331,7 +480,13 @@ class QuoteClient {
     }
 
     private inline fun <reified T : Any> createSwedishApartmentQuote(
+        firstName: String? = null,
+        lastName: String? = null,
+        email: String? = null,
+        phoneNumber: String? = null,
+        memberId: String? = null,
         ssn: String,
+        birthdate: String? = null,
         street: String,
         zip: String,
         city: String,
@@ -341,11 +496,14 @@ class QuoteClient {
     ): ResponseEntity<T> {
         val request = """           
             {
-                "firstName": null,
-                "lastName": null,
+                "firstName": ${getNullableString(firstName)},
+                "lastName": ${getNullableString(lastName)},
+                "email": ${getNullableString(email)},
+                "phoneNumber": ${getNullableString(phoneNumber)},
                 "currentInsurer": null,
-                "birthDate": null,
+                "birthDate": ${getNullableString(birthdate)},
                 "ssn": "$ssn",
+                "memberId": ${getNullableString(memberId)},
                 "quotingPartner": "HEDVIG",
                 "productType": "APARTMENT",
                 "incompleteQuoteData": {
@@ -363,6 +521,8 @@ class QuoteClient {
 
         return postJson("/_/v1/quotes", request)
     }
+
+    private fun getNullableString(value: String?) = if (value == null) null else "\"$value\""
 
     private inline fun <reified T : Any> createSwedishHouseQuote(
         ssn: String,
