@@ -62,6 +62,15 @@ internal class ExternalQuoteControllerTest {
     }
 
     @Test
+    fun `quote initiatedFrom can be injected`() {
+        val created = createQuote {
+            initiatedFrom = "SELF_CHANGE"
+        }.body<CreateQuoteOutput>()
+        val response = getQuote(created.id!!).body<Quote>()
+        assertThat(response.initiatedFrom).isEqualTo("SELF_CHANGE")
+    }
+
+    @Test
     fun `selfChange - can flush quotes into the new contracts`() {
 
         val q1 = createQuote().body<CreateQuoteOutput>()
@@ -108,6 +117,7 @@ internal class ExternalQuoteControllerTest {
             birthDate = LocalDate.of(1991, 7, 27),
             ssn = "199107273097",
             startDate = LocalDate.of(2021, 6, 1),
+            initiatedFrom = "APP",
             swedishApartmentData = mutableMapOf(
                 "street" to "Fakestreet 123",
                 "zipCode" to "12345",
@@ -130,6 +140,7 @@ internal class ExternalQuoteControllerTest {
         var birthDate: LocalDate? = null,
         var ssn: String? = null,
         var startDate: LocalDate? = null,
+        var initiatedFrom: String? = null,
         var swedishApartmentData: MutableMap<String, Any>? = null
     )
 
@@ -143,6 +154,7 @@ internal class ExternalQuoteControllerTest {
 
     private data class Quote(
         val id: UUID,
+        val initiatedFrom: String,
         val contractId: UUID? = null,
         val agreementId: UUID? = null
     )

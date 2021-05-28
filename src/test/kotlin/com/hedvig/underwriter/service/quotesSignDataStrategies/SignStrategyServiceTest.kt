@@ -3,9 +3,9 @@ package com.hedvig.underwriter.service.quotesSignDataStrategies
 import assertk.assertThat
 import assertk.assertions.isEqualTo
 import assertk.assertions.isInstanceOf
+import com.hedvig.underwriter.model.QuoteInitiatedFrom
 import com.hedvig.underwriter.service.model.StartSignErrors
 import com.hedvig.underwriter.service.model.StartSignResponse
-import com.hedvig.underwriter.service.quotesSignDataStrategies.StrategyHelper.createSignData
 import com.hedvig.underwriter.testhelp.databuilder.DanishAccidentDataBuilder
 import com.hedvig.underwriter.testhelp.databuilder.DanishHomeContentsDataBuilder
 import com.hedvig.underwriter.testhelp.databuilder.DanishTravelDataBuilder
@@ -19,17 +19,21 @@ import org.junit.jupiter.api.Test
 
 class SignStrategyServiceTest {
 
+    private val signData = SignData("mid", null, null, null)
+
     private val swedishBankIdSignStrategy: SwedishBankIdSignStrategy = mockk(relaxed = true)
     private val simpleSignStrategy: SimpleSignStrategy = mockk(relaxed = true)
+    private val selfChangeCommittingStrategy: SelfChangeCommittingStrategy = mockk(relaxed = true)
 
     private val cut = SignStrategyService(
         swedishBankIdSignStrategy,
-        simpleSignStrategy
+        simpleSignStrategy,
+        selfChangeCommittingStrategy
     )
 
     @Test
     fun `start sign with no quotes returns no quotes`() {
-        val result = cut.startSign(emptyList(), createSignData())
+        val result = cut.startSign(emptyList(), signData)
 
         assertThat(result).isInstanceOf(StartSignResponse.FailedToStartSign::class)
         require(result is StartSignResponse.FailedToStartSign)
@@ -46,7 +50,7 @@ class SignStrategyServiceTest {
                     data = NorwegianTravelDataBuilder()
                 }
             ),
-            createSignData()
+            signData
         )
 
         assertThat(result).isInstanceOf(StartSignResponse.FailedToStartSign::class)
@@ -66,7 +70,7 @@ class SignStrategyServiceTest {
                     data = DanishHomeContentsDataBuilder()
                 }
             ),
-            createSignData()
+            signData
         )
 
         assertThat(result).isInstanceOf(StartSignResponse.FailedToStartSign::class)
@@ -84,7 +88,7 @@ class SignStrategyServiceTest {
                     data = SwedishHouseDataBuilder()
                 }
             ),
-            createSignData()
+            signData
         )
 
         assertThat(result).isInstanceOf(StartSignResponse.FailedToStartSign::class)
@@ -104,7 +108,7 @@ class SignStrategyServiceTest {
                     data = NorwegianHomeContentDataBuilder()
                 }
             ),
-            createSignData()
+            signData
         )
 
         assertThat(result).isInstanceOf(StartSignResponse.FailedToStartSign::class)
@@ -124,7 +128,7 @@ class SignStrategyServiceTest {
                     data = NorwegianTravelDataBuilder()
                 }
             ),
-            createSignData()
+            signData
         )
 
         assertThat(result).isInstanceOf(StartSignResponse.FailedToStartSign::class)
@@ -141,7 +145,7 @@ class SignStrategyServiceTest {
                     data = DanishAccidentDataBuilder()
                 }
             ),
-            createSignData()
+            signData
         )
 
         assertThat(result).isInstanceOf(StartSignResponse.FailedToStartSign::class)
@@ -158,7 +162,7 @@ class SignStrategyServiceTest {
                     data = DanishTravelDataBuilder()
                 }
             ),
-            createSignData()
+            signData
         )
 
         assertThat(result).isInstanceOf(StartSignResponse.FailedToStartSign::class)
@@ -173,7 +177,7 @@ class SignStrategyServiceTest {
             listOf(
                 quote {}
             ),
-            createSignData()
+            signData
         )
 
         verify(exactly = 1) { swedishBankIdSignStrategy.startSign(any(), any()) }
@@ -190,7 +194,7 @@ class SignStrategyServiceTest {
                     data = NorwegianTravelDataBuilder()
                 }
             ),
-            createSignData()
+            signData
         )
 
         verify(exactly = 1) { simpleSignStrategy.startSign(any(), any()) }
@@ -210,9 +214,23 @@ class SignStrategyServiceTest {
                     data = DanishHomeContentsDataBuilder()
                 }
             ),
-            createSignData()
+            signData
         )
 
         verify(exactly = 1) { simpleSignStrategy.startSign(any(), any()) }
+    }
+
+    @Test
+    fun `start sign of SELF_CHANGE selfChangeCommittingStrategy startSign`() {
+        cut.startSign(
+            listOf(
+                quote {
+                    initiatedFrom = QuoteInitiatedFrom.SELF_CHANGE
+                }
+            ),
+            signData
+        )
+
+        verify(exactly = 1) { selfChangeCommittingStrategy.startSign(any(), any()) }
     }
 }

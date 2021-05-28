@@ -7,6 +7,7 @@ import com.hedvig.underwriter.model.Market
 import com.hedvig.underwriter.model.NorwegianHomeContentsData
 import com.hedvig.underwriter.model.NorwegianTravelData
 import com.hedvig.underwriter.model.Quote
+import com.hedvig.underwriter.model.QuoteInitiatedFrom
 import com.hedvig.underwriter.model.SwedishApartmentData
 import com.hedvig.underwriter.model.SwedishHouseData
 import com.hedvig.underwriter.service.model.SignMethod
@@ -18,7 +19,8 @@ import org.springframework.stereotype.Service
 @Service
 class SignStrategyService(
     private val swedishBankIdSignStrategy: SwedishBankIdSignStrategy,
-    private val simpleSignStrategy: SimpleSignStrategy
+    private val simpleSignStrategy: SimpleSignStrategy,
+    private val selfChangeCommittingStrategy: SelfChangeCommittingStrategy
 ) : SignStrategy {
     override fun startSign(quotes: List<Quote>, signData: SignData): StartSignResponse {
         val strategy = quotes.getStrategiesFromQuotes()
@@ -76,7 +78,9 @@ class SignStrategyService(
     }
 
     private fun List<Quote>.getStrategiesFromQuotes() = this.map {
-        when (it.data) {
+        if (it.initiatedFrom == QuoteInitiatedFrom.SELF_CHANGE)
+            selfChangeCommittingStrategy
+        else when (it.data) {
             is SwedishHouseData,
             is SwedishApartmentData -> swedishBankIdSignStrategy
             is NorwegianHomeContentsData,
