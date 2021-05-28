@@ -574,6 +574,7 @@ type BundledQuote {
     email: String
     dataCollectionId: ID
     typeOfContract: TypeOfContract!
+    initiatedFrom: String!
 }
 
 enum SignMethod {
