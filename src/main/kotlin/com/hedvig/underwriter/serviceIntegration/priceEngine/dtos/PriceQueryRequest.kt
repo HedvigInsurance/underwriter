@@ -36,14 +36,14 @@ sealed class PriceQueryRequest {
     abstract val quoteId: UUID?
     abstract val holderBirthDate: LocalDate
     abstract val numberCoInsured: Int
-    abstract val partner: Partner
+    abstract val partner: String
 
     data class NorwegianHomeContent(
         override val holderMemberId: String?,
         override val quoteId: UUID?,
         override val holderBirthDate: LocalDate,
         override val numberCoInsured: Int,
-        override val partner: Partner,
+        override val partner: String,
         val lineOfBusiness: NorwegianHomeContentLineOfBusiness,
         val postalCode: String,
         val squareMeters: Int
@@ -55,7 +55,7 @@ sealed class PriceQueryRequest {
                     quoteId = quoteId,
                     holderBirthDate = data.birthDate,
                     numberCoInsured = data.coInsured,
-                    partner = partner,
+                    partner = partner.partnerName,
                     lineOfBusiness = OutgoingMapper.toLineOfBusiness(data.type, data.isYouth),
                     postalCode = data.zipCode,
                     squareMeters = data.livingSpace
@@ -68,7 +68,7 @@ sealed class PriceQueryRequest {
         override val quoteId: UUID?,
         override val holderBirthDate: LocalDate,
         override val numberCoInsured: Int,
-        override val partner: Partner,
+        override val partner: String,
         val lineOfBusiness: NorwegianTravelLineOfBusiness
     ) : PriceQueryRequest() {
         companion object {
@@ -77,7 +77,7 @@ sealed class PriceQueryRequest {
                 quoteId = quoteId,
                 holderBirthDate = data.birthDate,
                 numberCoInsured = data.coInsured,
-                partner = partner,
+                partner = partner.partnerName,
                 lineOfBusiness = OutgoingMapper.toLineOfBusiness(data.isYouth)
             )
         }
@@ -88,7 +88,7 @@ sealed class PriceQueryRequest {
         override val quoteId: UUID?,
         override val holderBirthDate: LocalDate,
         override val numberCoInsured: Int,
-        override val partner: Partner,
+        override val partner: String,
         val lineOfBusiness: SwedishApartmentLineOfBusiness,
         val squareMeters: Int,
         val postalCode: String,
@@ -106,7 +106,7 @@ sealed class PriceQueryRequest {
                 quoteId = quoteId,
                 holderBirthDate = data.birthDate ?: data.ssn!!.birthDateFromSwedishSsn(),
                 numberCoInsured = data.householdSize!! - 1,
-                partner = partner,
+                partner = partner.partnerName,
                 lineOfBusiness = OutgoingMapper.toLineOfBusiness(data.subType!!),
                 squareMeters = data.livingSpace!!,
                 postalCode = data.zipCode!!,
@@ -120,7 +120,7 @@ sealed class PriceQueryRequest {
         override val quoteId: UUID?,
         override val holderBirthDate: LocalDate,
         override val numberCoInsured: Int,
-        override val partner: Partner,
+        override val partner: String,
         val squareMeters: Int,
         val postalCode: String,
         val ancillaryArea: Int,
@@ -142,7 +142,7 @@ sealed class PriceQueryRequest {
                 quoteId = quoteId,
                 holderBirthDate = data.birthDate ?: data.ssn!!.birthDateFromSwedishSsn(),
                 numberCoInsured = data.householdSize!! - 1,
-                partner = partner,
+                partner = partner.partnerName,
                 squareMeters = data.livingSpace!!,
                 postalCode = data.zipCode!!,
                 ancillaryArea = data.ancillaryArea!!,
@@ -167,7 +167,7 @@ sealed class PriceQueryRequest {
         override val quoteId: UUID?,
         override val holderBirthDate: LocalDate,
         override val numberCoInsured: Int,
-        override val partner: Partner,
+        override val partner: String,
         val squareMeters: Int,
         val bbrId: String?,
         val postalCode: String,
@@ -185,7 +185,7 @@ sealed class PriceQueryRequest {
                     quoteId = quoteId,
                     holderBirthDate = data.birthDate,
                     numberCoInsured = data.coInsured,
-                    partner = partner,
+                    partner = partner.partnerName,
                     bbrId = data.bbrId,
                     postalCode = data.zipCode,
                     street = data.street,
@@ -204,7 +204,7 @@ sealed class PriceQueryRequest {
         override val quoteId: UUID?,
         override val holderBirthDate: LocalDate,
         override val numberCoInsured: Int,
-        override val partner: Partner,
+        override val partner: String,
         val bbrId: String?,
         val postalCode: String,
         val street: String,
@@ -219,7 +219,7 @@ sealed class PriceQueryRequest {
                 quoteId = quoteId,
                 holderBirthDate = data.birthDate,
                 numberCoInsured = data.coInsured,
-                partner = partner,
+                partner = partner.partnerName,
                 bbrId = data.bbrId,
                 postalCode = data.zipCode,
                 street = data.street,
@@ -236,7 +236,7 @@ sealed class PriceQueryRequest {
         override val quoteId: UUID?,
         override val holderBirthDate: LocalDate,
         override val numberCoInsured: Int,
-        override val partner: Partner,
+        override val partner: String,
         val bbrId: String?,
         val postalCode: String,
         val street: String,
@@ -251,7 +251,7 @@ sealed class PriceQueryRequest {
                 quoteId = quoteId,
                 holderBirthDate = data.birthDate,
                 numberCoInsured = data.coInsured,
-                partner = partner,
+                partner = partner.partnerName,
                 bbrId = data.bbrId,
                 postalCode = data.zipCode,
                 street = data.street,
