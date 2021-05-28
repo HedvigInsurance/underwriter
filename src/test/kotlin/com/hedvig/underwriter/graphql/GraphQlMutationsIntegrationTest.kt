@@ -238,7 +238,7 @@ internal class GraphQlMutationsIntegrationTest {
                     quoteId = UUID.fromString("00000000-0000-0000-0000-000000000006"),
                     holderBirthDate = "21126114165".birthDateFromNorwegianSsn(),
                     numberCoInsured = 0,
-                    partner = Partner.HEDVIG,
+                    partner = Partner.HEDVIG.partnerName,
                     lineOfBusiness = NorwegianHomeContentLineOfBusiness.OWN,
                     postalCode = "12345",
                     squareMeters = 30
@@ -288,7 +288,7 @@ internal class GraphQlMutationsIntegrationTest {
                     quoteId = UUID.fromString("2b9e3b30-5c87-11ea-aa95-fbfb43d88ae7"),
                     holderBirthDate = "21126114165".birthDateFromNorwegianSsn(),
                     numberCoInsured = 0,
-                    partner = Partner.HEDVIG,
+                    partner = Partner.HEDVIG.partnerName,
                     lineOfBusiness = NorwegianTravelLineOfBusiness.REGULAR
                 )
             )
@@ -361,7 +361,7 @@ internal class GraphQlMutationsIntegrationTest {
                     quoteId = UUID.fromString("2b9e3b30-5c87-11ea-aa95-fbfb43d88ae5"),
                     holderBirthDate = LocalDate.of(1961, 12, 21),
                     numberCoInsured = 0,
-                    partner = Partner.HEDVIG,
+                    partner = Partner.HEDVIG.partnerName,
                     postalCode = "1234",
                     squareMeters = 30,
                     bbrId = "123",
@@ -425,7 +425,7 @@ internal class GraphQlMutationsIntegrationTest {
                     quoteId = UUID.fromString("2b9e3b30-5c87-11ea-aa95-fbfb43d88ae3"),
                     holderBirthDate = LocalDate.of(1961, 12, 21),
                     numberCoInsured = 0,
-                    partner = Partner.HEDVIG,
+                    partner = Partner.HEDVIG.partnerName,
                     postalCode = "1234",
                     bbrId = "123",
                     apartment = "1",
@@ -485,7 +485,7 @@ internal class GraphQlMutationsIntegrationTest {
                     quoteId = UUID.fromString("2b9e3b30-5c87-11ea-aa95-fbfb43d88ae1"),
                     holderBirthDate = LocalDate.of(2001, 12, 21),
                     numberCoInsured = 0,
-                    partner = Partner.HEDVIG,
+                    partner = Partner.HEDVIG.partnerName,
                     postalCode = "1234",
                     bbrId = "123",
                     apartment = "tv",
@@ -544,7 +544,7 @@ internal class GraphQlMutationsIntegrationTest {
                     quoteId = UUID.fromString("2b9e3b30-5c87-11ea-aa95-fbfb43d88ae6"),
                     holderBirthDate = "1212121212".birthDateFromNorwegianSsn(),
                     numberCoInsured = 0,
-                    partner = Partner.HEDVIG,
+                    partner = Partner.HEDVIG.partnerName,
                     lineOfBusiness = NorwegianTravelLineOfBusiness.REGULAR
                 )
             )
