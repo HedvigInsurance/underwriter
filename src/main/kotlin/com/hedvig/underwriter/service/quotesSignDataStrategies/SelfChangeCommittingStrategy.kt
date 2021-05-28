@@ -33,5 +33,5 @@ class SelfChangeCommittingStrategy(
         return StartSignResponse.AlreadyCompleted
     }
 
-    override fun getSignMethod(quotes: List<Quote>) = SignMethod.SELF_CHANGE_COMMIT
+    override fun getSignMethod(quotes: List<Quote>) = SignMethod.APPROVE_ONLY
 }
