@@ -440,19 +440,6 @@ class SignServiceImpl(
 
     override fun getSignMethodFromQuotes(quoteIds: List<UUID>): SignMethod {
         val quotes = quoteService.getQuotes(quoteIds)
-
-        // Adding this here really feels like a hack. Finalizing the quotes and flushing them to C&A
-        // is nothing like "signing" in the sense the underwriter wants to think of it, and it
-        // doesn't fit into the model of [SignStrategy].
-        // But there is no other place to do this, as the CTA in the offer page already is hard-wired
-        // to be triaged by this `SignMethod` property.
-        // We're effectively squeezing "self change"/"moving flow" into a quite strict onboarding-based
-        // model, and somewhere it has to give like this.
-        val isSelfChange = quotes.any { it.initiatedFrom == QuoteInitiatedFrom.SELF_CHANGE }
-        if (isSelfChange) {
-            return SignMethod.SELF_CHANGE_COMMIT
-        }
-
         return signStrategyService.getSignMethod(quotes)
     }
 
