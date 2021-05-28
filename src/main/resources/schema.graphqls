@@ -523,6 +523,7 @@ union StartSignResponse =
     | NorwegianBankIdSession
     | DanishBankIdSession
     | SimpleSignSession
+    | AlreadyCompleted
     | FailedToStartSign
 
 type SwedishBankIdSession {
@@ -539,6 +540,10 @@ type DanishBankIdSession {
 
 type SimpleSignSession {
     id: ID!
+}
+
+type AlreadyCompleted {
+    ignore: Boolean
 }
 
 type FailedToStartSign {

@@ -69,11 +69,10 @@ class ProductPricingServiceImpl @Autowired constructor(
     override fun getAgreement(agreementId: UUID): Agreement =
         productPricingClient.getAgreement(agreementId).body!!
 
-    override fun selfChangeContracts(memberId: String, contractIds: List<UUID>, quotes: List<Quote>): SelfChangeResult =
+    override fun selfChangeContracts(memberId: String, quotes: List<Quote>): SelfChangeResult =
         productPricingClient.selfChangeContracts(
             SelfChangeRequest(
                 memberId = memberId,
-                contractIds = contractIds,
                 quotes = quotes.map { OutgoingMapper.toQuote(it) }
             )
         )

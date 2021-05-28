@@ -40,5 +40,5 @@ interface ProductPricingService {
 
     fun getAgreement(agreementId: UUID): Agreement
 
-    fun selfChangeContracts(memberId: String, contractIds: List<UUID>, quotes: List<Quote>): SelfChangeResult
+    fun selfChangeContracts(memberId: String, quotes: List<Quote>): SelfChangeResult
 }

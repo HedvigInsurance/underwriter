@@ -100,7 +100,7 @@ class SignServiceImpl(
 
         val startSignResponse = signStrategyService.startSign(
             quotes = quotes,
-            signData = SignData(ipAddress, successUrl, failUrl)
+            signData = SignData(memberId, ipAddress, successUrl, failUrl)
         )
         if (startSignResponse !is StartSignResponse.FailedToStartSign) {
             memberService.finalizeOnboarding(quotes[0], quotes[0].email!!)
