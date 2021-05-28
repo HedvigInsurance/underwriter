@@ -11,6 +11,7 @@ import com.hedvig.underwriter.model.DanishHomeContentsType
 import com.hedvig.underwriter.model.DanishTravelData
 import com.hedvig.underwriter.model.NorwegianHomeContentsData
 import com.hedvig.underwriter.model.NorwegianTravelData
+import com.hedvig.underwriter.model.Partner
 import com.hedvig.underwriter.model.SwedishApartmentData
 import com.hedvig.underwriter.model.SwedishHouseData
 import com.hedvig.underwriter.model.birthDateFromSwedishSsn
@@ -35,26 +36,30 @@ sealed class PriceQueryRequest {
     abstract val quoteId: UUID?
     abstract val holderBirthDate: LocalDate
     abstract val numberCoInsured: Int
+    abstract val partner: Partner
 
     data class NorwegianHomeContent(
         override val holderMemberId: String?,
         override val quoteId: UUID?,
         override val holderBirthDate: LocalDate,
         override val numberCoInsured: Int,
+        override val partner: Partner,
         val lineOfBusiness: NorwegianHomeContentLineOfBusiness,
         val postalCode: String,
         val squareMeters: Int
     ) : PriceQueryRequest() {
         companion object {
-            fun from(quoteId: UUID, memberId: String?, data: NorwegianHomeContentsData) = NorwegianHomeContent(
-                holderMemberId = memberId,
-                quoteId = quoteId,
-                holderBirthDate = data.birthDate,
-                numberCoInsured = data.coInsured,
-                lineOfBusiness = OutgoingMapper.toLineOfBusiness(data.type, data.isYouth),
-                postalCode = data.zipCode,
-                squareMeters = data.livingSpace
-            )
+            fun from(quoteId: UUID, memberId: String?, partner: Partner, data: NorwegianHomeContentsData) =
+                NorwegianHomeContent(
+                    holderMemberId = memberId,
+                    quoteId = quoteId,
+                    holderBirthDate = data.birthDate,
+                    numberCoInsured = data.coInsured,
+                    partner = partner,
+                    lineOfBusiness = OutgoingMapper.toLineOfBusiness(data.type, data.isYouth),
+                    postalCode = data.zipCode,
+                    squareMeters = data.livingSpace
+                )
         }
     }
 
@@ -63,14 +68,16 @@ sealed class PriceQueryRequest {
         override val quoteId: UUID?,
         override val holderBirthDate: LocalDate,
         override val numberCoInsured: Int,
+        override val partner: Partner,
         val lineOfBusiness: NorwegianTravelLineOfBusiness
     ) : PriceQueryRequest() {
         companion object {
-            fun from(quoteId: UUID, memberId: String?, data: NorwegianTravelData) = NorwegianTravel(
+            fun from(quoteId: UUID, memberId: String?, partner: Partner, data: NorwegianTravelData) = NorwegianTravel(
                 holderMemberId = memberId,
                 quoteId = quoteId,
                 holderBirthDate = data.birthDate,
                 numberCoInsured = data.coInsured,
+                partner = partner,
                 lineOfBusiness = OutgoingMapper.toLineOfBusiness(data.isYouth)
             )
         }
@@ -81,23 +88,30 @@ sealed class PriceQueryRequest {
         override val quoteId: UUID?,
         override val holderBirthDate: LocalDate,
         override val numberCoInsured: Int,
+        override val partner: Partner,
         val lineOfBusiness: SwedishApartmentLineOfBusiness,
         val squareMeters: Int,
         val postalCode: String,
         val dataCollectionId: UUID?
     ) : PriceQueryRequest() {
         companion object {
-            fun from(quoteId: UUID, memberId: String?, data: SwedishApartmentData, dataCollectionId: UUID?) =
-                SwedishApartment(
-                    holderMemberId = memberId,
-                    quoteId = quoteId,
-                    holderBirthDate = data.birthDate ?: data.ssn!!.birthDateFromSwedishSsn(),
-                    numberCoInsured = data.householdSize!! - 1,
-                    lineOfBusiness = OutgoingMapper.toLineOfBusiness(data.subType!!),
-                    squareMeters = data.livingSpace!!,
-                    postalCode = data.zipCode!!,
-                    dataCollectionId = dataCollectionId
-                )
+            fun from(
+                quoteId: UUID,
+                memberId: String?,
+                data: SwedishApartmentData,
+                dataCollectionId: UUID?,
+                partner: Partner
+            ) = SwedishApartment(
+                holderMemberId = memberId,
+                quoteId = quoteId,
+                holderBirthDate = data.birthDate ?: data.ssn!!.birthDateFromSwedishSsn(),
+                numberCoInsured = data.householdSize!! - 1,
+                partner = partner,
+                lineOfBusiness = OutgoingMapper.toLineOfBusiness(data.subType!!),
+                squareMeters = data.livingSpace!!,
+                postalCode = data.zipCode!!,
+                dataCollectionId = dataCollectionId
+            )
         }
     }
 
@@ -106,6 +120,7 @@ sealed class PriceQueryRequest {
         override val quoteId: UUID?,
         override val holderBirthDate: LocalDate,
         override val numberCoInsured: Int,
+        override val partner: Partner,
         val squareMeters: Int,
         val postalCode: String,
         val ancillaryArea: Int,
@@ -116,11 +131,18 @@ sealed class PriceQueryRequest {
         val dataCollectionId: UUID?
     ) : PriceQueryRequest() {
         companion object {
-            fun from(quoteId: UUID, memberId: String?, data: SwedishHouseData, dataCollectionId: UUID?) = SwedishHouse(
+            fun from(
+                quoteId: UUID,
+                memberId: String?,
+                partner: Partner,
+                data: SwedishHouseData,
+                dataCollectionId: UUID?
+            ) = SwedishHouse(
                 holderMemberId = memberId,
                 quoteId = quoteId,
                 holderBirthDate = data.birthDate ?: data.ssn!!.birthDateFromSwedishSsn(),
                 numberCoInsured = data.householdSize!! - 1,
+                partner = partner,
                 squareMeters = data.livingSpace!!,
                 postalCode = data.zipCode!!,
                 ancillaryArea = data.ancillaryArea!!,
@@ -145,6 +167,7 @@ sealed class PriceQueryRequest {
         override val quoteId: UUID?,
         override val holderBirthDate: LocalDate,
         override val numberCoInsured: Int,
+        override val partner: Partner,
         val squareMeters: Int,
         val bbrId: String?,
         val postalCode: String,
@@ -156,21 +179,23 @@ sealed class PriceQueryRequest {
         val housingType: DanishHomeContentsType
     ) : PriceQueryRequest() {
         companion object {
-            fun from(quoteId: UUID, memberId: String?, data: DanishHomeContentsData) = DanishHomeContent(
-                holderMemberId = memberId,
-                quoteId = quoteId,
-                holderBirthDate = data.birthDate,
-                numberCoInsured = data.coInsured,
-                bbrId = data.bbrId,
-                postalCode = data.zipCode,
-                street = data.street,
-                apartment = data.apartment,
-                floor = data.floor,
-                city = data.city,
-                student = data.isStudent,
-                housingType = data.type,
-                squareMeters = data.livingSpace
-            )
+            fun from(quoteId: UUID, memberId: String?, partner: Partner, data: DanishHomeContentsData) =
+                DanishHomeContent(
+                    holderMemberId = memberId,
+                    quoteId = quoteId,
+                    holderBirthDate = data.birthDate,
+                    numberCoInsured = data.coInsured,
+                    partner = partner,
+                    bbrId = data.bbrId,
+                    postalCode = data.zipCode,
+                    street = data.street,
+                    apartment = data.apartment,
+                    floor = data.floor,
+                    city = data.city,
+                    student = data.isStudent,
+                    housingType = data.type,
+                    squareMeters = data.livingSpace
+                )
         }
     }
 
@@ -179,6 +204,7 @@ sealed class PriceQueryRequest {
         override val quoteId: UUID?,
         override val holderBirthDate: LocalDate,
         override val numberCoInsured: Int,
+        override val partner: Partner,
         val bbrId: String?,
         val postalCode: String,
         val street: String,
@@ -188,11 +214,12 @@ sealed class PriceQueryRequest {
         val student: Boolean
     ) : PriceQueryRequest() {
         companion object {
-            fun from(quoteId: UUID, memberId: String?, data: DanishAccidentData) = DanishAccident(
+            fun from(quoteId: UUID, memberId: String?, partner: Partner, data: DanishAccidentData) = DanishAccident(
                 holderMemberId = memberId,
                 quoteId = quoteId,
                 holderBirthDate = data.birthDate,
                 numberCoInsured = data.coInsured,
+                partner = partner,
                 bbrId = data.bbrId,
                 postalCode = data.zipCode,
                 street = data.street,
@@ -209,6 +236,7 @@ sealed class PriceQueryRequest {
         override val quoteId: UUID?,
         override val holderBirthDate: LocalDate,
         override val numberCoInsured: Int,
+        override val partner: Partner,
         val bbrId: String?,
         val postalCode: String,
         val street: String,
@@ -218,11 +246,12 @@ sealed class PriceQueryRequest {
         val student: Boolean
     ) : PriceQueryRequest() {
         companion object {
-            fun from(quoteId: UUID, memberId: String?, data: DanishTravelData) = DanishTravel(
+            fun from(quoteId: UUID, memberId: String?, partner: Partner, data: DanishTravelData) = DanishTravel(
                 holderMemberId = memberId,
                 quoteId = quoteId,
                 holderBirthDate = data.birthDate,
                 numberCoInsured = data.coInsured,
+                partner = partner,
                 bbrId = data.bbrId,
                 postalCode = data.zipCode,
                 street = data.street,
