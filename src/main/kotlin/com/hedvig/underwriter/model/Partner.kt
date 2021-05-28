@@ -1,11 +1,11 @@
 package com.hedvig.underwriter.model
 
-enum class Partner(val partnerName:String, val campaignCode: String? = null) {
+enum class Partner(val partnerName: String, val campaignCode: String? = null) {
     HEDVIG("hedvig"),
-    INSPLANET("insplanet","f89051cb43"),
-    COMPRICER("compricer","8a2fcb2a11"),
-    INSURLEY("insurley","eib7soo9va"),
-    KEYSOLUTIONS("keysolutions","l8wyjvFfx5"),
+    INSPLANET("insplanet", "f89051cb43"),
+    COMPRICER("compricer", "8a2fcb2a11"),
+    INSURLEY("insurley", "eib7soo9va"),
+    KEYSOLUTIONS("keysolutions", "l8wyjvFfx5"),
     AVY("avy"),
     SPIFF("spiff"),
     TJENSTETORGET("tjenstetorget"),
