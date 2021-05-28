@@ -1,5 +1,6 @@
 package com.hedvig.underwriter.model
 
+
 enum class Partner(val partnerName: String, val campaignCode: String? = null) {
     HEDVIG("HEDVIG"),
     INSPLANET("INSPLANET", "f89051cb43"),
@@ -25,3 +26,5 @@ enum class Partner(val partnerName: String, val campaignCode: String? = null) {
     PEACH("PEACH"),
     MMG("MMG"),
 }
+
+class PartnerConverter : Converter<Partner,String>

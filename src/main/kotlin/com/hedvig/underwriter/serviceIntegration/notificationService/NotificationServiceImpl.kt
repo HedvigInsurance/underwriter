@@ -29,7 +29,7 @@ class NotificationServiceImpl(
             val isSwitcher = quote.currentInsurer != null
             try {
                 val map = mapOf(
-                    "partner_code" to quote.attributedTo.name,
+                    "partner_code" to quote.attributedTo.partnerName,
                     "sign_source" to quote.initiatedFrom.name,
                     "sign_date" to Instant.now(),
                     "switcher_company" to quote.currentInsurer,
@@ -79,7 +79,7 @@ fun quoteCreatedEvent(
         email = quote.email!!,
         ssn = quote.ssnMaybe,
         initiatedFrom = quote.initiatedFrom.name,
-        attributedTo = quote.attributedTo.name,
+        attributedTo = quote.attributedTo.partnerName,
         productType = quote.productType.name,
         insuranceType = insuranceType,
         currentInsurer = quote.currentInsurer,
