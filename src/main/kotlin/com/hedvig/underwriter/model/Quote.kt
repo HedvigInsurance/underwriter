@@ -571,6 +571,18 @@ data class Quote(
         is DanishTravelData -> ZoneId.of("Europe/Copenhagen")
     }
 
+    fun getLivingArea(): Int? {
+        return when (this.data) {
+            is SwedishHouseData -> this.data.livingSpace
+            is SwedishApartmentData -> this.data.livingSpace
+            is NorwegianHomeContentsData -> this.data.livingSpace
+            is DanishHomeContentsData -> this.data.livingSpace
+            is DanishAccidentData,
+            is DanishTravelData,
+            is NorwegianTravelData -> null
+        }
+    }
+
     companion object {
         private const val SEK = "SEK"
         private const val NOK = "NOK"
