@@ -36,7 +36,8 @@ class QuoteClient {
         city: String = "ApCity",
         livingSpace: Int = 111,
         householdSize: Int = 1,
-        subType: String = "BRF"
+        subType: String = "BRF",
+        dataCollectionId: UUID? = null
     ): CompleteQuoteResponseDto {
         return createSwedishApartmentQuote<CompleteQuoteResponseDto>(
             firstName,
@@ -51,7 +52,8 @@ class QuoteClient {
             city,
             livingSpace,
             householdSize,
-            subType
+            subType,
+            dataCollectionId
         ).body!!
     }
 
@@ -492,7 +494,8 @@ class QuoteClient {
         city: String,
         livingSpace: Int,
         householdSize: Int,
-        subType: String
+        subType: String,
+        dataCollectionId: UUID? = null
     ): ResponseEntity<T> {
         val request = """           
             {
@@ -506,6 +509,7 @@ class QuoteClient {
                 "memberId": ${getNullableString(memberId)},
                 "quotingPartner": "HEDVIG",
                 "productType": "APARTMENT",
+                "dataCollectionId": ${dataCollectionId?.let { "\"$it\"" } ?: "null"},
                 "incompleteQuoteData": {
                     "type": "apartment",
                     "street": "$street",
