@@ -15,6 +15,7 @@ import com.hedvig.underwriter.model.Partner
 import com.hedvig.underwriter.model.SwedishApartmentData
 import com.hedvig.underwriter.model.SwedishHouseData
 import com.hedvig.underwriter.model.birthDateFromSwedishSsn
+import com.hedvig.underwriter.serviceIntegration.lookupService.dtos.CompetitorPricing
 import com.hedvig.underwriter.serviceIntegration.productPricing.dtos.mappers.OutgoingMapper
 import java.time.LocalDate
 import java.time.Year
@@ -37,6 +38,7 @@ sealed class PriceQueryRequest {
     abstract val holderBirthDate: LocalDate
     abstract val numberCoInsured: Int
     abstract val partner: Partner
+    abstract val competitorPrice: CompetitorPrice?
 
     data class NorwegianHomeContent(
         override val holderMemberId: String?,
@@ -44,12 +46,15 @@ sealed class PriceQueryRequest {
         override val holderBirthDate: LocalDate,
         override val numberCoInsured: Int,
         override val partner: Partner,
+        override val competitorPrice: CompetitorPrice? = null,
         val lineOfBusiness: NorwegianHomeContentLineOfBusiness,
         val postalCode: String,
         val squareMeters: Int
     ) : PriceQueryRequest() {
         companion object {
-            fun from(quoteId: UUID, memberId: String?, partner: Partner, data: NorwegianHomeContentsData) =
+            fun from(
+                quoteId: UUID, memberId: String?, partner: Partner, data: NorwegianHomeContentsData,
+                competitorPricing: CompetitorPricing?) =
                 NorwegianHomeContent(
                     holderMemberId = memberId,
                     quoteId = quoteId,
@@ -58,7 +63,8 @@ sealed class PriceQueryRequest {
                     partner = partner,
                     lineOfBusiness = OutgoingMapper.toLineOfBusiness(data.type, data.isYouth),
                     postalCode = data.zipCode,
-                    squareMeters = data.livingSpace
+                    squareMeters = data.livingSpace,
+                    competitorPrice = CompetitorPrice.from(competitorPricing)
                 )
         }
     }
@@ -69,16 +75,20 @@ sealed class PriceQueryRequest {
         override val holderBirthDate: LocalDate,
         override val numberCoInsured: Int,
         override val partner: Partner,
+        override val competitorPrice: CompetitorPrice? = null,
         val lineOfBusiness: NorwegianTravelLineOfBusiness
     ) : PriceQueryRequest() {
         companion object {
-            fun from(quoteId: UUID, memberId: String?, partner: Partner, data: NorwegianTravelData) = NorwegianTravel(
+            fun from(
+                quoteId: UUID, memberId: String?, partner: Partner, data: NorwegianTravelData,
+                competitorPricing: CompetitorPricing?) = NorwegianTravel(
                 holderMemberId = memberId,
                 quoteId = quoteId,
                 holderBirthDate = data.birthDate,
                 numberCoInsured = data.coInsured,
                 partner = partner,
-                lineOfBusiness = OutgoingMapper.toLineOfBusiness(data.isYouth)
+                lineOfBusiness = OutgoingMapper.toLineOfBusiness(data.isYouth),
+                competitorPrice = CompetitorPrice.from(competitorPricing)
             )
         }
     }
@@ -89,19 +99,18 @@ sealed class PriceQueryRequest {
         override val holderBirthDate: LocalDate,
         override val numberCoInsured: Int,
         override val partner: Partner,
+        override val competitorPrice: CompetitorPrice? = null,
         val lineOfBusiness: SwedishApartmentLineOfBusiness,
         val squareMeters: Int,
-        val postalCode: String,
-        val dataCollectionId: UUID?
+        val postalCode: String
     ) : PriceQueryRequest() {
         companion object {
             fun from(
                 quoteId: UUID,
                 memberId: String?,
                 data: SwedishApartmentData,
-                dataCollectionId: UUID?,
-                partner: Partner
-            ) = SwedishApartment(
+                partner: Partner,
+                competitorPricing: CompetitorPricing?) = SwedishApartment(
                 holderMemberId = memberId,
                 quoteId = quoteId,
                 holderBirthDate = data.birthDate ?: data.ssn!!.birthDateFromSwedishSsn(),
@@ -110,7 +119,7 @@ sealed class PriceQueryRequest {
                 lineOfBusiness = OutgoingMapper.toLineOfBusiness(data.subType!!),
                 squareMeters = data.livingSpace!!,
                 postalCode = data.zipCode!!,
-                dataCollectionId = dataCollectionId
+                competitorPrice = CompetitorPrice.from(competitorPricing)
             )
         }
     }
@@ -121,14 +130,14 @@ sealed class PriceQueryRequest {
         override val holderBirthDate: LocalDate,
         override val numberCoInsured: Int,
         override val partner: Partner,
+        override val competitorPrice: CompetitorPrice? = null,
         val squareMeters: Int,
         val postalCode: String,
         val ancillaryArea: Int,
         val yearOfConstruction: Year,
         val numberOfBathrooms: Int,
         val extraBuildings: List<ExtraBuildingRequestDto>,
-        val isSubleted: Boolean,
-        val dataCollectionId: UUID?
+        val isSubleted: Boolean
     ) : PriceQueryRequest() {
         companion object {
             fun from(
@@ -136,7 +145,7 @@ sealed class PriceQueryRequest {
                 memberId: String?,
                 partner: Partner,
                 data: SwedishHouseData,
-                dataCollectionId: UUID?
+                competitorPricing: CompetitorPricing?
             ) = SwedishHouse(
                 holderMemberId = memberId,
                 quoteId = quoteId,
@@ -157,7 +166,7 @@ sealed class PriceQueryRequest {
                     )
                 },
                 isSubleted = data.isSubleted!!,
-                dataCollectionId = dataCollectionId
+                competitorPrice = CompetitorPrice.from(competitorPricing)
             )
         }
     }
@@ -168,6 +177,7 @@ sealed class PriceQueryRequest {
         override val holderBirthDate: LocalDate,
         override val numberCoInsured: Int,
         override val partner: Partner,
+        override val competitorPrice: CompetitorPrice? = null,
         val squareMeters: Int,
         val bbrId: String?,
         val postalCode: String,
@@ -179,7 +189,9 @@ sealed class PriceQueryRequest {
         val housingType: DanishHomeContentsType
     ) : PriceQueryRequest() {
         companion object {
-            fun from(quoteId: UUID, memberId: String?, partner: Partner, data: DanishHomeContentsData) =
+            fun from(
+                quoteId: UUID, memberId: String?, partner: Partner, data: DanishHomeContentsData,
+                competitorPricing: CompetitorPricing?) =
                 DanishHomeContent(
                     holderMemberId = memberId,
                     quoteId = quoteId,
@@ -194,7 +206,8 @@ sealed class PriceQueryRequest {
                     city = data.city,
                     student = data.isStudent,
                     housingType = data.type,
-                    squareMeters = data.livingSpace
+                    squareMeters = data.livingSpace,
+                    competitorPrice = CompetitorPrice.from(competitorPricing)
                 )
         }
     }
@@ -205,6 +218,7 @@ sealed class PriceQueryRequest {
         override val holderBirthDate: LocalDate,
         override val numberCoInsured: Int,
         override val partner: Partner,
+        override val competitorPrice: CompetitorPrice? = null,
         val bbrId: String?,
         val postalCode: String,
         val street: String,
@@ -214,7 +228,9 @@ sealed class PriceQueryRequest {
         val student: Boolean
     ) : PriceQueryRequest() {
         companion object {
-            fun from(quoteId: UUID, memberId: String?, partner: Partner, data: DanishAccidentData) = DanishAccident(
+            fun from(
+                quoteId: UUID, memberId: String?, partner: Partner, data: DanishAccidentData,
+                competitorPricing: CompetitorPricing?) = DanishAccident(
                 holderMemberId = memberId,
                 quoteId = quoteId,
                 holderBirthDate = data.birthDate,
@@ -226,7 +242,8 @@ sealed class PriceQueryRequest {
                 apartment = data.apartment,
                 floor = data.floor,
                 city = data.city,
-                student = data.isStudent
+                student = data.isStudent,
+                competitorPrice = CompetitorPrice.from(competitorPricing)
             )
         }
     }
@@ -237,6 +254,7 @@ sealed class PriceQueryRequest {
         override val holderBirthDate: LocalDate,
         override val numberCoInsured: Int,
         override val partner: Partner,
+        override val competitorPrice: CompetitorPrice? = null,
         val bbrId: String?,
         val postalCode: String,
         val street: String,
@@ -246,7 +264,9 @@ sealed class PriceQueryRequest {
         val student: Boolean
     ) : PriceQueryRequest() {
         companion object {
-            fun from(quoteId: UUID, memberId: String?, partner: Partner, data: DanishTravelData) = DanishTravel(
+            fun from(
+                quoteId: UUID, memberId: String?, partner: Partner, data: DanishTravelData,
+                competitorPricing: CompetitorPricing?) = DanishTravel(
                 holderMemberId = memberId,
                 quoteId = quoteId,
                 holderBirthDate = data.birthDate,
@@ -258,7 +278,8 @@ sealed class PriceQueryRequest {
                 apartment = data.apartment,
                 floor = data.floor,
                 city = data.city,
-                student = data.isStudent
+                student = data.isStudent,
+                competitorPrice = CompetitorPrice.from(competitorPricing)
             )
         }
     }

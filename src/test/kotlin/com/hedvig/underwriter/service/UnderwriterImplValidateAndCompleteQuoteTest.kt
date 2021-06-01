@@ -21,6 +21,7 @@ class UnderwriterImplValidateAndCompleteQuoteTest {
         quoteStrategyService,
         mockk(relaxed = true),
         mockk(relaxed = true),
+        mockk(relaxed = true),
         mockk(relaxed = true)
     )
 
