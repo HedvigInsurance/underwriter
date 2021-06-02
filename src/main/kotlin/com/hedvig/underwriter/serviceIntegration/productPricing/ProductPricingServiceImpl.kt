@@ -7,16 +7,19 @@ import com.hedvig.underwriter.serviceIntegration.productPricing.dtos.AddAgreemen
 import com.hedvig.underwriter.serviceIntegration.productPricing.dtos.CalculateBundleInsuranceCostRequest
 import com.hedvig.underwriter.serviceIntegration.productPricing.dtos.CalculateInsuranceCostRequest
 import com.hedvig.underwriter.serviceIntegration.productPricing.dtos.RedeemCampaignDto
+import com.hedvig.underwriter.serviceIntegration.productPricing.dtos.SelfChangeRequest
+import com.hedvig.underwriter.serviceIntegration.productPricing.dtos.SelfChangeResult
 import com.hedvig.underwriter.serviceIntegration.productPricing.dtos.SignedQuoteRequest
 import com.hedvig.underwriter.serviceIntegration.productPricing.dtos.contract.CreateContractResponse
 import com.hedvig.underwriter.serviceIntegration.productPricing.dtos.contract.CreateContractsRequest
+import com.hedvig.underwriter.serviceIntegration.productPricing.dtos.mappers.OutgoingMapper
 import com.hedvig.underwriter.web.dtos.AddAgreementFromQuoteRequest
 import com.hedvig.underwriter.web.dtos.SignRequest
+import java.util.UUID
 import org.javamoney.moneta.Money
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.cloud.openfeign.EnableFeignClients
 import org.springframework.stereotype.Service
-import java.util.UUID
 
 @Service
 @EnableFeignClients
@@ -60,9 +63,27 @@ class ProductPricingServiceImpl @Autowired constructor(
     ): List<CreateContractResponse> =
         productPricingClient.createContract(CreateContractsRequest.from(quotes, signedRequest), token)
 
+    override fun hasContract(memberId: String): Boolean {
+        val response = productPricingClient.hasContract(memberId, null)
+
+        if (response.statusCode.isError) {
+            throw RuntimeException("Failed check contracts for member $memberId: $response")
+        }
+
+        return response.body!!
+    }
+
     override fun createContractsFromQuotesNoMandate(quotes: List<Quote>): List<CreateContractResponse> =
         productPricingClient.createContract(request = CreateContractsRequest.fromQuotesNoMandate(quotes), token = null)
 
     override fun getAgreement(agreementId: UUID): Agreement =
         productPricingClient.getAgreement(agreementId).body!!
+
+    override fun selfChangeContracts(memberId: String, quotes: List<Quote>): SelfChangeResult =
+        productPricingClient.selfChangeContracts(
+            SelfChangeRequest(
+                memberId = memberId,
+                quotes = quotes.map { OutgoingMapper.toQuote(it) }
+            )
+        )
 }

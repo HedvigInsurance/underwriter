@@ -23,6 +23,7 @@ interface QuoteDao {
                 start_date,
                 price,
                 currency,
+                price_from,
                 quote_apartment_data_id,
                 quote_house_data_id,
                 quote_norwegian_home_contents_data_id,
@@ -50,6 +51,7 @@ interface QuoteDao {
                 :startDate,
                 :price,
                 :currency,
+                :priceFrom,
                 :quoteApartmentDataId,
                 :quoteHouseDataId,
                 :quoteNorwegianHomeContentsDataId,
@@ -629,6 +631,7 @@ interface QuoteDao {
                 deleted_at,
                 type,
                 member_id,
+                hashed_ssn,
                 quote,
                 revs
             )
@@ -638,6 +641,7 @@ interface QuoteDao {
                 :deletedAt,
                 :type,
                 :memberId,
+                :hashedSsn,
                 CAST(:quote as jsonb),
                 CAST(:revs as jsonb)
             )

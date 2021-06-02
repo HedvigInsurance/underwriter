@@ -1,6 +1,7 @@
 package com.hedvig.underwriter.service
 
 import arrow.core.Right
+import arrow.core.getOrElse
 import com.hedvig.underwriter.model.Name
 import com.hedvig.underwriter.model.Partner
 import com.hedvig.underwriter.model.Quote
@@ -12,6 +13,7 @@ import com.hedvig.underwriter.model.email
 import com.hedvig.underwriter.model.ssn
 import com.hedvig.underwriter.service.model.StartSignErrors
 import com.hedvig.underwriter.service.model.StartSignResponse
+import com.hedvig.underwriter.service.quotesSignDataStrategies.SelfChangeCommittingStrategy
 import com.hedvig.underwriter.service.quotesSignDataStrategies.SignStrategyService
 import com.hedvig.underwriter.service.quotesSignDataStrategies.SimpleSignStrategy
 import com.hedvig.underwriter.service.quotesSignDataStrategies.SwedishBankIdSignStrategy
@@ -30,8 +32,10 @@ import com.hedvig.underwriter.testhelp.databuilder.DanishHomeContentsDataBuilder
 import com.hedvig.underwriter.testhelp.databuilder.DanishTravelDataBuilder
 import com.hedvig.underwriter.testhelp.databuilder.NorwegianHomeContentDataBuilder
 import com.hedvig.underwriter.testhelp.databuilder.NorwegianTravelDataBuilder
+import com.hedvig.underwriter.testhelp.databuilder.SwedishApartmentDataBuilder
 import com.hedvig.underwriter.testhelp.databuilder.SwedishHouseDataBuilder
 import com.hedvig.underwriter.testhelp.databuilder.quote
+import com.hedvig.underwriter.web.dtos.ErrorCodes
 import com.hedvig.underwriter.web.dtos.SignQuoteFromHopeRequest
 import com.hedvig.underwriter.web.dtos.SignQuoteRequestDto
 import io.mockk.MockKAnnotations
@@ -69,6 +73,9 @@ class SignServiceImplTest {
     @MockK
     lateinit var notificationService: NotificationService
 
+    @MockK
+    lateinit var selfChangeCommittingStrategy: SelfChangeCommittingStrategy
+
     private lateinit var signStrategyService: SignStrategyService
 
     private lateinit var swedishBankIdSignStrategy: SwedishBankIdSignStrategy
@@ -91,7 +98,7 @@ class SignServiceImplTest {
         )
 
         signStrategyService = SignStrategyService(
-            swedishBankIdSignStrategy, simpleSignStrategy
+            swedishBankIdSignStrategy, simpleSignStrategy, selfChangeCommittingStrategy
         )
 
         cut = SignServiceImpl(
@@ -135,7 +142,7 @@ class SignServiceImplTest {
         every { memberService.signQuote(any(), any()) } returns Right(UnderwriterQuoteSignResponse(1234, true))
         every { memberService.isSsnAlreadySignedMemberEntity(any()) } returns IsSsnAlreadySignedMemberResponse(false)
 
-        cut.signQuoteFromRapio(quoteId, SignQuoteRequestDto(Name("", ""), null, LocalDate.now(), "null"))
+        cut.signQuoteFromRapio(quoteId, SignQuoteRequestDto(Name("", ""), null, LocalDate.now(), null, "null"))
         verify { notificationService.postSignUpdate(ofType(Quote::class)) }
     }
 
@@ -164,7 +171,7 @@ class SignServiceImplTest {
         every { memberService.signQuote(any(), any()) } returns Right(UnderwriterQuoteSignResponse(1234, true))
         every { memberService.isSsnAlreadySignedMemberEntity(any()) } returns IsSsnAlreadySignedMemberResponse(false)
 
-        cut.signQuoteFromRapio(quoteId, SignQuoteRequestDto(Name("", ""), null, LocalDate.now(), "null"))
+        cut.signQuoteFromRapio(quoteId, SignQuoteRequestDto(Name("", ""), null, LocalDate.now(), "if", "null"))
         verify { notificationService.postSignUpdate(any()) }
     }
 
@@ -936,5 +943,36 @@ class SignServiceImplTest {
         verify {
             memberService.finalizeOnboarding(quote, quote.email!!)
         }
+    }
+
+    @Test
+    fun failSignFromRapioIfStartDateAndCurrentInsurerAreNull() {
+        val memberId = "1337"
+        val quoteId = UUID.randomUUID()
+
+        every {
+            quoteRepository.findQuotes(listOf(quoteId))
+        } returns listOf(
+            quote {
+                id = quoteId
+                data = SwedishApartmentDataBuilder()
+                this.memberId = memberId
+            }
+        )
+
+        val result = cut.signQuoteFromRapio(
+            quoteId, SignQuoteRequestDto(
+                name = Name("Tolvan", "Tolvansson"),
+                ssn = "191212121212",
+                startDate = null,
+                insuranceCompany = null,
+                email = "tolvan@tolvannsson.com"
+            )
+        )
+        assertThat(result.isLeft()).isTrue()
+        val error = result.swap().getOrElse { null }!!
+
+        assertThat(error.errorCode).isEqualTo(ErrorCodes.INVALID_STATE)
+        assertThat(error.errorMessage).isEqualTo("currentInsurer is required when startDate is null")
     }
 }

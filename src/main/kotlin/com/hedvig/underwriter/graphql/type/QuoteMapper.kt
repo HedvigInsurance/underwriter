@@ -61,7 +61,8 @@ class QuoteMapper(
             startDate = quote.startDate,
             expiresAt = quote.validTo.toStockholmLocalDate(),
             email = quote.email,
-            dataCollectionId = quote.dataCollectionId
+            dataCollectionId = quote.dataCollectionId,
+            initiatedFrom = quote.initiatedFrom.name
         )
     }
 
@@ -107,7 +108,7 @@ class QuoteMapper(
                 livingSpace = house.livingSpace,
                 ancillarySpace = house.ancillaryArea,
                 extraBuildings = house.extraBuildings?.map { extraBuildingInput ->
-                    mapToExtraBuildingCore(extraBuildingInput, locale)
+                    extraBuilding(extraBuildingInput, locale)
                 },
                 numberOfBathrooms = house.numberOfBathrooms,
                 yearOfConstruction = house.yearOfConstruction,
@@ -224,83 +225,15 @@ class QuoteMapper(
         )
     }
 
-    private fun mapToExtraBuildingCore(
+    private fun extraBuilding(
         extraBuilding: ExtraBuilding,
         locale: Locale
-    ): com.hedvig.underwriter.graphql.type.ExtraBuilding.ExtraBuildingCore {
-        return when (extraBuilding.type) {
-            ExtraBuildingType.GARAGE -> com.hedvig.underwriter.graphql.type.ExtraBuilding.ExtraBuildingGarage(
-                area = extraBuilding.area,
-                hasWaterConnected = extraBuilding.hasWaterConnected,
-                displayName = extractDisplayName(extraBuilding.type, locale)
-            )
-            ExtraBuildingType.CARPORT -> com.hedvig.underwriter.graphql.type.ExtraBuilding.ExtraBuildingCarport(
-                area = extraBuilding.area,
-                hasWaterConnected = extraBuilding.hasWaterConnected,
-                displayName = extractDisplayName(extraBuilding.type, locale)
-            )
-            ExtraBuildingType.SHED -> com.hedvig.underwriter.graphql.type.ExtraBuilding.ExtraBuildingShed(
-                area = extraBuilding.area,
-                hasWaterConnected = extraBuilding.hasWaterConnected,
-                displayName = extractDisplayName(extraBuilding.type, locale)
-            )
-            ExtraBuildingType.STOREHOUSE -> com.hedvig.underwriter.graphql.type.ExtraBuilding.ExtraBuildingStorehouse(
-                area = extraBuilding.area,
-                hasWaterConnected = extraBuilding.hasWaterConnected,
-                displayName = extractDisplayName(extraBuilding.type, locale)
-            )
-            ExtraBuildingType.FRIGGEBOD -> com.hedvig.underwriter.graphql.type.ExtraBuilding.ExtraBuildingFriggebod(
-                area = extraBuilding.area,
-                hasWaterConnected = extraBuilding.hasWaterConnected,
-                displayName = extractDisplayName(extraBuilding.type, locale)
-            )
-            ExtraBuildingType.ATTEFALL -> com.hedvig.underwriter.graphql.type.ExtraBuilding.ExtraBuildingAttefall(
-                area = extraBuilding.area,
-                hasWaterConnected = extraBuilding.hasWaterConnected,
-                displayName = extractDisplayName(extraBuilding.type, locale)
-            )
-            ExtraBuildingType.OUTHOUSE -> com.hedvig.underwriter.graphql.type.ExtraBuilding.ExtraBuildingOuthouse(
-                area = extraBuilding.area,
-                hasWaterConnected = extraBuilding.hasWaterConnected,
-                displayName = extractDisplayName(extraBuilding.type, locale)
-            )
-            ExtraBuildingType.GUESTHOUSE -> com.hedvig.underwriter.graphql.type.ExtraBuilding.ExtraBuildingGuesthouse(
-                area = extraBuilding.area,
-                hasWaterConnected = extraBuilding.hasWaterConnected,
-                displayName = extractDisplayName(extraBuilding.type, locale)
-            )
-            ExtraBuildingType.GAZEBO -> com.hedvig.underwriter.graphql.type.ExtraBuilding.ExtraBuildingGazebo(
-                area = extraBuilding.area,
-                hasWaterConnected = extraBuilding.hasWaterConnected,
-                displayName = extractDisplayName(extraBuilding.type, locale)
-            )
-            ExtraBuildingType.GREENHOUSE -> com.hedvig.underwriter.graphql.type.ExtraBuilding.ExtraBuildingGreenhouse(
-                area = extraBuilding.area,
-                hasWaterConnected = extraBuilding.hasWaterConnected,
-                displayName = extractDisplayName(extraBuilding.type, locale)
-            )
-            ExtraBuildingType.SAUNA -> com.hedvig.underwriter.graphql.type.ExtraBuilding.ExtraBuildingSauna(
-                area = extraBuilding.area,
-                hasWaterConnected = extraBuilding.hasWaterConnected,
-                displayName = extractDisplayName(extraBuilding.type, locale)
-            )
-            ExtraBuildingType.BARN -> com.hedvig.underwriter.graphql.type.ExtraBuilding.ExtraBuildingBarn(
-                area = extraBuilding.area,
-                hasWaterConnected = extraBuilding.hasWaterConnected,
-                displayName = extractDisplayName(extraBuilding.type, locale)
-            )
-            ExtraBuildingType.BOATHOUSE -> com.hedvig.underwriter.graphql.type.ExtraBuilding.ExtraBuildingBoathouse(
-                area = extraBuilding.area,
-                hasWaterConnected = extraBuilding.hasWaterConnected,
-                displayName = extractDisplayName(extraBuilding.type, locale)
-            )
-            ExtraBuildingType.OTHER -> com.hedvig.underwriter.graphql.type.ExtraBuilding.ExtraBuildingOther(
-                area = extraBuilding.area,
-                hasWaterConnected = extraBuilding.hasWaterConnected,
-                displayName = extractDisplayName(extraBuilding.type, locale)
-            )
-        }
-    }
+    ): ExtraBuildingValue = ExtraBuildingValue(
+        type = com.hedvig.underwriter.graphql.type.ExtraBuildingType.valueOf(extraBuilding.type.name),
+        area = extraBuilding.area,
+        hasWaterConnected = extraBuilding.hasWaterConnected,
+        displayName = extractDisplayName(extraBuilding.type, locale)
+    )
 
     private fun mapToIncompleteQuoteResult(
         quote: Quote,
@@ -346,7 +279,7 @@ class QuoteMapper(
                 livingSpace = it.livingSpace!!,
                 ancillarySpace = it.ancillaryArea!!,
                 extraBuildings = it.extraBuildings!!.map { extraBuildingInput ->
-                    mapToExtraBuildingCore(extraBuildingInput, locale)
+                    extraBuilding(extraBuildingInput, locale)
                 },
                 numberOfBathrooms = it.numberOfBathrooms!!,
                 yearOfConstruction = it.yearOfConstruction!!,
@@ -433,7 +366,7 @@ class QuoteMapper(
                 livingSpace = house.livingSpace!!,
                 ancillarySpace = house.ancillaryArea!!,
                 extraBuildings = house.extraBuildings!!.map { extraBuildingInput ->
-                    mapToExtraBuildingCore(extraBuildingInput, locale)
+                    extraBuilding(extraBuildingInput, locale)
                 },
                 numberOfBathrooms = house.numberOfBathrooms!!,
                 yearOfConstruction = house.yearOfConstruction!!,

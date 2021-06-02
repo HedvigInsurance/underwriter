@@ -131,6 +131,7 @@ class QuoteRepositoryImpl(private val jdbi: Jdbi) : QuoteRepository {
             updatedAt = databaseQuote.timestamp,
             price = databaseQuote.price,
             currency = databaseQuote.currency,
+            priceFrom = databaseQuote.priceFrom,
             productType = databaseQuote.productType,
             state = databaseQuote.state,
             initiatedFrom = databaseQuote.initiatedFrom!!,
@@ -189,7 +190,10 @@ class QuoteRepositoryImpl(private val jdbi: Jdbi) : QuoteRepository {
         return jdbi.inTransaction<List<Quote>, RuntimeException> { h ->
             val dao = h.attach<QuoteDao>()
             val ids = dao.findOldQuoteIdsToDelete(before)
-            findQuotes(ids, h)
+
+            ids.chunked(500)
+                .map { findQuotes(it, h) }
+                .flatten()
         }
     }
 

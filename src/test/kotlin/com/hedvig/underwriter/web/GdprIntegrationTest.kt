@@ -1,16 +1,14 @@
 package com.hedvig.underwriter.web
 
-import com.hedvig.underwriter.serviceIntegration.memberService.dtos.IsSsnAlreadySignedMemberResponse
 import com.hedvig.underwriter.serviceIntegration.memberService.dtos.UnderwriterQuoteSignResponse
-import com.hedvig.underwriter.serviceIntegration.notificationService.NotificationServiceClient
 import com.hedvig.underwriter.serviceIntegration.priceEngine.dtos.PriceQueryResponse
 import com.hedvig.underwriter.serviceIntegration.productPricing.dtos.contract.CreateContractResponse
-import com.ninjasquad.springmockk.MockkBean
 import io.mockk.every
 import org.javamoney.moneta.Money
 import assertk.assertThat
 import assertk.assertions.isEqualTo
 import assertk.assertions.isGreaterThan
+import assertk.assertions.isNotEqualTo
 import assertk.assertions.isNotNull
 import assertk.assertions.isNull
 import com.graphql.spring.boot.test.GraphQLTestTemplate
@@ -26,25 +24,19 @@ import com.hedvig.underwriter.model.NorwegianTravelData
 import com.hedvig.underwriter.model.QuoteData
 import com.hedvig.underwriter.model.SwedishApartmentData
 import com.hedvig.underwriter.model.SwedishHouseData
-import com.hedvig.underwriter.serviceIntegration.apigateway.ApiGatewayServiceClient
-import com.hedvig.underwriter.serviceIntegration.memberService.MemberServiceClient
 import com.hedvig.underwriter.serviceIntegration.memberService.dtos.Flag
 import com.hedvig.underwriter.serviceIntegration.memberService.dtos.HelloHedvigResponseDto
 import com.hedvig.underwriter.serviceIntegration.memberService.dtos.PersonStatusDto
-import com.hedvig.underwriter.serviceIntegration.priceEngine.PriceEngineClient
-import com.hedvig.underwriter.serviceIntegration.productPricing.ProductPricingClient
 import com.hedvig.underwriter.testhelp.GdprClient
+import com.hedvig.underwriter.testhelp.IntegrationTest
 import com.hedvig.underwriter.testhelp.QuoteClient
 import io.mockk.mockk
 import io.mockk.verify
 import org.jdbi.v3.core.Jdbi
-import org.junit.Before
-import org.junit.Test
-import org.junit.runner.RunWith
+import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.BeforeEach
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.http.ResponseEntity
-import org.springframework.test.context.junit4.SpringRunner
 import java.lang.RuntimeException
 import java.time.Instant
 import java.time.LocalDate
@@ -52,9 +44,7 @@ import java.time.temporal.ChronoUnit
 import java.util.Random
 import java.util.UUID
 
-@RunWith(SpringRunner::class)
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
-class GdprIntegrationTest {
+class GdprIntegrationTest : IntegrationTest() {
 
     @Autowired
     lateinit var quoteClient: QuoteClient
@@ -68,46 +58,28 @@ class GdprIntegrationTest {
     @Autowired
     lateinit var jdbi: Jdbi
 
-    @MockkBean(relaxed = true)
-    lateinit var notificationServiceClient: NotificationServiceClient
-
-    @MockkBean(relaxed = true)
-    lateinit var apiGatewayServiceClient: ApiGatewayServiceClient
-
-    @MockkBean(relaxed = true)
-    lateinit var priceEngineClient: PriceEngineClient
-
-    @MockkBean(relaxed = true)
-    lateinit var memberServiceClient: MemberServiceClient
-
-    @MockkBean(relaxed = true)
-    lateinit var productPricingClient: ProductPricingClient
-
     val activeAgreement = Agreement.SwedishApartment(UUID.randomUUID(), mockk(), mockk(), mockk(), null, AgreementStatus.ACTIVE, mockk(), mockk(), 0, 100)
 
-    @Before
+    @BeforeEach
     fun setup() {
 
         // Added this snippet to make sure we do not forget to add cleaning/deletion tests for new types when added
-        val makeSureAllTypesAreTested: (QuoteData) -> Unit = fun (type: QuoteData) {
+        val makeSureAllTypesAreTested = fun (type: QuoteData) {
             when (type) {
-                is SwedishApartmentData -> "Done"
-                is SwedishHouseData -> "Done"
-                is NorwegianHomeContentsData -> "Done"
-                is NorwegianTravelData -> "Done"
-                is DanishAccidentData -> "Done"
-                is DanishHomeContentsData -> "Done"
+                is SwedishApartmentData,
+                is SwedishHouseData,
+                is NorwegianHomeContentsData,
+                is NorwegianTravelData,
+                is DanishAccidentData,
+                is DanishHomeContentsData,
                 is DanishTravelData -> "Done"
             }
         }
 
         every { memberServiceClient.personStatus(any()) } returns ResponseEntity.status(200).body(PersonStatusDto(Flag.GREEN))
-        every { memberServiceClient.checkPersonDebt(any()) } returns ResponseEntity.status(200).body(null)
-        every { memberServiceClient.checkIsSsnAlreadySignedMemberEntity(any()) } returns IsSsnAlreadySignedMemberResponse(false)
         every { memberServiceClient.createMember() } returns ResponseEntity.status(200).body(HelloHedvigResponseDto("12345"))
-        every { memberServiceClient.updateMemberSsn(any(), any()) } returns Unit
         every { memberServiceClient.signQuote(any(), any()) } returns ResponseEntity.status(200).body(UnderwriterQuoteSignResponse(1L, true))
-        every { memberServiceClient.finalizeOnBoarding(any(), any()) } returns ResponseEntity.status(200).body("")
+        every { productPricingClient.hasContract(any(), any()) } returns ResponseEntity.status(200).body(false)
         every { productPricingClient.createContract(any(), any()) } returns listOf(CreateContractResponse(UUID.randomUUID(), UUID.randomUUID(), UUID.randomUUID()))
         every { productPricingClient.getAgreement(any()) } returns ResponseEntity.status(200).body(activeAgreement)
         every { productPricingClient.calculateInsuranceCost(any(), any()) } returns ResponseEntity.status(200).body(InsuranceCost(
@@ -204,6 +176,37 @@ class GdprIntegrationTest {
     }
 
     @Test
+    fun `Test hashed ssn for deleted quotes`() {
+
+        val ssn1quote1 = quoteClient.createSwedishApartmentQuote(ssn = "199205262398")
+        val ssn1quote2 = quoteClient.createSwedishApartmentQuote(ssn = "199205262398")
+        val ssn2quote1 = quoteClient.createSwedishApartmentQuote(ssn = "199507272392")
+
+        val now = Instant.now()
+        val nowMinus30d = now.plus(-30, ChronoUnit.DAYS)
+
+        updateCreatedAt(ssn1quote1.id, nowMinus30d)
+        updateCreatedAt(ssn1quote2.id, nowMinus30d)
+        updateCreatedAt(ssn2quote1.id, nowMinus30d)
+
+        gdprClient.clean()
+
+        assertNoQuoteExist(ssn1quote1.id)
+        assertNoQuoteExist(ssn1quote2.id)
+        assertNoQuoteExist(ssn2quote1.id)
+
+        val ssn1Quote1Hash = getDeletedQuoteFromDb(ssn1quote1.id).hashedSsn
+        val ssn1Quote2Hash = getDeletedQuoteFromDb(ssn1quote2.id).hashedSsn
+        val ssn2Quote1Hash = getDeletedQuoteFromDb(ssn2quote1.id).hashedSsn
+
+        assertThat(ssn1Quote1Hash).isNotNull()
+        assertThat(ssn1Quote2Hash).isNotNull()
+        assertThat(ssn2Quote1Hash).isNotNull()
+        assertThat(ssn1Quote1Hash).isEqualTo(ssn1Quote2Hash)
+        assertThat(ssn1Quote1Hash).isNotEqualTo(ssn2Quote1Hash)
+    }
+
+    @Test
     fun `Test quote cleaning job is not removing quotes with an agreement`() {
 
         val seApartmentRsp = quoteClient.createSwedishApartmentQuote()
@@ -225,12 +228,33 @@ class GdprIntegrationTest {
         verify(exactly = 1) { notificationServiceClient.deleteMember(memberId) }
         verify(exactly = 1) { apiGatewayServiceClient.deleteMember(any(), memberId) }
         verify(exactly = 1) { memberServiceClient.deleteMember(memberId) }
+        verify(exactly = 1) { productPricingClient.hasContract(memberId, any()) }
 
         // TODO: Add verify checks to member and lookup services when implemented
     }
 
     @Test
-    fun `Test dry-run cleaning job`() {
+    fun `Test cleaning quote with member having contract in PP but not in UW`() {
+
+        val memberId = Random().nextLong().toString()
+
+        every { productPricingClient.hasContract(memberId, any()) } returns ResponseEntity.status(200).body(true)
+
+        val quoteId = createGraphQlQuote(memberId)
+
+        assertCleanJob(quoteId)
+
+        // Since member has a contract in PP it should not be deleted...
+        verify(exactly = 0) { notificationServiceClient.deleteMember(memberId) }
+        verify(exactly = 0) { apiGatewayServiceClient.deleteMember(any(), memberId) }
+        verify(exactly = 0) { memberServiceClient.deleteMember(memberId) }
+        verify(exactly = 1) { productPricingClient.hasContract(memberId, any()) }
+
+        // TODO: Add verify checks to member and lookup services when implemented
+    }
+
+    @Test
+    fun `Test cleaning job with requested dry-run`() {
 
         val memberId = Random().nextLong().toString()
         val quoteId = createGraphQlQuote(memberId)
@@ -238,7 +262,25 @@ class GdprIntegrationTest {
         val nowMinus30d = Instant.now().plus(-30, ChronoUnit.DAYS)
         updateCreatedAt(quoteId, nowMinus30d)
 
-        gdprClient.clean(true)
+        gdprClient.clean(dryRun = true)
+
+        assertQuoteExist(quoteId)
+
+        verify(exactly = 0) { notificationServiceClient.deleteMember(memberId) }
+        verify(exactly = 0) { apiGatewayServiceClient.deleteMember(any(), memberId) }
+        verify(exactly = 0) { memberServiceClient.deleteMember(memberId) }
+    }
+
+    @Test
+    fun `Test cleaning job with requested days`() {
+
+        val memberId = Random().nextLong().toString()
+        val quoteId = createGraphQlQuote(memberId)
+
+        val nowMinus20d = Instant.now().plus(-20, ChronoUnit.DAYS)
+        updateCreatedAt(quoteId, nowMinus20d)
+
+        gdprClient.clean(days = 10)
 
         assertQuoteExist(quoteId)
 
@@ -246,7 +288,32 @@ class GdprIntegrationTest {
         verify(exactly = 0) { apiGatewayServiceClient.deleteMember(any(), memberId) }
         verify(exactly = 0) { memberServiceClient.deleteMember(memberId) }
 
-        // TODO: Add verify checks to member, lookup services when implemented
+        val nowMinus60d = Instant.now().plus(-60, ChronoUnit.DAYS)
+        updateCreatedAt(quoteId, nowMinus60d)
+
+        gdprClient.clean(days = 61)
+
+        assertQuoteExist(quoteId)
+
+        verify(exactly = 0) { notificationServiceClient.deleteMember(memberId) }
+        verify(exactly = 0) { apiGatewayServiceClient.deleteMember(any(), memberId) }
+        verify(exactly = 0) { memberServiceClient.deleteMember(memberId) }
+
+        gdprClient.clean(days = 59, dryRun = true)
+
+        assertQuoteExist(quoteId)
+
+        verify(exactly = 0) { notificationServiceClient.deleteMember(memberId) }
+        verify(exactly = 0) { apiGatewayServiceClient.deleteMember(any(), memberId) }
+        verify(exactly = 0) { memberServiceClient.deleteMember(memberId) }
+
+        gdprClient.clean(days = 59)
+
+        assertNoQuoteExist(quoteId)
+
+        verify(exactly = 1) { notificationServiceClient.deleteMember(memberId) }
+        verify(exactly = 1) { apiGatewayServiceClient.deleteMember(any(), memberId) }
+        verify(exactly = 1) { memberServiceClient.deleteMember(memberId) }
     }
 
     @Test
@@ -263,8 +330,6 @@ class GdprIntegrationTest {
         verify(exactly = 0) { notificationServiceClient.deleteMember(memberId) }
         verify(exactly = 0) { apiGatewayServiceClient.deleteMember(any(), memberId) }
         verify(exactly = 0) { memberServiceClient.deleteMember(memberId) }
-
-        // TODO: Add verify checks to member, lookup services when implemented
     }
 
     private fun createMutation() =
@@ -435,6 +500,7 @@ class GdprIntegrationTest {
         val deletedAt: Instant,
         val type: String,
         val memberId: String?,
+        val hashedSsn: String?,
         val quote: String,
         val revs: String
     )

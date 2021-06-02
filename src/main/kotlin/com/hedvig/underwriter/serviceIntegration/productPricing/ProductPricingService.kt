@@ -5,6 +5,7 @@ import com.hedvig.underwriter.graphql.type.InsuranceCost
 import com.hedvig.underwriter.model.Quote
 import com.hedvig.underwriter.serviceIntegration.productPricing.dtos.CalculateBundleInsuranceCostRequest
 import com.hedvig.underwriter.serviceIntegration.productPricing.dtos.RedeemCampaignDto
+import com.hedvig.underwriter.serviceIntegration.productPricing.dtos.SelfChangeResult
 import com.hedvig.underwriter.serviceIntegration.productPricing.dtos.SignedProductResponseDto
 import com.hedvig.underwriter.serviceIntegration.productPricing.dtos.SignedQuoteRequest
 import com.hedvig.underwriter.serviceIntegration.productPricing.dtos.contract.AddAgreementResponse
@@ -35,7 +36,11 @@ interface ProductPricingService {
         token: String?
     ): List<CreateContractResponse>
 
+    fun hasContract(memberId: String): Boolean
+
     fun createContractsFromQuotesNoMandate(quotes: List<Quote>): List<CreateContractResponse>
 
     fun getAgreement(agreementId: UUID): Agreement
+
+    fun selfChangeContracts(memberId: String, quotes: List<Quote>): SelfChangeResult
 }

@@ -22,6 +22,10 @@ sealed class StartSignResponse {
         val id: UUID
     ) : StartSignResponse()
 
+    object AlreadyCompleted : StartSignResponse() {
+        val ignore = true
+    }
+
     data class FailedToStartSign(
         val errorMessage: String,
         val errorCode: String

@@ -30,7 +30,6 @@ import io.micrometer.core.instrument.MeterRegistry
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Component
 import org.springframework.stereotype.Service
-import java.math.BigDecimal
 import java.time.Instant
 import java.util.UUID
 
@@ -60,8 +59,7 @@ class UnderwriterImpl(
             updatedAt = now,
             productType = quoteRequest.productType!!,
             initiatedFrom = initiatedFrom,
-            attributedTo = quoteRequest.quotingPartner
-                ?: Partner.HEDVIG,
+            attributedTo = quoteRequest.quotingPartner ?: Partner.HEDVIG,
             data = createQuoteData(quoteRequest),
             state = QuoteState.INCOMPLETE,
             memberId = quoteRequest.memberId,
@@ -111,17 +109,22 @@ class UnderwriterImpl(
     }
 
     private fun complete(quote: Quote): Quote {
-        val priceQueryResponse = getPriceRetrievedFromProductPricing(quote)
+        val priceResponse = getPriceRetrievedFromProductPricing(quote)
+
+        // Check if we should reuse old price if customer have done this query before
+        val price = requotingService.useOldOrNewPrice(quote, Price.from(priceResponse))
+
         return quote.copy(
-            price = priceQueryResponse.price.number.numberValueExact(BigDecimal::class.java),
-            currency = priceQueryResponse.price.currency.currencyCode,
-            lineItems = priceQueryResponse.lineItems?.map {
+            price = price.amount,
+            currency = price.currency,
+            priceFrom = price.priceFromId,
+            lineItems = price.lineItems.map {
                 LineItem(
                     type = it.type,
                     subType = it.subType,
                     amount = it.amount
                 )
-            }?.toList() ?: emptyList(),
+            }.toList(),
             state = QuoteState.QUOTED
         )
     }
@@ -129,31 +132,43 @@ class UnderwriterImpl(
     private fun getPriceRetrievedFromProductPricing(quote: Quote): PriceQueryResponse {
         return when (quote.data) {
             is SwedishApartmentData -> priceEngineService.querySwedishApartmentPrice(
-                PriceQueryRequest.SwedishApartment.from(quote.id, quote.memberId, quote.data, quote.dataCollectionId)
+                PriceQueryRequest.SwedishApartment.from(
+                    quoteId = quote.id,
+                    memberId = quote.memberId,
+                    data = quote.data,
+                    dataCollectionId = quote.dataCollectionId,
+                    partner = quote.attributedTo
+                )
             )
             is SwedishHouseData -> priceEngineService.querySwedishHousePrice(
-                PriceQueryRequest.SwedishHouse.from(quote.id, quote.memberId, quote.data, quote.dataCollectionId)
+                PriceQueryRequest.SwedishHouse.from(
+                    quote.id,
+                    quote.memberId,
+                    quote.attributedTo,
+                    quote.data,
+                    quote.dataCollectionId
+                )
             )
             is NorwegianHomeContentsData -> priceEngineService.queryNorwegianHomeContentPrice(
-                PriceQueryRequest.NorwegianHomeContent.from(quote.id, quote.memberId, quote.data)
+                PriceQueryRequest.NorwegianHomeContent.from(quote.id, quote.memberId, quote.attributedTo, quote.data)
             )
             is NorwegianTravelData -> priceEngineService.queryNorwegianTravelPrice(
-                PriceQueryRequest.NorwegianTravel.from(quote.id, quote.memberId, quote.data)
+                PriceQueryRequest.NorwegianTravel.from(quote.id, quote.memberId, quote.attributedTo, quote.data)
             )
             is DanishHomeContentsData -> {
 //                do we need the dataCollectionId or is this just for Sweden?
                 priceEngineService.queryDanishHomeContentPrice(
-                    PriceQueryRequest.DanishHomeContent.from(quote.id, quote.memberId, quote.data)
+                    PriceQueryRequest.DanishHomeContent.from(quote.id, quote.memberId, quote.attributedTo, quote.data)
                 )
             }
             is DanishAccidentData -> {
                 priceEngineService.queryDanishAccidentPrice(
-                    PriceQueryRequest.DanishAccident.from(quote.id, quote.memberId, quote.data)
+                    PriceQueryRequest.DanishAccident.from(quote.id, quote.memberId, quote.attributedTo, quote.data)
                 )
             }
             is DanishTravelData -> {
                 priceEngineService.queryDanishTravelPrice(
-                    PriceQueryRequest.DanishTravel.from(quote.id, quote.memberId, quote.data)
+                    PriceQueryRequest.DanishTravel.from(quote.id, quote.memberId, quote.attributedTo, quote.data)
                 )
             }
         }

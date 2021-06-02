@@ -6,6 +6,7 @@ import com.hedvig.underwriter.service.exceptions.NotFoundException
 import com.hedvig.underwriter.serviceIntegration.apigateway.ApiGatewayService
 import com.hedvig.underwriter.serviceIntegration.memberService.MemberService
 import com.hedvig.underwriter.serviceIntegration.notificationService.NotificationService
+import com.hedvig.underwriter.serviceIntegration.productPricing.ProductPricingService
 import com.hedvig.underwriter.util.logger
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Service
@@ -19,6 +20,7 @@ class GdprServiceImpl(
     val notificationService: NotificationService,
     val apiGatewayService: ApiGatewayService,
     val memberService: MemberService,
+    val productPricingService: ProductPricingService,
     val quoteRepository: QuoteRepository
 ) : GdprService {
 
@@ -28,26 +30,32 @@ class GdprServiceImpl(
     @Value("\${features.gdpr.dry-run:false}")
     private var dryRunConfig: Boolean = false
 
-    override fun clean(dryRun: Boolean?) {
+    override fun clean(requestedDryRun: Boolean?, requestedDays: Long?) {
         try {
-            val isDryRun = dryRun ?: this.dryRunConfig
+            val dryRun = requestedDryRun ?: this.dryRunConfig
+            var days = requestedDays ?: this.daysConfig
 
-            run(isDryRun)
+            // Ignore requested days if disabled or less than configured days
+            if (this.daysConfig < 0 || days < this.daysConfig) {
+                days = this.daysConfig
+            }
+
+            run(dryRun, days)
         } catch (e: Exception) {
             logger.error("Failed to finish executing cleaning job: $e", e)
         }
     }
 
-    private fun run(dryRun: Boolean) {
+    private fun run(dryRun: Boolean, days: Long) {
 
-        logger.info("Clean out quotes older than $daysConfig days ${if (dryRun) "(DRY-RUN)" else ""}")
+        logger.info("Clean out quotes older than $days days ${if (dryRun) "(DRY-RUN)" else ""}")
 
-        if (daysConfig <= 0) {
+        if (days <= 0) {
             logger.info("Cleaning disabled")
             return
         }
 
-        val quotesToDelete = getQuotesToDelete(daysConfig)
+        val quotesToDelete = getQuotesToDelete(days)
         val membersToDelete = getMembersToDelete(quotesToDelete)
 
         logger.info("Found ${quotesToDelete.size} quote(s) to delete")
@@ -82,7 +90,19 @@ class GdprServiceImpl(
 
         // If a member has no other quotes than in those to clean,
         // then the member can be deleted
-        return memberIds.filter { hasNoOtherQuotes(it, quoteIds) }
+        val candidates = memberIds
+            .filter { hasNoOtherQuotes(it, quoteIds) }
+
+        // Double check with PP if any contract exists for member. This is an extra
+        // safety belt to not delete members that was created and signed before
+        // Underwriter was born...
+        val hasContracts = candidates.filter { hasContracts(it) }
+
+        hasContracts.forEach {
+            logger.warn("Member $it has a contract in PP but it is not registered in Underwriter, skipping it")
+        }
+
+        return candidates - hasContracts
     }
 
     private fun hasNoOtherQuotes(memberId: String, quotes: Set<UUID>): Boolean =
@@ -117,6 +137,15 @@ class GdprServiceImpl(
                 continue
             }
             quoteService.deleteQuote(quote.id)
+        }
+    }
+
+    private fun hasContracts(memberId: String): Boolean {
+        try {
+            return productPricingService.hasContract(memberId)
+        } catch (e: Exception) {
+            logger.error("Failed to check if member $memberId has contracts in Product and Pricing Service: ${e.message}")
+            throw e
         }
     }
 

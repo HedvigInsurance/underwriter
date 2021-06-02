@@ -1,17 +1,23 @@
 package com.hedvig.underwriter.serviceIntegration.productPricing
 
 import com.hedvig.productPricingObjects.dtos.Agreement
+import com.hedvig.productPricingObjects.enums.ContractStateFilter
 import com.hedvig.underwriter.graphql.type.InsuranceCost
 import com.hedvig.underwriter.serviceIntegration.productPricing.dtos.AddAgreementRequest
 import com.hedvig.underwriter.serviceIntegration.productPricing.dtos.CalculateBundleInsuranceCostRequest
 import com.hedvig.underwriter.serviceIntegration.productPricing.dtos.CalculateInsuranceCostRequest
 import com.hedvig.underwriter.serviceIntegration.productPricing.dtos.RedeemCampaignDto
+import com.hedvig.underwriter.serviceIntegration.productPricing.dtos.SelfChangeRequest
+import com.hedvig.underwriter.serviceIntegration.productPricing.dtos.SelfChangeResult
 import com.hedvig.underwriter.serviceIntegration.productPricing.dtos.SignedProductResponseDto
 import com.hedvig.underwriter.serviceIntegration.productPricing.dtos.SignedQuoteRequest
 import com.hedvig.underwriter.serviceIntegration.productPricing.dtos.contract.AddAgreementResponse
 import com.hedvig.underwriter.serviceIntegration.productPricing.dtos.contract.CreateContractResponse
 import com.hedvig.underwriter.serviceIntegration.productPricing.dtos.contract.CreateContractsRequest
 import feign.Headers
+import java.util.UUID
+import javax.validation.Valid
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.cloud.openfeign.FeignClient
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.GetMapping
@@ -19,14 +25,14 @@ import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestHeader
-import java.util.UUID
-import javax.validation.Valid
+import org.springframework.web.bind.annotation.RequestParam
 
 @Headers("Accept: application/json;charset=utf-8")
 @FeignClient(
     name = "productPricingClient",
     url = "\${hedvig.product-pricing.url:product-pricing}"
 )
+@ConditionalOnProperty("hedvig.integrations.fakes", havingValue = "false", matchIfMissing = true)
 interface ProductPricingClient {
 
     @PostMapping("/_/underwriter/{memberId}/signed/quote")
@@ -52,6 +58,12 @@ interface ProductPricingClient {
         @RequestHeader("Authorization") token: String?
     ): List<CreateContractResponse>
 
+    @GetMapping("/_/contracts/members/{memberId}/hasContract")
+    fun hasContract(
+        @PathVariable memberId: String,
+        @RequestParam(required = false) stateFilter: ContractStateFilter?
+    ): ResponseEntity<Boolean>
+
     @PostMapping("/_/agreements/add")
     fun addAgreement(
         @Valid @RequestBody request: AddAgreementRequest,
@@ -73,4 +85,7 @@ interface ProductPricingClient {
     fun getAgreement(
         @PathVariable agreementId: UUID
     ): ResponseEntity<Agreement>
+
+    @PostMapping("/_/contracts/selfChange")
+    fun selfChangeContracts(@RequestBody request: SelfChangeRequest): SelfChangeResult
 }

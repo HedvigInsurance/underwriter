@@ -1,0 +1,25 @@
+--liquibase formatted.sql
+
+--changeset ostenforshed:20210520-1557-add-missing-fk-indexes.sql
+
+CREATE INDEX idx_quote_revisions_master_quote_id ON quote_revisions(master_quote_id);
+CREATE INDEX idx_quote_revisions_quote_apartment_data_id ON quote_revisions(quote_apartment_data_id);
+CREATE INDEX idx_quote_revisions_quote_danish_accident_data_id ON quote_revisions(quote_danish_accident_data_id);
+CREATE INDEX idx_quote_revisions_quote_danish_home_contents_data_id ON quote_revisions(quote_danish_home_contents_data_id);
+CREATE INDEX idx_quote_revisions_quote_danish_travel_data_id ON quote_revisions(quote_danish_travel_data_id);
+CREATE INDEX idx_quote_revisions_quote_house_data_id ON quote_revisions(quote_house_data_id);
+CREATE INDEX idx_quote_revisions_quote_norwegian_home_contents_data_id ON quote_revisions(quote_norwegian_home_contents_data_id);
+CREATE INDEX idx_quote_revisions_quote_norwegian_travel_data_id ON quote_revisions(quote_norwegian_travel_data_id);
+CREATE INDEX sign_session_master_quote_master_quote_id ON sign_session_master_quote(master_quote_id);
+CREATE INDEX quote_line_item_revision_id ON quote_line_item(revision_id);
+
+--rollback DROP INDEX idx_quote_revisions_master_quote_id
+--rollback DROP INDEX idx_quote_revisions_quote_apartment_data_id
+--rollback DROP INDEX idx_quote_revisions_quote_danish_accident_data_id
+--rollback DROP INDEX idx_quote_revisions_quote_danish_home_contents_data_id
+--rollback DROP INDEX idx_quote_revisions_quote_danish_travel_data_id
+--rollback DROP INDEX idx_quote_revisions_quote_house_data_id
+--rollback DROP INDEX idx_quote_revisions_quote_norwegian_home_contents_data_id
+--rollback DROP INDEX idx_quote_revisions_quote_norwegian_travel_data_id
+--rollback DROP INDEX sign_session_master_quote_master_quote_id
+--rollback DROP INDEX quote_line_item_revision_id
