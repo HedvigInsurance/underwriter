@@ -57,14 +57,13 @@ fun getAddressFromStreet(street: String?, zipCode: String): DanishAddressData? {
 // street name, street number, apartment, floor, zipcode
 // street name, street number, apartment, floor
 
-
 fun patternIsCorrectForAddressIncludingZipCode(streetParts: List<String>, city: String?): DanishAddressData? {
     if (streetParts.size < 5) return null
 
     return validateAndBuildDanishAddressData(
         apartmentNumber = streetParts[streetParts.size - 2],
         floorNumber = streetParts[streetParts.size - 3],
-        streetNumber =  streetParts[streetParts.size - 4],
+        streetNumber = streetParts[streetParts.size - 4],
         streetName = streetParts.take(streetParts.size - 4),
         street = streetParts.take(streetParts.size - 3).combineStringParts(),
         city = city
@@ -77,7 +76,7 @@ fun patternIsCorrectForAddressWithoutZipCode(streetParts: List<String>): DanishA
     return validateAndBuildDanishAddressData(
         apartmentNumber = streetParts[streetParts.size - 1],
         floorNumber = streetParts[streetParts.size - 2],
-        streetNumber =  streetParts[streetParts.size - 3],
+        streetNumber = streetParts[streetParts.size - 3],
         streetName = streetParts.take(streetParts.size - 3),
         street = streetParts.take(streetParts.size - 2).combineStringParts(),
         city = null
@@ -93,11 +92,11 @@ fun validateAndBuildDanishAddressData(
     city: String?
 ): DanishAddressData? {
 
-    if (isLikelyApartmentOrFloorNumber(apartmentNumber)
-        && isLikelyApartmentOrFloorNumber(floorNumber)
-        && isLikelyStreetNumber(streetNumber)
-        && streetName.all { isValidatedWord(it) }
-        && if (city != null) isValidatedWord(city) else true
+    if (isLikelyApartmentOrFloorNumber(apartmentNumber) &&
+        isLikelyApartmentOrFloorNumber(floorNumber) &&
+        isLikelyStreetNumber(streetNumber) &&
+        streetName.all { isValidatedWord(it) } &&
+        if (city != null) isValidatedWord(city) else true
     ) {
         return DanishAddressData(
             street = street,

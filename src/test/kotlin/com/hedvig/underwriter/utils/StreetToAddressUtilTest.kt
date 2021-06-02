@@ -152,5 +152,3 @@ class StreetToAddressUtilTest {
         assertThat(isWord2).isEqualTo(false)
     }
 }
-
-
