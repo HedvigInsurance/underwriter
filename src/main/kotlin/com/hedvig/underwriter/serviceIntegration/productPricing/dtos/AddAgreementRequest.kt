@@ -17,11 +17,11 @@ data class AddAgreementRequest(
         fun from(
             quote: Quote,
             request: AddAgreementFromQuoteRequest
-        ) = AddAgreementRequest(
+        ) = AddAgreementRequest(    
             contractId = request.contractId,
             quoteFromAgreementId = quote.originatingProductId,
             previousAgreementToDate = request.previousAgreementActiveTo,
-            quote = OutgoingMapper.toQuote(
+            quote = OutgoingMapper.toAgreementQuote(
                 quote = quote,
                 fromDate = request.activeFrom,
                 toDate = request.activeTo

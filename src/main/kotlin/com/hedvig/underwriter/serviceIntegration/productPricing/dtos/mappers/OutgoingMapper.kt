@@ -31,103 +31,111 @@ import com.hedvig.productPricingObjects.dtos.LineItem as DtoLineItem
 
 class OutgoingMapper {
     companion object {
-        fun toQuote(quote: Quote, fromDate: LocalDate? = null, toDate: LocalDate? = null) = when (quote.data) {
-            is SwedishApartmentData -> AgreementQuote.SwedishApartmentQuote(
-                quoteId = quote.id,
-                fromDate = fromDate ?: quote.startDate,
-                toDate = toDate,
-                premium = quote.price!!,
-                currency = quote.currency!!,
-                currentInsurer = quote.currentInsurer,
-                address = this.toAddress(quote.data),
-                coInsured = List(quote.data.householdSize!! - 1) { CoInsured(null, null, null) },
-                squareMeters = quote.data.livingSpace!!.toLong(),
-                lineOfBusiness = this.toLineOfBusiness(quote.data.subType!!),
-                lineItems = toLineItems(quote.lineItems)
-            )
-            is SwedishHouseData -> AgreementQuote.SwedishHouseQuote(
-                quoteId = quote.id,
-                fromDate = fromDate ?: quote.startDate,
-                toDate = toDate,
-                premium = quote.price!!,
-                currency = quote.currency!!,
-                currentInsurer = quote.currentInsurer,
-                address = this.toAddress(quote.data),
-                coInsured = List(quote.data.householdSize!! - 1) { CoInsured(null, null, null) },
-                squareMeters = quote.data.livingSpace!!.toLong(),
-                ancillaryArea = quote.data.ancillaryArea!!.toLong(),
-                yearOfConstruction = quote.data.yearOfConstruction!!,
-                numberOfBathrooms = quote.data.numberOfBathrooms!!,
-                extraBuildings = quote.data.extraBuildings!!.map { extraBuilding ->
-                    this.toExtraBuildingDto(
-                        extraBuilding
-                    )
-                },
-                isSubleted = quote.data.isSubleted!!,
-                lineItems = toLineItems(quote.lineItems)
-            )
-            is NorwegianHomeContentsData -> AgreementQuote.NorwegianHomeContentQuote(
-                quoteId = quote.id,
-                fromDate = fromDate ?: quote.startDate,
-                toDate = toDate,
-                premium = quote.price!!,
-                currency = quote.currency!!,
-                currentInsurer = quote.currentInsurer,
-                address = this.toAddress(quote.data),
-                coInsured = List(quote.data.coInsured) { CoInsured(null, null, null) },
-                squareMeters = quote.data.livingSpace.toLong(),
-                lineOfBusiness = this.toLineOfBusiness(quote.data.type, quote.data.isYouth),
-                lineItems = toLineItems(quote.lineItems)
-            )
-            is NorwegianTravelData -> AgreementQuote.NorwegianTravelQuote(
-                quoteId = quote.id,
-                fromDate = fromDate ?: quote.startDate,
-                toDate = toDate,
-                premium = quote.price!!,
-                currency = quote.currency!!,
-                currentInsurer = quote.currentInsurer,
-                coInsured = List(quote.data.coInsured) { CoInsured(null, null, null) },
-                lineOfBusiness = this.toLineOfBusiness(quote.data.isYouth),
-                lineItems = toLineItems(quote.lineItems)
-            )
-            is DanishHomeContentsData -> AgreementQuote.DanishHomeContentQuote(
-                quoteId = quote.id,
-                fromDate = fromDate ?: quote.startDate,
-                toDate = toDate,
-                premium = quote.price!!,
-                currency = quote.currency!!,
-                currentInsurer = quote.currentInsurer,
-                address = this.toAddress(quote.data),
-                squareMeters = quote.data.livingSpace.toLong(),
-                coInsured = List(quote.data.coInsured) { CoInsured(null, null, null) },
-                lineOfBusiness = this.toLineOfBusiness(quote.data.type, quote.data.isStudent),
-                lineItems = toLineItems(quote.lineItems)
-            )
-            is DanishAccidentData -> AgreementQuote.DanishAccidentQuote(
-                quoteId = quote.id,
-                fromDate = fromDate ?: quote.startDate,
-                toDate = toDate,
-                premium = quote.price!!,
-                currency = quote.currency!!,
-                currentInsurer = quote.currentInsurer,
-                address = this.toAddress(quote.data),
-                coInsured = List(quote.data.coInsured) { CoInsured(null, null, null) },
-                lineOfBusiness = if (quote.data.isStudent) DanishAccidentLineOfBusiness.STUDENT else DanishAccidentLineOfBusiness.REGULAR,
-                lineItems = toLineItems(quote.lineItems)
-            )
-            is DanishTravelData -> AgreementQuote.DanishTravelQuote(
-                quoteId = quote.id,
-                fromDate = fromDate ?: quote.startDate,
-                toDate = toDate,
-                premium = quote.price!!,
-                currency = quote.currency!!,
-                currentInsurer = quote.currentInsurer,
-                address = this.toAddress(quote.data),
-                coInsured = List(quote.data.coInsured) { CoInsured(null, null, null) },
-                lineOfBusiness = if (quote.data.isStudent) DanishTravelLineOfBusiness.STUDENT else DanishTravelLineOfBusiness.REGULAR,
-                lineItems = toLineItems(quote.lineItems)
-            )
-        }
+        fun toAgreementQuote(quote: Quote, fromDate: LocalDate? = null, toDate: LocalDate? = null): AgreementQuote =
+            when (quote.data) {
+                is SwedishApartmentData -> AgreementQuote.SwedishApartmentQuote(
+                    quoteId = quote.id,
+                    fromDate = fromDate ?: quote.startDate,
+                    toDate = toDate,
+                    premium = quote.price!!,
+                    currency = quote.currency!!,
+                    currentInsurer = quote.currentInsurer,
+                    partner = quote.attributedTo.name,
+                    address = this.toAddress(quote.data),
+                    coInsured = List(quote.data.householdSize!! - 1) { CoInsured(null, null, null) },
+                    squareMeters = quote.data.livingSpace!!.toLong(),
+                    lineOfBusiness = this.toLineOfBusiness(quote.data.subType!!),
+                    lineItems = toLineItems(quote.lineItems)
+                )
+                is SwedishHouseData -> AgreementQuote.SwedishHouseQuote(
+                    quoteId = quote.id,
+                    fromDate = fromDate ?: quote.startDate,
+                    toDate = toDate,
+                    premium = quote.price!!,
+                    currency = quote.currency!!,
+                    currentInsurer = quote.currentInsurer,
+                    partner = quote.attributedTo.name,
+                    address = this.toAddress(quote.data),
+                    coInsured = List(quote.data.householdSize!! - 1) { CoInsured(null, null, null) },
+                    squareMeters = quote.data.livingSpace!!.toLong(),
+                    ancillaryArea = quote.data.ancillaryArea!!.toLong(),
+                    yearOfConstruction = quote.data.yearOfConstruction!!,
+                    numberOfBathrooms = quote.data.numberOfBathrooms!!,
+                    extraBuildings = quote.data.extraBuildings!!.map { extraBuilding ->
+                        this.toExtraBuildingDto(
+                            extraBuilding
+                        )
+                    },
+                    isSubleted = quote.data.isSubleted!!,
+                    lineItems = toLineItems(quote.lineItems)
+                )
+                is NorwegianHomeContentsData -> AgreementQuote.NorwegianHomeContentQuote(
+                    quoteId = quote.id,
+                    fromDate = fromDate ?: quote.startDate,
+                    toDate = toDate,
+                    premium = quote.price!!,
+                    currency = quote.currency!!,
+                    currentInsurer = quote.currentInsurer,
+                    partner = quote.attributedTo.name,
+                    address = this.toAddress(quote.data),
+                    coInsured = List(quote.data.coInsured) { CoInsured(null, null, null) },
+                    squareMeters = quote.data.livingSpace.toLong(),
+                    lineOfBusiness = this.toLineOfBusiness(quote.data.type, quote.data.isYouth),
+                    lineItems = toLineItems(quote.lineItems)
+                )
+                is NorwegianTravelData -> AgreementQuote.NorwegianTravelQuote(
+                    quoteId = quote.id,
+                    fromDate = fromDate ?: quote.startDate,
+                    toDate = toDate,
+                    premium = quote.price!!,
+                    currency = quote.currency!!,
+                    currentInsurer = quote.currentInsurer,
+                    partner = quote.attributedTo.name,
+                    coInsured = List(quote.data.coInsured) { CoInsured(null, null, null) },
+                    lineOfBusiness = this.toLineOfBusiness(quote.data.isYouth),
+                    lineItems = toLineItems(quote.lineItems)
+                )
+                is DanishHomeContentsData -> AgreementQuote.DanishHomeContentQuote(
+                    quoteId = quote.id,
+                    fromDate = fromDate ?: quote.startDate,
+                    toDate = toDate,
+                    premium = quote.price!!,
+                    currency = quote.currency!!,
+                    currentInsurer = quote.currentInsurer,
+                    partner = quote.attributedTo.name,
+                    address = this.toAddress(quote.data),
+                    squareMeters = quote.data.livingSpace.toLong(),
+                    coInsured = List(quote.data.coInsured) { CoInsured(null, null, null) },
+                    lineOfBusiness = this.toLineOfBusiness(quote.data.type, quote.data.isStudent),
+                    lineItems = toLineItems(quote.lineItems)
+                )
+                is DanishAccidentData -> AgreementQuote.DanishAccidentQuote(
+                    quoteId = quote.id,
+                    fromDate = fromDate ?: quote.startDate,
+                    toDate = toDate,
+                    premium = quote.price!!,
+                    currency = quote.currency!!,
+                    currentInsurer = quote.currentInsurer,
+                    partner = quote.attributedTo.name,
+                    address = this.toAddress(quote.data),
+                    coInsured = List(quote.data.coInsured) { CoInsured(null, null, null) },
+                    lineOfBusiness = if (quote.data.isStudent) DanishAccidentLineOfBusiness.STUDENT else DanishAccidentLineOfBusiness.REGULAR,
+                    lineItems = toLineItems(quote.lineItems)
+                )
+                is DanishTravelData -> AgreementQuote.DanishTravelQuote(
+                    quoteId = quote.id,
+                    fromDate = fromDate ?: quote.startDate,
+                    toDate = toDate,
+                    premium = quote.price!!,
+                    currency = quote.currency!!,
+                    currentInsurer = quote.currentInsurer,
+                    partner = quote.attributedTo.name,
+                    address = this.toAddress(quote.data),
+                    coInsured = List(quote.data.coInsured) { CoInsured(null, null, null) },
+                    lineOfBusiness = if (quote.data.isStudent) DanishTravelLineOfBusiness.STUDENT else DanishTravelLineOfBusiness.REGULAR,
+                    lineItems = toLineItems(quote.lineItems)
+                )
+            }
 
         private fun toAddress(data: QuoteData) = when (data) {
             is SwedishApartmentData -> Address(
