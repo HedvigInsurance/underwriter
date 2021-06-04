@@ -6,12 +6,10 @@ import com.hedvig.underwriter.model.NorwegianTravelData
 import com.hedvig.underwriter.serviceIntegration.memberService.dtos.IsSsnAlreadySignedMemberResponse
 import com.hedvig.underwriter.serviceIntegration.memberService.dtos.UnderwriterQuoteSignResponse
 import com.hedvig.underwriter.serviceIntegration.memberService.dtos.UpdateSsnRequest
-import com.hedvig.underwriter.serviceIntegration.notificationService.NotificationServiceClient
 import com.hedvig.underwriter.serviceIntegration.priceEngine.dtos.PriceQueryRequest
 import com.hedvig.underwriter.serviceIntegration.priceEngine.dtos.PriceQueryResponse
 import com.hedvig.underwriter.serviceIntegration.productPricing.dtos.contract.CreateContractResponse
 import com.hedvig.underwriter.web.dtos.UnderwriterQuoteSignRequest
-import com.ninjasquad.springmockk.MockkBean
 import io.mockk.every
 import io.mockk.slot
 import org.javamoney.moneta.Money
@@ -30,45 +28,26 @@ import com.hedvig.underwriter.model.DanishHomeContentsData
 import com.hedvig.underwriter.model.DanishTravelData
 import com.hedvig.underwriter.model.SwedishApartmentData
 import com.hedvig.underwriter.model.SwedishHouseData
-import com.hedvig.underwriter.serviceIntegration.memberService.MemberServiceClient
 import com.hedvig.underwriter.serviceIntegration.memberService.dtos.FinalizeOnBoardingRequest
 import com.hedvig.underwriter.serviceIntegration.memberService.dtos.Flag
 import com.hedvig.underwriter.serviceIntegration.memberService.dtos.HelloHedvigResponseDto
 import com.hedvig.underwriter.serviceIntegration.memberService.dtos.PersonStatusDto
-import com.hedvig.underwriter.serviceIntegration.priceEngine.PriceEngineClient
-import com.hedvig.underwriter.serviceIntegration.productPricing.ProductPricingClient
 import com.hedvig.underwriter.serviceIntegration.productPricing.dtos.CalculateBundleInsuranceCostRequest
 import com.hedvig.underwriter.serviceIntegration.productPricing.dtos.contract.CreateContractsRequest
+import com.hedvig.underwriter.testhelp.IntegrationTest
 import com.hedvig.underwriter.testhelp.QuoteClient
-import org.junit.Test
-import org.junit.runner.RunWith
+import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.http.ResponseEntity
-import org.springframework.test.context.junit4.SpringRunner
 import java.time.Instant
 import java.time.LocalDate
 import java.util.UUID
 import kotlin.random.Random.Default.nextLong
 
-@RunWith(SpringRunner::class)
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
-class RapioIntegrationTest {
+class RapioIntegrationTest : IntegrationTest() {
 
     @Autowired
     private lateinit var quoteClient: QuoteClient
-
-    @MockkBean(relaxed = true)
-    lateinit var notificationServiceClient: NotificationServiceClient
-
-    @MockkBean
-    lateinit var priceEngineClient: PriceEngineClient
-
-    @MockkBean
-    lateinit var memberServiceClient: MemberServiceClient
-
-    @MockkBean
-    lateinit var productPricingClient: ProductPricingClient
 
     @Test
     fun `Create Norwegian travel quote and sign it successfully`() {
@@ -216,11 +195,8 @@ class RapioIntegrationTest {
         val now = Instant.now()
         val today = LocalDate.now()
 
-        every { memberServiceClient.checkIsSsnAlreadySignedMemberEntity(any()) } returns IsSsnAlreadySignedMemberResponse(false)
         every { memberServiceClient.createMember() } returns ResponseEntity.status(200).body(HelloHedvigResponseDto(memberId))
-        every { memberServiceClient.updateMemberSsn(any(), any()) } returns Unit
         every { memberServiceClient.signQuote(any(), any()) } returns ResponseEntity.status(200).body(UnderwriterQuoteSignResponse(1L, true))
-        every { memberServiceClient.finalizeOnBoarding(any(), any()) } returns ResponseEntity.status(200).body("")
         every { productPricingClient.createContract(any(), any()) } returns listOf(CreateContractResponse(UUID.randomUUID(), agreementId, contractId))
         every { priceEngineClient.queryPrice(any()) } returns PriceQueryResponse(UUID.randomUUID(), Money.of(12, "NOK"))
 
@@ -1097,15 +1073,11 @@ class RapioIntegrationTest {
 
         // Mock clients and capture the outgoing requests for later validation
         every { priceEngineClient.queryPrice(any()) } returns PriceQueryResponse(UUID.randomUUID(), Money.of(100, "NOK"))
-        every { memberServiceClient.checkPersonDebt(any()) } returns ResponseEntity.status(200).body(null)
         every { memberServiceClient.personStatus(any()) } returns ResponseEntity.status(200).body(PersonStatusDto(Flag.GREEN))
         every { productPricingClient.calculateBundleInsuranceCost(any()) } returns ResponseEntity.status(200).body(insuranceCostResponse)
 
-        every { memberServiceClient.checkIsSsnAlreadySignedMemberEntity(any()) } returns IsSsnAlreadySignedMemberResponse(false)
         every { memberServiceClient.createMember() } returns ResponseEntity.status(200).body(HelloHedvigResponseDto(nextLong(Long.MAX_VALUE).toString()))
-        every { memberServiceClient.updateMemberSsn(any(), any()) } returns Unit
         every { memberServiceClient.signQuote(any(), any()) } returns ResponseEntity.status(200).body(UnderwriterQuoteSignResponse(1L, true))
-        every { memberServiceClient.finalizeOnBoarding(any(), any()) } returns ResponseEntity.status(200).body("")
         every { productPricingClient.createContract(any(), any()) } returns listOf(CreateContractResponse(UUID.randomUUID(), UUID.randomUUID(), UUID.randomUUID()))
 
         // Create quotes

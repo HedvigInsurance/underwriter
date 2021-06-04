@@ -2,6 +2,7 @@ package com.hedvig.underwriter.web.dtos
 
 import com.hedvig.underwriter.service.model.QuoteRequestData
 import com.hedvig.libs.logging.masking.Masked
+import com.hedvig.underwriter.model.QuoteInitiatedFrom
 import java.time.LocalDate
 
 data class ExternalQuoteRequestDto(
@@ -11,6 +12,7 @@ data class ExternalQuoteRequestDto(
     val birthDate: LocalDate,
     @Masked val ssn: String,
     val startDate: LocalDate,
+    val initiatedFrom: QuoteInitiatedFrom,
     val swedishHouseData: QuoteRequestData.SwedishHouse?,
     val swedishApartmentData: QuoteRequestData.SwedishApartment?,
     val norwegianHomeContentsData: QuoteRequestData.NorwegianHomeContents?,

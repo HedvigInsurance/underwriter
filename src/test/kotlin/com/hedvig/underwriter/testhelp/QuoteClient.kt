@@ -204,7 +204,7 @@ class QuoteClient {
         street: String = "ApStreet ${RandomStringUtils.randomNumeric(2)}",
         apartment: String = "1tv",
         floor: String = "1",
-        bbrid: String? = null,
+        bbrId: String? = null,
         zip: String = "1234",
         city: String = "ApCity",
         livingSpace: Int = 111,
@@ -217,7 +217,7 @@ class QuoteClient {
             street,
             apartment,
             floor,
-            bbrid,
+            bbrId,
             zip,
             city,
             livingSpace,
@@ -232,7 +232,7 @@ class QuoteClient {
         street: String = "ApStreet ${RandomStringUtils.randomNumeric(2)}",
         apartment: String = "1tv",
         floor: String = "1",
-        bbrid: String? = null,
+        bbrId: String? = null,
         zip: String = "1234",
         city: String = "ApCity",
         livingSpace: Int = 111,
@@ -245,7 +245,7 @@ class QuoteClient {
             street,
             apartment,
             floor,
-            bbrid,
+            bbrId,
             zip,
             city,
             livingSpace,
@@ -260,7 +260,7 @@ class QuoteClient {
         street: String = "ApStreet ${RandomStringUtils.randomNumeric(2)}",
         apartment: String = "1tv",
         floor: String = "1",
-        bbrid: String? = null,
+        bbrId: String? = null,
         zip: String = "1234",
         city: String = "ApCity",
         coInsured: Int = 1,
@@ -271,7 +271,7 @@ class QuoteClient {
             street,
             apartment,
             floor,
-            bbrid,
+            bbrId,
             zip,
             city,
             coInsured,
@@ -284,7 +284,7 @@ class QuoteClient {
         street: String = "ApStreet 11",
         apartment: String = "1tv",
         floor: String = "1",
-        bbrid: String? = null,
+        bbrId: String? = null,
         zip: String = "1234",
         city: String = "ApCity",
         coInsured: Int = 1,
@@ -296,7 +296,7 @@ class QuoteClient {
             street,
             apartment,
             floor,
-            bbrid,
+            bbrId,
             zip,
             city,
             coInsured,
@@ -309,7 +309,7 @@ class QuoteClient {
         street: String = "ApStreet ${RandomStringUtils.randomNumeric(2)}",
         apartment: String = "1tv",
         floor: String = "1",
-        bbrid: String? = null,
+        bbrId: String? = null,
         zip: String = "1234",
         city: String = "ApCity",
         coInsured: Int = 1,
@@ -320,7 +320,7 @@ class QuoteClient {
             street,
             apartment,
             floor,
-            bbrid,
+            bbrId,
             zip,
             city,
             coInsured,
@@ -333,7 +333,7 @@ class QuoteClient {
         street: String = "ApStreet ${RandomStringUtils.randomNumeric(2)}",
         apartment: String = "1tv",
         floor: String = "1",
-        bbrid: String? = null,
+        bbrId: String? = null,
         zip: String = "1234",
         city: String = "ApCity",
         coInsured: Int = 1,
@@ -345,7 +345,7 @@ class QuoteClient {
             street,
             apartment,
             floor,
-            bbrid,
+            bbrId,
             zip,
             city,
             coInsured,
@@ -575,7 +575,7 @@ class QuoteClient {
         street: String,
         apartment: String,
         floor: String,
-        bbrid: String? = null,
+        bbrId: String? = null,
         zip: String,
         city: String,
         livingSpace: Int,
@@ -583,6 +583,9 @@ class QuoteClient {
         student: Boolean,
         subType: String
     ): ResponseEntity<T> {
+
+        val bbrIdString = if (bbrId != null) "\"$bbrId\"" else "null"
+
         val request = """
             {
                 "firstName": null,
@@ -597,7 +600,7 @@ class QuoteClient {
                     "street": "$street",
                     "apartment": "$apartment",
                     "floor": "$floor",
-                    "bbrid": "$bbrid",
+                    "bbrId": $bbrIdString,
                     "zipCode": "$zip",
                     "city": "$city",
                     "livingSpace": $livingSpace,
@@ -618,12 +621,14 @@ class QuoteClient {
         street: String,
         apartment: String,
         floor: String,
-        bbrid: String? = null,
+        bbrId: String? = null,
         zip: String,
         city: String,
         coInsured: Int,
         student: Boolean
     ): ResponseEntity<T> {
+        val bbrIdString = if (bbrId != null) "\"$bbrId\"" else "null"
+
         val request = """
             {
                 "firstName": null,
@@ -638,7 +643,7 @@ class QuoteClient {
                     "street": "$street",
                     "apartment": "$apartment",
                     "floor": "$floor",
-                    "bbrid": "$bbrid",
+                    "bbrId": $bbrIdString,
                     "zipCode": "$zip",
                     "city": "$city",
                     "coInsured": $coInsured,
@@ -657,12 +662,14 @@ class QuoteClient {
         street: String,
         apartment: String,
         floor: String,
-        bbrid: String? = null,
+        bbrId: String? = null,
         zip: String,
         city: String,
         coInsured: Int,
         student: Boolean
     ): ResponseEntity<T> {
+        val bbrIdString = if (bbrId != null) "\"$bbrId\"" else "null"
+
         val request = """
             {
                 "firstName": null,
@@ -677,7 +684,7 @@ class QuoteClient {
                     "street": "$street",
                     "apartment": "$apartment",
                     "floor": "$floor",
-                    "bbrid": "$bbrid",
+                    "bbrId": $bbrIdString,
                     "zipCode": "$zip",
                     "city": "$city",
                     "coInsured": $coInsured,

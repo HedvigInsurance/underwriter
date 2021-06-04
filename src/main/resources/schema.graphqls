@@ -523,6 +523,7 @@ union StartSignResponse =
     | NorwegianBankIdSession
     | DanishBankIdSession
     | SimpleSignSession
+    | AlreadyCompleted
     | FailedToStartSign
 
 type SwedishBankIdSession {
@@ -539,6 +540,10 @@ type DanishBankIdSession {
 
 type SimpleSignSession {
     id: ID!
+}
+
+type AlreadyCompleted {
+    ignore: Boolean
 }
 
 type FailedToStartSign {
@@ -569,6 +574,7 @@ type BundledQuote {
     email: String
     dataCollectionId: ID
     typeOfContract: TypeOfContract!
+    initiatedFrom: String!
 }
 
 enum SignMethod {
@@ -576,6 +582,7 @@ enum SignMethod {
     NORWEGIAN_BANK_ID
     DANISH_BANK_ID
     SIMPLE_SIGN
+    APPROVE_ONLY
 }
 
 scalar LocalDate

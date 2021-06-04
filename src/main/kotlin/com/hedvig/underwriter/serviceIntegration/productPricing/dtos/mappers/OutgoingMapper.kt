@@ -31,7 +31,7 @@ import com.hedvig.productPricingObjects.dtos.LineItem as DtoLineItem
 
 class OutgoingMapper {
     companion object {
-        fun toQuote(quote: Quote, fromDate: LocalDate? = null, toDate: LocalDate? = null) = when (quote.data) {
+        fun toQuote(quote: Quote, fromDate: LocalDate? = null, toDate: LocalDate? = null): AgreementQuote = when (quote.data) {
             is SwedishApartmentData -> AgreementQuote.SwedishApartmentQuote(
                 quoteId = quote.id,
                 fromDate = fromDate ?: quote.startDate,
