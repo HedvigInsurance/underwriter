@@ -28,15 +28,6 @@ class DanishHomeContentsDataStrategy(productPricingService: ProductPricingServic
         )
     }
 
-    override fun getInsuranceCost(quote: Quote): InsuranceCost {
-        return InsuranceCost(
-            MonetaryAmountV2("9999.00", "DKK"),
-            MonetaryAmountV2("0", "DKK"),
-            MonetaryAmountV2("9999.00", "DKK"),
-            null
-        )
-    }
-
     override fun getPersonalGuidelines(data: QuoteData): Set<BaseGuideline<QuoteData>> {
         return DanishPersonGuidelines.setOfRules
     }
