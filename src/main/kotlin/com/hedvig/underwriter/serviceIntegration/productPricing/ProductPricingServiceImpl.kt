@@ -83,7 +83,7 @@ class ProductPricingServiceImpl @Autowired constructor(
         productPricingClient.selfChangeContracts(
             SelfChangeRequest(
                 memberId = memberId,
-                quotes = quotes.map { OutgoingMapper.toQuote(it) }
+                quotes = quotes.map { OutgoingMapper.toAgreementQuote(it) }
             )
         )
 }
