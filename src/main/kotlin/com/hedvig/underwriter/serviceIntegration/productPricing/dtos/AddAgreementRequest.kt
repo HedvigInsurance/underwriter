@@ -17,7 +17,7 @@ data class AddAgreementRequest(
         fun from(
             quote: Quote,
             request: AddAgreementFromQuoteRequest
-        ) = AddAgreementRequest(    
+        ) = AddAgreementRequest(
             contractId = request.contractId,
             quoteFromAgreementId = quote.originatingProductId,
             previousAgreementToDate = request.previousAgreementActiveTo,

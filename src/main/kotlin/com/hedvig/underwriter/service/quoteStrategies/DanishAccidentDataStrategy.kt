@@ -1,7 +1,5 @@
 package com.hedvig.underwriter.service.quoteStrategies
 
-import com.hedvig.graphql.commons.type.MonetaryAmountV2
-import com.hedvig.underwriter.graphql.type.InsuranceCost
 import com.hedvig.underwriter.model.DanishAccidentData
 import com.hedvig.underwriter.model.Quote
 import com.hedvig.underwriter.model.QuoteData
