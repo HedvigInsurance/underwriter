@@ -381,7 +381,7 @@ internal class GraphQlMutationsIntegrationTest {
 
         every {
             productPricingService.calculateInsuranceCost(
-                Money.of(BigDecimal(9999), "DKK"), "123"
+                Money.of(BigDecimal.ONE, "DKK"), "123"
             )
         } returns
             InsuranceCost(
@@ -401,7 +401,7 @@ internal class GraphQlMutationsIntegrationTest {
 
         assert(response.isOk)
         assert(createQuote["id"].textValue() == "2b9e3b30-5c87-11ea-aa95-fbfb43d88ae5")
-        assert(createQuote["insuranceCost"]["monthlyGross"]["amount"].textValue() == "9999.00")
+        assert(createQuote["insuranceCost"]["monthlyGross"]["amount"].textValue() == "1.00")
         assert(createQuote["insuranceCost"]["monthlyGross"]["currency"].textValue() == "DKK")
         assertThat(createQuote["quoteDetails"]["street"].textValue()).isEqualTo("Kungsgatan 2")
         assertThat(createQuote["quoteDetails"]["apartment"].textValue()).isEqualTo("1")
@@ -443,7 +443,7 @@ internal class GraphQlMutationsIntegrationTest {
 
         every {
             productPricingService.calculateInsuranceCost(
-                Money.of(BigDecimal(9999), "DKK"), "123"
+                Money.of(BigDecimal.ONE, "DKK"), "123"
             )
         } returns
             InsuranceCost(
@@ -463,7 +463,7 @@ internal class GraphQlMutationsIntegrationTest {
 
         assert(response.isOk)
         assert(createQuote["id"].textValue() == "2b9e3b30-5c87-11ea-aa95-fbfb43d88ae3")
-        assert(createQuote["insuranceCost"]["monthlyGross"]["amount"].textValue() == "9999.00")
+        assert(createQuote["insuranceCost"]["monthlyGross"]["amount"].textValue() == "1.00")
         assert(createQuote["insuranceCost"]["monthlyGross"]["currency"].textValue() == "DKK")
         assertThat(createQuote["quoteDetails"]["street"].textValue()).isEqualTo("Kungsgatan 2")
         assertThat(createQuote["quoteDetails"]["apartment"].textValue()).isEqualTo("1")
@@ -503,7 +503,7 @@ internal class GraphQlMutationsIntegrationTest {
 
         every {
             productPricingService.calculateInsuranceCost(
-                Money.of(BigDecimal(9999), "DKK"), "123"
+                Money.of(BigDecimal.ONE, "DKK"), "123"
             )
         } returns
             InsuranceCost(
@@ -523,7 +523,7 @@ internal class GraphQlMutationsIntegrationTest {
 
         assert(response.isOk)
         assert(createQuote["id"].textValue() == "2b9e3b30-5c87-11ea-aa95-fbfb43d88ae1")
-        assert(createQuote["insuranceCost"]["monthlyGross"]["amount"].textValue() == "9999.00")
+        assert(createQuote["insuranceCost"]["monthlyGross"]["amount"].textValue() == "1.00")
         assert(createQuote["insuranceCost"]["monthlyGross"]["currency"].textValue() == "DKK")
         assertThat(createQuote["quoteDetails"]["street"].textValue()).isEqualTo("Kungsgatan 2")
         assertThat(createQuote["quoteDetails"]["apartment"].textValue()).isEqualTo("tv")

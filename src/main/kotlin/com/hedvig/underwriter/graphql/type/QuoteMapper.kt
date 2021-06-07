@@ -61,7 +61,8 @@ class QuoteMapper(
             startDate = quote.startDate,
             expiresAt = quote.validTo.toStockholmLocalDate(),
             email = quote.email,
-            dataCollectionId = quote.dataCollectionId
+            dataCollectionId = quote.dataCollectionId,
+            initiatedFrom = quote.initiatedFrom.name
         )
     }
 

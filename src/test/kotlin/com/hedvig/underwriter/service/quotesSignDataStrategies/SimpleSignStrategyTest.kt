@@ -5,7 +5,6 @@ import assertk.assertions.isEqualTo
 import assertk.assertions.isInstanceOf
 import com.hedvig.underwriter.model.SignSessionRepository
 import com.hedvig.underwriter.service.model.StartSignResponse
-import com.hedvig.underwriter.service.quotesSignDataStrategies.StrategyHelper.createSignData
 import com.hedvig.underwriter.serviceIntegration.memberService.MemberService
 import com.hedvig.underwriter.serviceIntegration.memberService.dtos.UnderwriterStartSignSessionResponse
 import com.hedvig.underwriter.testhelp.databuilder.quote
@@ -15,6 +14,8 @@ import org.junit.jupiter.api.Test
 import java.util.UUID
 
 class SimpleSignStrategyTest {
+
+    private val signData = SignData("mid", null, null, null)
 
     private val signSessionRepository: SignSessionRepository = mockk()
     private val memberService: MemberService = mockk()
@@ -39,7 +40,7 @@ class SimpleSignStrategyTest {
             listOf(
                 quote {
                     memberId = "1234"
-                }), createSignData()
+                }), signData
         )
 
         assertThat(result).isInstanceOf(StartSignResponse.SimpleSignSession::class)
@@ -65,7 +66,7 @@ class SimpleSignStrategyTest {
             listOf(
                 quote {
                     memberId = "1234"
-                }), createSignData()
+                }), signData
         )
 
         assertThat(result).isInstanceOf(StartSignResponse.FailedToStartSign::class)
@@ -92,7 +93,7 @@ class SimpleSignStrategyTest {
             listOf(
                 quote {
                     memberId = "1234"
-                }), createSignData()
+                }), signData
         )
 
         assertThat(result).isInstanceOf(StartSignResponse.FailedToStartSign::class)
