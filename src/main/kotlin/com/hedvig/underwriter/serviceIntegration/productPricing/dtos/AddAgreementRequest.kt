@@ -21,7 +21,7 @@ data class AddAgreementRequest(
             contractId = request.contractId,
             quoteFromAgreementId = quote.originatingProductId,
             previousAgreementToDate = request.previousAgreementActiveTo,
-            quote = OutgoingMapper.toQuote(
+            quote = OutgoingMapper.toAgreementQuote(
                 quote = quote,
                 fromDate = request.activeFrom,
                 toDate = request.activeTo

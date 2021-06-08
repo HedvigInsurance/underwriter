@@ -32,7 +32,7 @@ data class CreateContractsRequest(
                 ),
                 currentInsurer = firstQuote.currentInsurer,
                 signSource = firstQuote.initiatedFrom,
-                quotes = quotes.map { quote -> OutgoingMapper.toQuote(quote) }
+                quotes = quotes.map { quote -> OutgoingMapper.toAgreementQuote(quote) }
             )
         }
 
@@ -43,7 +43,7 @@ data class CreateContractsRequest(
                 mandate = null,
                 currentInsurer = firstQuote.currentInsurer,
                 signSource = firstQuote.initiatedFrom,
-                quotes = quotes.map { quote -> OutgoingMapper.toQuote(quote) }
+                quotes = quotes.map { quote -> OutgoingMapper.toAgreementQuote(quote) }
             )
         }
     }
