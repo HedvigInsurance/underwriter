@@ -49,6 +49,12 @@ class RequotingServiceImpl(
                 return false
             }
 
+            // Do not process certain "expensive" quotes
+            if (isTooExpensive(quote)) {
+                logger.info("Skip blocking logic, too expensive check: ${quote.id}")
+                return false
+            }
+
             return hasExistingAgreement(quote)
         } catch (e: Exception) {
             logger.warn("Failed to check if to block due to active agreement", e)
@@ -66,6 +72,12 @@ class RequotingServiceImpl(
                 QuoteInitiatedFrom.IOS,
                 QuoteInitiatedFrom.RAPIO,
                 QuoteInitiatedFrom.WEBONBOARDING)) {
+            return newPrice
+        }
+
+        // Do not process certain "expensive" quotes
+        if (isTooExpensive(quote)) {
+            logger.info("Skip if to reuse old price, too expensive check: ${quote.id}")
             return newPrice
         }
 
@@ -191,6 +203,16 @@ class RequotingServiceImpl(
         val lineItems = quote.lineItems.map { LineItem(it.type, it.subType, it.amount) }
 
         return Price(Money.of(quote.price, quote.currency), lineItems, quote.priceFrom ?: quote.id)
+    }
+
+    private fun isTooExpensive(quote: Quote): Boolean {
+
+        // We get quote request for this street every 5 min, results in 10k+ quotes to read from db
+        if (quote.data is AddressData && quote.data.street == "Leadvägen 1") {
+            return true
+        }
+
+        return false
     }
 }
 

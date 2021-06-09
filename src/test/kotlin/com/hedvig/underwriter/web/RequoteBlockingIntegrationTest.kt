@@ -60,7 +60,7 @@ class RequoteBlockingIntegrationTest : IntegrationTest() {
             assertThat(statusCode.value()).isEqualTo(200)
         }
 
-        // Create same quote agian, should be ok and then sign it
+        // Create same quote again, should be ok and then sign it
         with(createSwedishApartmentQuote<CompleteQuoteResponseDto>(
             ssn = "199110112399",
             street = "ApStreet 1234",
@@ -72,7 +72,7 @@ class RequoteBlockingIntegrationTest : IntegrationTest() {
             signQuote(body!!.id, null)
         }
 
-        // Cannot requote a signed quote withsame address and ssn
+        // Cannot requote a signed quote with same address and ssn
         with(createSwedishApartmentQuote<String>(
             ssn = "199110112399",
             street = "ApStreet 1234",
@@ -83,7 +83,7 @@ class RequoteBlockingIntegrationTest : IntegrationTest() {
             assertThat(body!!).contains("Creation of quote is blocked")
         }
 
-        // withanother ssn it should be ok
+        // with another ssn it should be ok
         with(createSwedishApartmentQuote<CompleteQuoteResponseDto>(
             ssn = "190905249801",
             street = "ApStreet 1234",
@@ -93,7 +93,7 @@ class RequoteBlockingIntegrationTest : IntegrationTest() {
             assertThat(statusCode.value()).isEqualTo(200)
         }
 
-        // withanother address it should be ok
+        // with another address it should be ok
         with(createSwedishApartmentQuote<CompleteQuoteResponseDto>(
             ssn = "199110112399",
             street = "ApStreet 1",
@@ -129,7 +129,7 @@ class RequoteBlockingIntegrationTest : IntegrationTest() {
             assertThat(statusCode.value()).isEqualTo(200)
         }
 
-        // Create same quote agian, should be ok and then sign it
+        // Create same quote again, should be ok and then sign it
         with(createSwedishHouseQuote<CompleteQuoteResponseDto>(
             ssn = "199110112399",
             street = "ApStreet 1234",
@@ -141,7 +141,7 @@ class RequoteBlockingIntegrationTest : IntegrationTest() {
             signQuote(body!!.id, null)
         }
 
-        // Cannot requote a signed quote withsame address and ssn
+        // Cannot requote a signed quote with same address and ssn
         with(createSwedishHouseQuote<String>(
             ssn = "199110112399",
             street = "ApStreet 1234",
@@ -152,7 +152,7 @@ class RequoteBlockingIntegrationTest : IntegrationTest() {
             assertThat(body!!).contains("Creation of quote is blocked")
         }
 
-        // withanother ssn it should be ok
+        // with another ssn it should be ok
         with(createSwedishHouseQuote<CompleteQuoteResponseDto>(
             ssn = "190905249801",
             street = "ApStreet 1234",
@@ -162,7 +162,7 @@ class RequoteBlockingIntegrationTest : IntegrationTest() {
             assertThat(statusCode.value()).isEqualTo(200)
         }
 
-        // withanother address it should be ok
+        // with another address it should be ok
         with(createSwedishHouseQuote<CompleteQuoteResponseDto>(
             ssn = "199110112399",
             street = "ApStreet 1",
@@ -210,7 +210,7 @@ class RequoteBlockingIntegrationTest : IntegrationTest() {
             signQuote(body!!.id, "11077941012")
         }
 
-        // Cannot re-quote a signed quote withsame address and birthdate
+        // Cannot re-quote a signed quote with same address and birthdate
         with(createNorwegianHomeContentQuote<String>(
             street = "ApStreet 1234",
             zip = "1234",
@@ -221,7 +221,7 @@ class RequoteBlockingIntegrationTest : IntegrationTest() {
             assertThat(body!!).contains("Creation of quote is blocked")
         }
 
-        // withanother birth date it should be ok
+        // with another birth date it should be ok
         with(createNorwegianHomeContentQuote<CompleteQuoteResponseDto>(
             street = "ApStreet 1234",
             zip = "1234",
@@ -231,7 +231,7 @@ class RequoteBlockingIntegrationTest : IntegrationTest() {
             assertThat(statusCode.value()).isEqualTo(200)
         }
 
-        // withanother address it should be ok
+        // with another address it should be ok
         with(createNorwegianHomeContentQuote<CompleteQuoteResponseDto>(
             street = "ApStreet 1",
             zip = "1234",
@@ -266,9 +266,34 @@ class RequoteBlockingIntegrationTest : IntegrationTest() {
             signQuote(body!!.id, "11077941012")
         }
 
-        // Can re-quote a signed quote withsame birthdate
+        // Can re-quote a signed quote with same birthdate
         with(createNorwegianTravelQuote<String>(
             birthdate = "1970-01-01"
+        )) {
+            assertThat(statusCode.value()).isEqualTo(200)
+        }
+    }
+
+    @Test
+    fun `Test re-quoting of Leadvägen 1 is not evaluated and blocked`() {
+
+        with(createSwedishApartmentQuote<CompleteQuoteResponseDto>(
+            ssn = "199110112399",
+            street = "Leadvägen 1",
+            zip = "1234",
+            city = "ApCity"
+        )) {
+            assertThat(statusCode.value()).isEqualTo(200)
+
+            signQuote(body!!.id, null)
+        }
+
+        // Cannot requote a signed quote with same address and ssn
+        with(createSwedishApartmentQuote<CompleteQuoteResponseDto>(
+            ssn = "199110112399",
+            street = "Leadvägen 1",
+            zip = "1234",
+            city = "ApCity"
         )) {
             assertThat(statusCode.value()).isEqualTo(200)
         }
