@@ -70,7 +70,7 @@ class CreateQuoteTest {
         every { strategyService.getAllGuidelines(any()) } returns setOf()
         every { priceEngineService.queryDanishHomeContentPrice(capture(danishHomeContentData)) } returns PriceQueryResponse(
             UUID.randomUUID(),
-            Money.of(1, "NOK")
+            Money.of(1, "DKK")
         )
         every { quoteRepository.insert(any(), any()) } returns Unit
 
