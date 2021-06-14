@@ -12,6 +12,7 @@ import com.hedvig.underwriter.model.QuoteRepository
 import com.hedvig.underwriter.service.guidelines.BaseGuideline
 import com.hedvig.underwriter.service.guidelines.BreachedGuidelineCode
 import com.hedvig.underwriter.service.quoteStrategies.QuoteStrategyService
+import com.hedvig.underwriter.serviceIntegration.lookupService.LookupService
 import com.hedvig.underwriter.serviceIntegration.priceEngine.PriceEngineService
 import com.hedvig.underwriter.serviceIntegration.priceEngine.dtos.PriceQueryRequest
 import com.hedvig.underwriter.serviceIntegration.priceEngine.dtos.PriceQueryResponse
@@ -30,11 +31,12 @@ class CreateQuoteTest {
     val strategyService = mockk<QuoteStrategyService>()
     val priceEngineService = mockk<PriceEngineService>()
     val quoteRepository = mockk<QuoteRepository>()
+    val lookupService = mockk<LookupService>()
     val requotingService = RequotingServiceImpl(mockk(relaxed = true), mockk())
     val metrics = mockk<UnderwriterImpl.BreachedGuidelinesCounter>(relaxed = true)
 
     val cut = QuoteServiceImpl(
-        UnderwriterImpl(priceEngineService, strategyService, requotingService, mockk(), metrics),
+        UnderwriterImpl(priceEngineService, strategyService, requotingService, mockk(), metrics, lookupService),
         mockk(),
         mockk(),
         quoteRepository,
