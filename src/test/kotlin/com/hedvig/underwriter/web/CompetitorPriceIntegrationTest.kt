@@ -201,7 +201,6 @@ class CompetitorPriceIntegrationTest {
         } returns
             ResponseEntity(HttpStatus.NOT_FOUND)
 
-
         dataCollectionId = UUID.randomUUID()
         quoteClient.createSwedishApartmentQuote(
             street = "Test Apa",
@@ -210,7 +209,6 @@ class CompetitorPriceIntegrationTest {
             dataCollectionId = dataCollectionId)
 
         assertThat(priceRequestSlot.captured.competitorPrice).isNull()
-
 
         every {
             lookupServiceClient.getMatchingCompetitorPrice(any(), any(), any())
@@ -225,7 +223,6 @@ class CompetitorPriceIntegrationTest {
             dataCollectionId = dataCollectionId)
 
         assertThat(priceRequestSlot.captured.competitorPrice).isNull()
-
 
         every {
             lookupServiceClient.getMatchingCompetitorPrice(any(), any(), any())

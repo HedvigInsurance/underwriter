@@ -222,7 +222,8 @@ class SignServiceImpl(
                     insuranceCompany = request.insuranceCompany,
                     email = request.email,
                     price = null,
-                    currency = null
+                    currency = null,
+                    memberId = request.memberId
                 )
             )
 
@@ -254,7 +255,7 @@ class SignServiceImpl(
         validateQuotesToSignFromRapio(quotes)
         validateBundlePrice(quotes, request.price, request.currency)
 
-        val memberId = getCreateMember(quotes)
+        val memberId = request.memberId ?: getCreateMember(quotes)
 
         quotes = quotes
             .map { it.copy(memberId = memberId) }

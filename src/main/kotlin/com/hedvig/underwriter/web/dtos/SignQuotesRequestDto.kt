@@ -13,17 +13,10 @@ data class SignQuotesRequestDto(
     val startDate: LocalDate?,
     val insuranceCompany: String?,
     @Masked val email: String,
-    val price: BigDecimal? = null, // Used for bundle verification
-    val currency: String? = null
-) {
-    companion object {
-        fun from(quoteId: UUID, request: SignQuoteRequestDto): SignQuotesRequestDto = SignQuotesRequestDto(
-            listOf(quoteId),
-            name = request.name,
-            ssn = request.ssn,
-            startDate = request.startDate,
-            insuranceCompany = request.insuranceCompany,
-            email = request.email
-        )
-    }
-}
+    val price: BigDecimal?, // Used for bundle verification
+    val currency: String?,
+    /**
+     * If set, Underwriter will use this member when signing a quote rather than creating a new one.
+     */
+    val memberId: String?
+)

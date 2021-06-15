@@ -36,6 +36,7 @@ import com.hedvig.underwriter.serviceIntegration.productPricing.dtos.CalculateBu
 import com.hedvig.underwriter.serviceIntegration.productPricing.dtos.contract.CreateContractsRequest
 import com.hedvig.underwriter.testhelp.IntegrationTest
 import com.hedvig.underwriter.testhelp.QuoteClient
+import io.mockk.verify
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.ResponseEntity
@@ -1598,6 +1599,58 @@ class RapioIntegrationTest : IntegrationTest() {
             assertThat(ppQuote.coInsured[0].firstName).isNull()
             assertThat(ppQuote.coInsured[0].lastName).isNull()
             assertThat(ppQuote.coInsured[0].ssn).isNull()
+        }
+    }
+
+    @Test
+    fun `When memberId is injected in signing, don't create a new member`() {
+
+        val ssn = "199110112399"
+        val agreementId = UUID.randomUUID()
+        val contractId = UUID.randomUUID()
+        val today = LocalDate.now()
+
+        // Mock clients and capture the outgoing requests for later validation
+        every {
+            memberServiceClient.signQuote(any(), any())
+        } returns ResponseEntity.status(200).body(UnderwriterQuoteSignResponse(1L, true))
+        every { memberServiceClient.checkPersonDebt(any()) } returns ResponseEntity.status(
+            200
+        ).body(null)
+        every { memberServiceClient.personStatus(any()) } returns ResponseEntity.status(200)
+            .body(PersonStatusDto(Flag.GREEN))
+        every { productPricingClient.createContract(any(), any()) } returns listOf(
+            CreateContractResponse(UUID.randomUUID(), agreementId, contractId)
+        )
+        every { priceEngineClient.queryPrice(any()) } returns PriceQueryResponse(
+            UUID.randomUUID(),
+            Money.of(12, "SEK")
+        )
+
+        // Create quote
+        val quoteResponse = quoteClient.createSwedishApartmentQuote(
+            ssn,
+            street = "ApGatan 997",
+            zip = "1234",
+            city = "ApCity",
+            livingSpace = 122,
+            householdSize = 2,
+            subType = "BRF"
+        )
+
+        // Sign quote
+        val result = quoteClient.signQuote(
+            quoteId = quoteResponse.id,
+            firstName = "Apan",
+            lastName = "Apansson",
+            ssn = ssn,
+            email = "apan@apansson.se",
+            startDate = today.toString(),
+            memberId = "123"
+        )
+        assertThat(result.memberId).isEqualTo("123")
+        verify(inverse = true) {
+            memberServiceClient.createMember()
         }
     }
 }
