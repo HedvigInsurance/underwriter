@@ -142,7 +142,7 @@ class SignServiceImplTest {
         every { memberService.signQuote(any(), any()) } returns Right(UnderwriterQuoteSignResponse(1234, true))
         every { memberService.isSsnAlreadySignedMemberEntity(any()) } returns IsSsnAlreadySignedMemberResponse(false)
 
-        cut.signQuoteFromRapio(quoteId, SignQuoteRequestDto(Name("", ""), null, LocalDate.now(), null, "null"))
+        cut.signQuoteFromRapio(quoteId, SignQuoteRequestDto(Name("", ""), null, LocalDate.now(), null, "null", null))
         verify { notificationService.postSignUpdate(ofType(Quote::class)) }
     }
 
@@ -171,7 +171,7 @@ class SignServiceImplTest {
         every { memberService.signQuote(any(), any()) } returns Right(UnderwriterQuoteSignResponse(1234, true))
         every { memberService.isSsnAlreadySignedMemberEntity(any()) } returns IsSsnAlreadySignedMemberResponse(false)
 
-        cut.signQuoteFromRapio(quoteId, SignQuoteRequestDto(Name("", ""), null, LocalDate.now(), "if", "null"))
+        cut.signQuoteFromRapio(quoteId, SignQuoteRequestDto(Name("", ""), null, LocalDate.now(), "if", "null", null))
         verify { notificationService.postSignUpdate(any()) }
     }
 
@@ -966,7 +966,8 @@ class SignServiceImplTest {
                 ssn = "191212121212",
                 startDate = null,
                 insuranceCompany = null,
-                email = "tolvan@tolvannsson.com"
+                email = "tolvan@tolvannsson.com",
+                memberId = null
             )
         )
         assertThat(result.isLeft()).isTrue()

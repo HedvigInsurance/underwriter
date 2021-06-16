@@ -77,7 +77,7 @@ class UnderwriterImplTest {
     @Test
     fun successfullyCreatesSwedishApartmentQuote() {
 
-        val cut = UnderwriterImpl(priceEngineService, QuoteStrategyService(debtChecker, mockk()), requotingService, mockk(), metrics,  mockk())
+        val cut = UnderwriterImpl(priceEngineService, QuoteStrategyService(debtChecker, mockk()), requotingService, mockk(), metrics, mockk())
         val quoteRequest = SwedishApartmentQuoteRequestBuilder().build()
 
         every { debtChecker.passesDebtCheck(any()) } returns listOf()

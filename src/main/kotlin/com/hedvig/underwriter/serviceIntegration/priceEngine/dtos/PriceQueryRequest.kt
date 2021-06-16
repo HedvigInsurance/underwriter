@@ -53,8 +53,12 @@ sealed class PriceQueryRequest {
     ) : PriceQueryRequest() {
         companion object {
             fun from(
-                quoteId: UUID, memberId: String?, partner: Partner, data: NorwegianHomeContentsData,
-                competitorPricing: CompetitorPricing?) =
+                quoteId: UUID,
+                memberId: String?,
+                partner: Partner,
+                data: NorwegianHomeContentsData,
+                competitorPricing: CompetitorPricing?
+            ) =
                 NorwegianHomeContent(
                     holderMemberId = memberId,
                     quoteId = quoteId,
@@ -80,8 +84,12 @@ sealed class PriceQueryRequest {
     ) : PriceQueryRequest() {
         companion object {
             fun from(
-                quoteId: UUID, memberId: String?, partner: Partner, data: NorwegianTravelData,
-                competitorPricing: CompetitorPricing?) = NorwegianTravel(
+                quoteId: UUID,
+                memberId: String?,
+                partner: Partner,
+                data: NorwegianTravelData,
+                competitorPricing: CompetitorPricing?
+            ) = NorwegianTravel(
                 holderMemberId = memberId,
                 quoteId = quoteId,
                 holderBirthDate = data.birthDate,
@@ -110,7 +118,8 @@ sealed class PriceQueryRequest {
                 memberId: String?,
                 data: SwedishApartmentData,
                 partner: Partner,
-                competitorPricing: CompetitorPricing?) = SwedishApartment(
+                competitorPricing: CompetitorPricing?
+            ) = SwedishApartment(
                 holderMemberId = memberId,
                 quoteId = quoteId,
                 holderBirthDate = data.birthDate ?: data.ssn!!.birthDateFromSwedishSsn(),
@@ -190,8 +199,12 @@ sealed class PriceQueryRequest {
     ) : PriceQueryRequest() {
         companion object {
             fun from(
-                quoteId: UUID, memberId: String?, partner: Partner, data: DanishHomeContentsData,
-                competitorPricing: CompetitorPricing?) =
+                quoteId: UUID,
+                memberId: String?,
+                partner: Partner,
+                data: DanishHomeContentsData,
+                competitorPricing: CompetitorPricing?
+            ) =
                 DanishHomeContent(
                     holderMemberId = memberId,
                     quoteId = quoteId,
@@ -229,8 +242,12 @@ sealed class PriceQueryRequest {
     ) : PriceQueryRequest() {
         companion object {
             fun from(
-                quoteId: UUID, memberId: String?, partner: Partner, data: DanishAccidentData,
-                competitorPricing: CompetitorPricing?) = DanishAccident(
+                quoteId: UUID,
+                memberId: String?,
+                partner: Partner,
+                data: DanishAccidentData,
+                competitorPricing: CompetitorPricing?
+            ) = DanishAccident(
                 holderMemberId = memberId,
                 quoteId = quoteId,
                 holderBirthDate = data.birthDate,
@@ -265,8 +282,12 @@ sealed class PriceQueryRequest {
     ) : PriceQueryRequest() {
         companion object {
             fun from(
-                quoteId: UUID, memberId: String?, partner: Partner, data: DanishTravelData,
-                competitorPricing: CompetitorPricing?) = DanishTravel(
+                quoteId: UUID,
+                memberId: String?,
+                partner: Partner,
+                data: DanishTravelData,
+                competitorPricing: CompetitorPricing?
+            ) = DanishTravel(
                 holderMemberId = memberId,
                 quoteId = quoteId,
                 holderBirthDate = data.birthDate,

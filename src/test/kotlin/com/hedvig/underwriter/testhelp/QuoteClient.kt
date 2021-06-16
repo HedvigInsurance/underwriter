@@ -361,10 +361,10 @@ class QuoteClient {
         lastName: String = "Apansson",
         email: String = "apan@apansson.se",
         ssn: String? = null,
-        startDate: String? = null
+        startDate: String? = null,
+        memberId: String? = null
     ): SignedQuoteResponseDto {
-
-        return signQuote<SignedQuoteResponseDto>(quoteId, firstName, lastName, email, ssn, startDate).body!!
+        return signQuote<SignedQuoteResponseDto>(quoteId, firstName, lastName, email, ssn, startDate, memberId).body!!
     }
 
     fun signQuoteRaw(
@@ -708,7 +708,8 @@ class QuoteClient {
         lastName: String,
         email: String,
         ssn: String? = null,
-        startDate: String? = null
+        startDate: String? = null,
+        memberId: String? = null
     ): ResponseEntity<T> {
 
         val ssnString = if (ssn != null) "\"$ssn\"" else "null"
@@ -721,7 +722,8 @@ class QuoteClient {
                 },
                 "ssn": $ssnString,
                 "startDate": "${startDate ?: LocalDate.now()}",
-                "email": "$email"
+                "email": "$email",
+                "memberId": ${memberId?.let { "\"$it\"" }}
             }
         """.trimIndent()
 
