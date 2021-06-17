@@ -1622,6 +1622,9 @@ class RapioIntegrationTest : IntegrationTest() {
         every { productPricingClient.createContract(any(), any()) } returns listOf(
             CreateContractResponse(UUID.randomUUID(), agreementId, contractId)
         )
+        every {
+            productPricingClient.hasContract(any(), null).body
+        } returns false
         every { priceEngineClient.queryPrice(any()) } returns PriceQueryResponse(
             UUID.randomUUID(),
             Money.of(12, "SEK")

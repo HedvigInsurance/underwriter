@@ -255,7 +255,7 @@ class SignServiceImpl(
         validateQuotesToSignFromRapio(quotes)
         validateBundlePrice(quotes, request.price, request.currency)
 
-        val memberId = request.memberId ?: getCreateMember(quotes)
+        val memberId = validateOrCreateMember(request.memberId, quotes)
 
         quotes = quotes
             .map { it.copy(memberId = memberId) }
@@ -341,18 +341,17 @@ class SignServiceImpl(
         }
     }
 
-    private fun getCreateMember(quotes: List<Quote>): String {
+    private fun validateOrCreateMember(explicitMemberId: String?, quotes: List<Quote>): String {
+        val existing = explicitMemberId ?: quotes.mapNotNull { it.memberId }.firstOrNull()
+        if (existing != null) {
+            if (productPricingService.hasContract(existing)) {
+                throw ErrorException(ErrorCodes.MEMBER_HAS_EXISTING_INSURANCE, "Member already has a contract: $existing")
+            }
+            return existing
+        }
 
         val ssn = quotes.first().ssn
         val email = quotes.first().email
-
-        // Get existing memberId if any from quotes
-        var memberId = quotes.mapNotNull { it.memberId }.firstOrNull()
-
-        if (memberId != null) {
-            logger.info("Existing member $memberId")
-            return memberId
-        }
 
         // Does this member already exist?
         val memberAlreadySigned = memberService.isSsnAlreadySignedMemberEntity(ssn).ssnAlreadySignedMember
@@ -361,21 +360,21 @@ class SignServiceImpl(
             throw ErrorException(ErrorCodes.MEMBER_HAS_EXISTING_INSURANCE, "Member already have signed quote(s)")
         }
 
-        memberId = memberService.createMember()
-        logger.info("New member created: $memberId")
+        val created = memberService.createMember()
+        logger.info("New member created: $created")
 
         memberService.updateMemberSsn(
-            memberId.toLong(),
+            created.toLong(),
             UpdateSsnRequest(
                 ssn = ssn,
                 nationality = Nationality.fromQuote(quotes.first())
             )
         )
 
-        val quoteWithAddress = quotes.filter { it.data is AddressData }.firstOrNull() ?: quotes.first()
-        memberService.finalizeOnboarding(quoteWithAddress.copy(memberId = memberId), email!!)
+        val quoteWithAddress = quotes.firstOrNull { it.data is AddressData } ?: quotes.first()
+        memberService.finalizeOnboarding(quoteWithAddress.copy(memberId = created), email!!)
 
-        return memberId
+        return created
     }
 
     override fun signQuoteFromHope(

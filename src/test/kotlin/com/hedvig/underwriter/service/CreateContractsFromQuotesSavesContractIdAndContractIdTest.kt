@@ -110,6 +110,7 @@ class CreateContractsFromQuotesSavesContractIdAndContractIdTest {
         every { productPricingService.createContractsFromQuotes(any(), any(), any()) } returns listOf(
             CreateContractResponse(quoteId, agreementId, contractId)
         )
+        every { productPricingService.hasContract(any()) } returns false
         every { memberService.signQuote(any(), any()) } returns Right(UnderwriterQuoteSignResponse(1L, true))
 
         signServiceImpl.signQuoteFromRapio(
