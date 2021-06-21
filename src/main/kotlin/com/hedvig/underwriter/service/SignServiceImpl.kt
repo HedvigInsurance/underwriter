@@ -402,9 +402,9 @@ class SignServiceImpl(
             return Either.left(quoteNotSignableErrorDto)
         }
 
-        val memberAlreadySigned = checkIfMemberHasSignedInsurance(quote)
+        val memberHasContract = productPricingService.hasContract(quote.memberId!!)
 
-        if (!memberAlreadySigned) {
+        if (!memberHasContract) {
             return Either.Left(
                 ErrorResponseDto(
                     ErrorCodes.MEMBER_DOES_NOT_HAVE_EXISTING_SIGNED_INSURANCE,
