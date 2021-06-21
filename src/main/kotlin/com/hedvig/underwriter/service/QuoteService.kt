@@ -10,6 +10,7 @@ import com.hedvig.underwriter.serviceIntegration.productPricing.dtos.QuoteDto
 import com.hedvig.underwriter.web.dtos.AddAgreementFromQuoteRequest
 import com.hedvig.underwriter.web.dtos.CompleteQuoteResponseDto
 import com.hedvig.underwriter.web.dtos.ErrorResponseDto
+import java.math.BigDecimal
 import java.util.UUID
 
 interface QuoteService {
@@ -37,6 +38,8 @@ interface QuoteService {
         id: UUID,
         underwritingGuidelinesBypassedBy: String? = null
     ): Either<ErrorResponseDto, Quote>
+
+    fun overrideQuotePrice(quoteId: UUID, price: BigDecimal, overriddenBy: String): Either<ErrorResponseDto, Quote>
 
     fun removeCurrentInsurerFromQuote(
         id: UUID

@@ -4,23 +4,24 @@ import arrow.core.Either
 import arrow.core.getOrHandle
 import com.hedvig.graphql.commons.extensions.isAndroid
 import com.hedvig.graphql.commons.extensions.isIOS
+import com.hedvig.libs.logging.calls.LogCall
 import com.hedvig.underwriter.model.Quote
 import com.hedvig.underwriter.model.QuoteInitiatedFrom
 import com.hedvig.underwriter.service.BundleQuotesService
 import com.hedvig.underwriter.service.QuoteService
 import com.hedvig.underwriter.service.SignService
 import com.hedvig.underwriter.service.exceptions.ErrorException
+import com.hedvig.underwriter.service.exceptions.NotFoundException
 import com.hedvig.underwriter.service.model.QuoteRequest
 import com.hedvig.underwriter.serviceIntegration.memberService.MemberService
 import com.hedvig.underwriter.serviceIntegration.productPricing.dtos.QuoteDto
 import com.hedvig.underwriter.util.logger
-import com.hedvig.libs.logging.calls.LogCall
-import com.hedvig.underwriter.service.exceptions.NotFoundException
 import com.hedvig.underwriter.web.dtos.AddAgreementFromQuoteRequest
 import com.hedvig.underwriter.web.dtos.ErrorCodes
 import com.hedvig.underwriter.web.dtos.ErrorQuoteResponseDto
 import com.hedvig.underwriter.web.dtos.ErrorResponseDto
 import com.hedvig.underwriter.web.dtos.MarketInfo
+import com.hedvig.underwriter.web.dtos.OverridePriceRequestDto
 import com.hedvig.underwriter.web.dtos.QuoteBundleRequestDto
 import com.hedvig.underwriter.web.dtos.QuoteBundleResponseDto
 import com.hedvig.underwriter.web.dtos.QuoteForNewContractRequestDto
@@ -158,6 +159,20 @@ class QuoteController @Autowired constructor(
 
         return when (val quoteOrError =
             quoteService.updateQuote(houseOrApartmentIncompleteQuoteDto, id, underwritingGuidelinesBypassedBy)) {
+            is Either.Left -> ResponseEntity.status(422).body(quoteOrError.a)
+            is Either.Right -> ResponseEntity.status(200).body(QuoteDto.fromQuote(quoteOrError.b))
+        }
+    }
+
+    @PostMapping("/{id}/overridePrice")
+    @LogCall
+    fun overrideQuotePrice(
+        @PathVariable id: UUID,
+        @RequestBody request: OverridePriceRequestDto
+    ): ResponseEntity<Any> {
+
+        return when (val quoteOrError =
+            quoteService.overrideQuotePrice(id, request.price, request.overriddenBy)) {
             is Either.Left -> ResponseEntity.status(422).body(quoteOrError.a)
             is Either.Right -> ResponseEntity.status(200).body(QuoteDto.fromQuote(quoteOrError.b))
         }
