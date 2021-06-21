@@ -870,9 +870,7 @@ class SignServiceImplTest {
                 initiatedFrom = QuoteInitiatedFrom.HOPE
             }
 
-        every { memberService.isSsnAlreadySignedMemberEntity(any()) } returns IsSsnAlreadySignedMemberResponse(
-            ssnAlreadySignedMember = true
-        )
+        every { productPricingService.hasContract(memberId) } returns true
         every { quoteService.getQuotes(listOf(quoteId)) } returns listOf(quote)
         every { quoteRepository.find(any()) } returns quote
         every { quoteRepository.update(any(), any()) } returnsArgument 0
