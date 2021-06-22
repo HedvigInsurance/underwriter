@@ -27,6 +27,7 @@ import java.math.BigDecimal
 import java.time.Instant
 import java.time.temporal.ChronoUnit
 import javax.money.Monetary
+import kotlin.reflect.KFunction2
 import kotlin.reflect.full.memberProperties
 
 @Service
@@ -240,7 +241,12 @@ object QuoteComparator {
             is DanishTravelData -> "Done"
         }
 
-    private val comparators = mapOf(
+    private val quoteComparators = mapOf(
+        // NOTE. This field is not persisted, so it will always be seen as different when the new quote has it set
+        "competitorPricing" to ::isSame
+    )
+
+    private val quoteDataComparators = mapOf(
         "ssn" to ::isSameAllowNull,
         "birthDate" to ::isSameAllowNull,
         "street" to ::isSame,
@@ -262,7 +268,11 @@ object QuoteComparator {
         "extraBuildings" to ::isSameExtraBuildings
     )
 
-    private fun hasSameProps(obj1: Any?, obj2: Any?): Boolean {
+    private fun hasSameProps(
+        obj1: Any?,
+        obj2: Any?,
+        comparators: Map<String, KFunction2<Any?, Any?, Boolean>>
+    ): Boolean {
         if (obj1 == null && obj2 == null) {
             return true
         }
@@ -322,10 +332,20 @@ object QuoteComparator {
     }
 
     fun isSameQuotes(quote1: Quote, quote2: Quote): Boolean {
-        if (quote1.data::class != quote2.data::class) {
+        if (quote1::class != quote2::class) {
             return false
         }
 
-        return hasSameProps(quote1.data, quote2.data)
+        // Check that both the quote and the contained quoteData is same
+        return hasSameProps(quote1, quote2, quoteComparators) &&
+            isSameQuoteData(quote1.data, quote2.data)
+    }
+
+    fun isSameQuoteData(quoteData1: QuoteData, quoteData2: QuoteData): Boolean {
+        if (quoteData1::class != quoteData2::class) {
+            return false
+        }
+
+        return hasSameProps(quoteData1, quoteData2, quoteDataComparators)
     }
 }

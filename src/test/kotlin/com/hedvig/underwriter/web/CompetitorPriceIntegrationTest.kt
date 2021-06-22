@@ -66,7 +66,8 @@ class CompetitorPriceIntegrationTest {
     @MockkBean
     lateinit var lookupServiceClient: LookupServiceClient
 
-    val activeAgreement = Agreement.SwedishApartment(UUID.randomUUID(),
+    val activeAgreement = Agreement.SwedishApartment(
+        UUID.randomUUID(),
         mockk(),
         mockk(),
         mockk(),
@@ -75,7 +76,8 @@ class CompetitorPriceIntegrationTest {
         mockk(),
         mockk(),
         0,
-        100)
+        100
+    )
 
     @Before
     fun setup() {
@@ -83,7 +85,8 @@ class CompetitorPriceIntegrationTest {
             .body(PersonStatusDto(Flag.GREEN))
         every { memberServiceClient.checkPersonDebt(any()) } returns ResponseEntity.status(200).body(null)
         every { memberServiceClient.checkIsSsnAlreadySignedMemberEntity(any()) } returns IsSsnAlreadySignedMemberResponse(
-            false)
+            false
+        )
         every { memberServiceClient.createMember() } returns ResponseEntity.status(200)
             .body(HelloHedvigResponseDto("12345"))
         every { memberServiceClient.updateMemberSsn(any(), any()) } returns Unit
@@ -91,8 +94,10 @@ class CompetitorPriceIntegrationTest {
             .body(UnderwriterQuoteSignResponse(1L, true))
         every { memberServiceClient.finalizeOnBoarding(any(), any()) } returns ResponseEntity.status(200).body("")
         every {
-            productPricingClient.createContract(any(),
-                any())
+            productPricingClient.createContract(
+                any(),
+                any()
+            )
         } returns listOf(CreateContractResponse(UUID.randomUUID(), UUID.randomUUID(), UUID.randomUUID()))
         every { productPricingClient.getAgreement(any()) } returns ResponseEntity.status(200).body(activeAgreement)
         every { priceEngineClient.queryPrice(any()) } returns PriceQueryResponse(UUID.randomUUID(), Money.of(12, "NOK"))
@@ -101,98 +106,123 @@ class CompetitorPriceIntegrationTest {
     @Test
     fun `Test quoting with competitor price`() {
 
-        val priceRequestSlot = slot<PriceQueryRequest>()
-        every { priceEngineClient.queryPrice(capture(priceRequestSlot)) } returns PriceQueryResponse(UUID.randomUUID(),
-            Money.of(99, "SEK"))
-
-        val competitorPrice = 89
+        val hedvigPrice = 99
+        var competitorPrice = 89
         val competitorLivingArea = 55
         val competitorNrInsured = 2
 
+        val priceRequestSlot = slot<PriceQueryRequest>()
+        every { priceEngineClient.queryPrice(capture(priceRequestSlot)) } answers {
+
+            //Return the competitorPrice if present - otherwise the hedvig price
+            val priceToReturn = firstArg<PriceQueryRequest>().competitorPrice?.price ?: hedvigPrice.toBigDecimal()
+            PriceQueryResponse(
+                UUID.randomUUID(),
+                Money.of(priceToReturn, "SEK")
+            )
+        }
+
         val dataCollectionSlot = slot<UUID>()
         every {
-            lookupServiceClient.getMatchingCompetitorPrice(capture(dataCollectionSlot),
+            lookupServiceClient.getMatchingCompetitorPrice(
+                capture(dataCollectionSlot),
                 "SEK",
-                "houseContentInsurance")
+                "houseContentInsurance"
+            )
         } returns
-            ResponseEntity(CompetitorPricing(
-                Money.of(81, "SEK"),
-                Money.of(competitorPrice, "SEK"),
-                Money.of(0, "SEK"),
-                "H Street 14",
-                "12345",
-                competitorLivingArea,
-                competitorNrInsured),
-                HttpStatus.OK)
+            ResponseEntity(
+                CompetitorPricing(
+                    Money.of(81, "SEK"),
+                    Money.of(competitorPrice, "SEK"),
+                    Money.of(0, "SEK"),
+                    "H Street 14",
+                    "12345",
+                    competitorLivingArea,
+                    competitorNrInsured
+                ),
+                HttpStatus.OK
+            )
 
         // Create a quote WITHOUT data collectionId, should not call lookupService and not forward any competitor price to PE
 
-        quoteClient.createSwedishApartmentQuote(
+        var quote = quoteClient.createSwedishApartmentQuote(
             street = "Test Apa",
             zip = "12345",
             livingSpace = 55,
-            householdSize = 3,
-            dataCollectionId = null)
+            dataCollectionId = null
+        )
 
         assertThat(dataCollectionSlot.isCaptured).isFalse()
         assertThat(priceRequestSlot.captured.competitorPrice).isNull()
+        assertThat(quote.price.toInt()).isEqualTo(hedvigPrice)
 
         // Create a quote with data collectionId, and matching zipcode/livingSpace
         dataCollectionSlot.clear()
         var dataCollectionId = UUID.randomUUID()
-        quoteClient.createSwedishApartmentQuote(
+        quote = quoteClient.createSwedishApartmentQuote(
             street = "Test Apa",
             zip = "12345",
             livingSpace = 55,
-            dataCollectionId = dataCollectionId)
+            dataCollectionId = dataCollectionId
+        )
 
         assertThat(dataCollectionSlot.captured).isEqualTo(dataCollectionId)
         assertThat(priceRequestSlot.captured.competitorPrice!!.price.compareTo(competitorPrice.toBigDecimal())).isEqualTo(
-            0)
+            0
+        )
         assertThat(priceRequestSlot.captured.competitorPrice!!.numberInsured).isEqualTo(competitorNrInsured)
+        assertThat(quote.price.toInt()).isEqualTo(competitorPrice)
 
         // Create a quote with data collectionId, and matching livingSpace but NOT zipcode
         // Should call the lookupService, AND should forward the competitor price
         dataCollectionSlot.clear()
         dataCollectionId = UUID.randomUUID()
-        quoteClient.createSwedishApartmentQuote(
+        quote = quoteClient.createSwedishApartmentQuote(
             street = "Test Apa",
             zip = "54321",
             livingSpace = 55,
-            dataCollectionId = dataCollectionId)
+            dataCollectionId = dataCollectionId
+        )
 
         assertThat(dataCollectionSlot.captured).isEqualTo(dataCollectionId)
         assertThat(priceRequestSlot.captured.competitorPrice!!.price.compareTo(competitorPrice.toBigDecimal())).isEqualTo(
-            0)
+            0
+        )
         assertThat(priceRequestSlot.captured.competitorPrice!!.numberInsured).isEqualTo(competitorNrInsured)
+        assertThat(quote.price.toInt()).isEqualTo(competitorPrice)
 
         // Create a quote with data collectionId, and matching zipCode but NOT livingSpace
         // Should call the lookupService, and should forward the competitor price
         dataCollectionSlot.clear()
         dataCollectionId = UUID.randomUUID()
-        quoteClient.createSwedishApartmentQuote(
+        quote = quoteClient.createSwedishApartmentQuote(
             street = "Test Apa",
             zip = "12345",
             livingSpace = 56,
-            dataCollectionId = dataCollectionId)
+            dataCollectionId = dataCollectionId
+        )
 
         assertThat(dataCollectionSlot.captured).isEqualTo(dataCollectionId)
         assertThat(priceRequestSlot.captured.competitorPrice!!.price.compareTo(competitorPrice.toBigDecimal())).isEqualTo(
-            0)
+            0
+        )
         assertThat(priceRequestSlot.captured.competitorPrice!!.numberInsured).isEqualTo(competitorNrInsured)
+        assertThat(quote.price.toInt()).isEqualTo(competitorPrice)
 
         // Create a quote with data collectionId, and NOT matching zipCode or livingSpace
         // Should call the lookupService, and NOT forward the competitor price
         dataCollectionSlot.clear()
         dataCollectionId = UUID.randomUUID()
-        quoteClient.createSwedishApartmentQuote(
+        quote = quoteClient.createSwedishApartmentQuote(
             street = "H Street 14, th. 1111 Wherever",
             zip = "11111",
             livingSpace = 99,
-            dataCollectionId = dataCollectionId)
+            dataCollectionId = dataCollectionId
+        )
 
         assertThat(dataCollectionSlot.captured).isEqualTo(dataCollectionId)
         assertThat(priceRequestSlot.captured.competitorPrice).isNull()
+        assertThat(quote.price.toInt()).isEqualTo(hedvigPrice)
 
         // When the lookupService call fails, due to 404, 500 or error returned, the flow
         // should not break and no competitor price will be forwarded
@@ -202,13 +232,15 @@ class CompetitorPriceIntegrationTest {
             ResponseEntity(HttpStatus.NOT_FOUND)
 
         dataCollectionId = UUID.randomUUID()
-        quoteClient.createSwedishApartmentQuote(
+        quote = quoteClient.createSwedishApartmentQuote(
             street = "Test Apa",
             zip = "12345",
-            livingSpace = 56,
-            dataCollectionId = dataCollectionId)
+            livingSpace = 57, // New size, to not get old quote
+            dataCollectionId = dataCollectionId
+        )
 
         assertThat(priceRequestSlot.captured.competitorPrice).isNull()
+        assertThat(quote.price.toInt()).isEqualTo(hedvigPrice)
 
         every {
             lookupServiceClient.getMatchingCompetitorPrice(any(), any(), any())
@@ -216,25 +248,29 @@ class CompetitorPriceIntegrationTest {
             ResponseEntity(HttpStatus.INTERNAL_SERVER_ERROR)
 
         dataCollectionId = UUID.randomUUID()
-        quoteClient.createSwedishApartmentQuote(
+        quote = quoteClient.createSwedishApartmentQuote(
             street = "Test Apa",
             zip = "12345",
-            livingSpace = 56,
-            dataCollectionId = dataCollectionId)
+            livingSpace = 58, // New size, to not get old quote
+            dataCollectionId = dataCollectionId
+        )
 
         assertThat(priceRequestSlot.captured.competitorPrice).isNull()
+        assertThat(quote.price.toInt()).isEqualTo(hedvigPrice)
 
         every {
             lookupServiceClient.getMatchingCompetitorPrice(any(), any(), any())
         } throws Exception("LookupServive error")
 
         dataCollectionId = UUID.randomUUID()
-        quoteClient.createSwedishApartmentQuote(
+        quote = quoteClient.createSwedishApartmentQuote(
             street = "Test Apa",
             zip = "12345",
-            livingSpace = 56,
-            dataCollectionId = dataCollectionId)
+            livingSpace = 59, // New size, to not get old quote
+            dataCollectionId = dataCollectionId
+        )
 
         assertThat(priceRequestSlot.captured.competitorPrice).isNull()
+        assertThat(quote.price.toInt()).isEqualTo(hedvigPrice)
     }
 }

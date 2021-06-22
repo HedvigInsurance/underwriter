@@ -21,7 +21,6 @@ import com.hedvig.underwriter.service.guidelines.BreachedGuidelinesCodes.OK
 import com.hedvig.underwriter.service.model.QuoteRequest
 import com.hedvig.underwriter.service.quoteStrategies.QuoteStrategyService
 import com.hedvig.underwriter.serviceIntegration.lookupService.LookupService
-import com.hedvig.underwriter.serviceIntegration.lookupService.dtos.CompetitorPricing
 import com.hedvig.underwriter.serviceIntegration.priceEngine.PriceEngineService
 import com.hedvig.underwriter.serviceIntegration.priceEngine.dtos.PriceQueryRequest
 import com.hedvig.underwriter.serviceIntegration.priceEngine.dtos.PriceQueryResponse
@@ -114,14 +113,14 @@ class UnderwriterImpl(
     private fun complete(quote: Quote): Quote {
 
         // Collect competitor data, if available and matches this request
-        val competitorPricing = getCompetitorPricing(quote)
+        val quoteWithCompetitorPricing = populateWithCompetitorPricing(quote)
 
-        val priceResponse = getPriceFromPriceEngine(quote, competitorPricing)
+        val priceResponse = getPriceFromPriceEngine(quoteWithCompetitorPricing)
 
         // Check if we should reuse old price if customer have done this query before
-        val price = requotingService.useOldOrNewPrice(quote, Price.from(priceResponse))
+        val price = requotingService.useOldOrNewPrice(quoteWithCompetitorPricing, Price.from(priceResponse))
 
-        return quote.copy(
+        return quoteWithCompetitorPricing.copy(
             price = price.amount,
             currency = price.currency,
             priceFrom = price.priceFromId,
@@ -136,22 +135,22 @@ class UnderwriterImpl(
         )
     }
 
-    private fun getCompetitorPricing(quote: Quote): CompetitorPricing? {
+    private fun populateWithCompetitorPricing(quote: Quote): Quote {
 
         if (quote.dataCollectionId == null) {
-            return null
+            return quote
         }
 
-        val monthlyPremiumData = lookupService.getMatchingCompetitorPrice(quote)
-        if (monthlyPremiumData == null) {
+        val competitorPricing = lookupService.getMatchingCompetitorPrice(quote)
+        if (competitorPricing == null) {
             logger.warn("Did not find any competitor price for dataCollectionId: ${quote.dataCollectionId}]")
-            return null
+            return quote
         }
 
-        return monthlyPremiumData
+        return quote.copy(competitorPricing = competitorPricing)
     }
 
-    private fun getPriceFromPriceEngine(quote: Quote, competitorPricing: CompetitorPricing?): PriceQueryResponse {
+    private fun getPriceFromPriceEngine(quote: Quote): PriceQueryResponse {
 
         return when (quote.data) {
             is SwedishApartmentData -> priceEngineService.querySwedishApartmentPrice(
@@ -160,7 +159,7 @@ class UnderwriterImpl(
                     memberId = quote.memberId,
                     data = quote.data,
                     partner = quote.attributedTo,
-                    competitorPricing = competitorPricing
+                    competitorPricing = quote.competitorPricing
                 )
             )
             is SwedishHouseData -> priceEngineService.querySwedishHousePrice(
@@ -169,48 +168,58 @@ class UnderwriterImpl(
                     quote.memberId,
                     quote.attributedTo,
                     quote.data,
-                    competitorPricing
+                    quote.competitorPricing
                 )
             )
             is NorwegianHomeContentsData -> priceEngineService.queryNorwegianHomeContentPrice(
-                PriceQueryRequest.NorwegianHomeContent.from(quote.id,
+                PriceQueryRequest.NorwegianHomeContent.from(
+                    quote.id,
                     quote.memberId,
                     quote.attributedTo,
                     quote.data,
-                    competitorPricing)
+                    quote.competitorPricing
+                )
             )
             is NorwegianTravelData -> priceEngineService.queryNorwegianTravelPrice(
-                PriceQueryRequest.NorwegianTravel.from(quote.id,
+                PriceQueryRequest.NorwegianTravel.from(
+                    quote.id,
                     quote.memberId,
                     quote.attributedTo,
                     quote.data,
-                    competitorPricing)
+                    quote.competitorPricing
+                )
             )
             is DanishHomeContentsData -> {
                 priceEngineService.queryDanishHomeContentPrice(
-                    PriceQueryRequest.DanishHomeContent.from(quote.id,
+                    PriceQueryRequest.DanishHomeContent.from(
+                        quote.id,
                         quote.memberId,
                         quote.attributedTo,
                         quote.data,
-                        competitorPricing)
+                        quote.competitorPricing
+                    )
                 )
             }
             is DanishAccidentData -> {
                 priceEngineService.queryDanishAccidentPrice(
-                    PriceQueryRequest.DanishAccident.from(quote.id,
+                    PriceQueryRequest.DanishAccident.from(
+                        quote.id,
                         quote.memberId,
                         quote.attributedTo,
                         quote.data,
-                        competitorPricing)
+                        quote.competitorPricing
+                    )
                 )
             }
             is DanishTravelData -> {
                 priceEngineService.queryDanishTravelPrice(
-                    PriceQueryRequest.DanishTravel.from(quote.id,
+                    PriceQueryRequest.DanishTravel.from(
+                        quote.id,
                         quote.memberId,
                         quote.attributedTo,
                         quote.data,
-                        competitorPricing)
+                        quote.competitorPricing
+                    )
                 )
             }
         }
