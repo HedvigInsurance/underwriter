@@ -242,8 +242,7 @@ object QuoteComparator {
         }
 
     private val quoteComparators = mapOf(
-        // NOTE. This field is not persisted, so it will always be seen as different when the new quote has it set
-        "competitorPricing" to ::isSame
+        "dataCollectionId" to ::isSame
     )
 
     private val quoteDataComparators = mapOf(
