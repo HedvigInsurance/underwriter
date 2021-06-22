@@ -1,5 +1,6 @@
 package com.hedvig.underwriter.model
 
+import com.fasterxml.jackson.annotation.JsonIgnore
 import com.hedvig.underwriter.service.model.PersonPolicyHolder
 import com.hedvig.underwriter.service.model.QuoteRequest
 import com.hedvig.underwriter.service.model.QuoteRequestData
@@ -10,6 +11,7 @@ import com.hedvig.underwriter.service.model.QuoteRequestData.NorwegianHomeConten
 import com.hedvig.underwriter.service.model.QuoteRequestData.NorwegianTravel
 import com.hedvig.underwriter.service.model.QuoteRequestData.SwedishApartment
 import com.hedvig.underwriter.service.model.QuoteRequestData.SwedishHouse
+import com.hedvig.underwriter.serviceIntegration.lookupService.dtos.CompetitorPricing
 import com.hedvig.underwriter.util.toStockholmLocalDate
 import java.math.BigDecimal
 import java.time.Instant
@@ -261,7 +263,9 @@ data class Quote(
     val dataCollectionId: UUID? = null,
     val signFromHopeTriggeredBy: String? = null,
     val contractId: UUID? = null,
-    val lineItems: List<LineItem> = emptyList()
+    val lineItems: List<LineItem> = emptyList(),
+    @JsonIgnore
+    val competitorPricing: CompetitorPricing? = null // This field is not persisted
 ) {
     val isComplete: Boolean
         get() = when {
