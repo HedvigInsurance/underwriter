@@ -12,8 +12,7 @@ import java.util.Locale
 class LocalizationConfiguration {
 
     @Bean
-    fun realService(
-    ): TranslationsClient {
+    fun realService(): TranslationsClient {
         return RemoteJsonFileTranslationsClient()
     }
 

@@ -114,7 +114,7 @@ class CompetitorPriceIntegrationTest {
         val priceRequestSlot = slot<PriceQueryRequest>()
         every { priceEngineClient.queryPrice(capture(priceRequestSlot)) } answers {
 
-            //Return the competitorPrice if present - otherwise the hedvig price
+            // Return the competitorPrice if present - otherwise the hedvig price
             val priceToReturn = firstArg<PriceQueryRequest>().competitorPrice?.price ?: hedvigPrice.toBigDecimal()
             PriceQueryResponse(
                 UUID.randomUUID(),

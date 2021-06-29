@@ -3,7 +3,6 @@ package com.hedvig.underwriter.graphql
 import com.hedvig.graphql.commons.extensions.getTokenOrNull
 import com.hedvig.libs.translations.TranslationsClient
 import com.hedvig.underwriter.graphql.type.QuoteMapper
-import com.hedvig.underwriter.localization.LocalizationService
 import com.hedvig.underwriter.service.BundleQuotesService
 import com.hedvig.underwriter.service.QuoteService
 import com.hedvig.underwriter.service.SignService

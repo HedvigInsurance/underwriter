@@ -3,7 +3,7 @@ package com.hedvig.underwriter.graphql
 import com.coxautodev.graphql.tools.GraphQLQueryResolver
 import com.hedvig.graphql.commons.extensions.getAcceptLanguage
 import com.hedvig.graphql.commons.extensions.getToken
-import com.hedvig.resolver.LocaleResolver
+import com.hedvig.libs.translations.LocaleResolver
 import com.hedvig.underwriter.graphql.type.QuoteBundle
 import com.hedvig.underwriter.graphql.type.QuoteBundleInputInput
 import com.hedvig.underwriter.graphql.type.QuoteMapper
@@ -58,7 +58,7 @@ class Query @Autowired constructor(
             quotes = bundle.quotes.map {
                 quoteMapper.mapToBundleQuote(
                     it,
-                    LocaleResolver.resolveLocale(env.getAcceptLanguage())
+                    LocaleResolver.resolve(env.getAcceptLanguage())
                 )
             },
             bundleCost = bundle.cost
@@ -73,6 +73,6 @@ class Query @Autowired constructor(
     private fun Quote.toResult(env: DataFetchingEnvironment) = quoteMapper.mapToQuoteResult(
         this,
         quoteService.calculateInsuranceCost(this),
-        LocaleResolver.resolveLocale(env.getAcceptLanguage())
+        LocaleResolver.resolve(env.getAcceptLanguage())
     )
 }

@@ -11,7 +11,6 @@ import com.hedvig.productPricingObjects.enums.NorwegianTravelLineOfBusiness
 import com.hedvig.underwriter.graphql.type.CreateNorwegianTravelInput
 import com.hedvig.underwriter.graphql.type.CreateQuoteInput
 import com.hedvig.underwriter.graphql.type.InsuranceCost
-import com.hedvig.underwriter.localization.LocalizationService
 import com.hedvig.underwriter.model.DanishHomeContentsType
 import com.hedvig.underwriter.model.Partner
 import com.hedvig.underwriter.model.QuoteInitiatedFrom
