@@ -1,6 +1,7 @@
 package com.hedvig.underwriter.graphql
 
 import com.hedvig.graphql.commons.extensions.getTokenOrNull
+import com.hedvig.libs.translations.TranslationsClient
 import com.hedvig.underwriter.graphql.type.QuoteMapper
 import com.hedvig.underwriter.localization.LocalizationService
 import com.hedvig.underwriter.service.BundleQuotesService
@@ -27,7 +28,7 @@ class NoQuoteFoundErrorsTest {
     lateinit var bundleQuoteService: BundleQuotesService
 
     @MockK
-    lateinit var localizationService: LocalizationService
+    lateinit var translationsClient: TranslationsClient
 
     @MockK
     lateinit var dataFetchingEnvironment: DataFetchingEnvironment
@@ -41,7 +42,7 @@ class NoQuoteFoundErrorsTest {
     fun setup() {
         MockKAnnotations.init(this)
         sut =
-            Query(quoteService, signService, bundleQuoteService, QuoteMapper(localizationService))
+            Query(quoteService, signService, bundleQuoteService, QuoteMapper(translationsClient))
     }
 
     @Test

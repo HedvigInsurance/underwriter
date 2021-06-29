@@ -1,6 +1,7 @@
 package com.hedvig.underwriter.graphql.type
 
 import com.hedvig.graphql.commons.type.MonetaryAmountV2
+import com.hedvig.libs.translations.TranslationsClient
 import com.hedvig.underwriter.graphql.type.depricated.CompleteQuoteDetails
 import com.hedvig.underwriter.localization.LocalizationService
 import com.hedvig.underwriter.model.ApartmentProductSubType
@@ -40,7 +41,7 @@ import com.hedvig.underwriter.graphql.type.NorwegianHomeContentsType as External
 
 @Component
 class QuoteMapper(
-    private val localizationService: LocalizationService
+    private val translationsClient: TranslationsClient
 ) {
     fun mapToBundleQuote(
         quote: Quote,
@@ -389,6 +390,6 @@ class QuoteMapper(
         )
 
     private fun extractDisplayName(ebt: ExtraBuildingType, locale: Locale): String =
-        localizationService.getTranslation("EXTRA_BUILDING_DISPLAY_NAME_${ebt.name}", locale)
+        translationsClient.getTranslation("EXTRA_BUILDING_DISPLAY_NAME_${ebt.name}", locale)
             ?: ebt.getDefaultDisplayName()
 }
