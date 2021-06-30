@@ -8,7 +8,7 @@ import com.hedvig.graphql.commons.extensions.getToken
 import com.hedvig.graphql.commons.extensions.getTokenOrNull
 import com.hedvig.graphql.commons.extensions.isAndroid
 import com.hedvig.graphql.commons.extensions.isIOS
-import com.hedvig.resolver.LocaleResolver
+import com.hedvig.libs.translations.LocaleResolver
 import com.hedvig.underwriter.graphql.type.CreateQuoteInput
 import com.hedvig.underwriter.graphql.type.CreateQuoteResult
 import com.hedvig.underwriter.graphql.type.EditQuoteInput
@@ -77,7 +77,7 @@ class Mutation @Autowired constructor(
                 quoteMapper.mapToCompleteQuoteResult(
                     quote,
                     quoteService.calculateInsuranceCost(quote),
-                    LocaleResolver.resolveLocale(env.getAcceptLanguage())
+                    LocaleResolver.resolve(env.getAcceptLanguage())
                 )
             }
         }
@@ -137,7 +137,7 @@ class Mutation @Autowired constructor(
                 quoteMapper.mapToCompleteQuoteResult(
                     quote,
                     quoteService.calculateInsuranceCost(quote),
-                    LocaleResolver.resolveLocale(env.getAcceptLanguage())
+                    LocaleResolver.resolve(env.getAcceptLanguage())
                 )
             }
         }

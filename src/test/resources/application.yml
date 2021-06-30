@@ -13,6 +13,8 @@ graphcms.url: empty
 hedvig:
   integrations:
     fakes: true
+  translations:
+    fakes: true
 
 features:
   block-requoting: true

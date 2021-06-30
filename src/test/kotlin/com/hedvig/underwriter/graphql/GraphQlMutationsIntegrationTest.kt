@@ -5,12 +5,12 @@ import assertk.assertions.isEqualTo
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.graphql.spring.boot.test.GraphQLTestTemplate
 import com.hedvig.graphql.commons.type.MonetaryAmountV2
+import com.hedvig.libs.translations.Translations
 import com.hedvig.productPricingObjects.enums.NorwegianHomeContentLineOfBusiness
 import com.hedvig.productPricingObjects.enums.NorwegianTravelLineOfBusiness
 import com.hedvig.underwriter.graphql.type.CreateNorwegianTravelInput
 import com.hedvig.underwriter.graphql.type.CreateQuoteInput
 import com.hedvig.underwriter.graphql.type.InsuranceCost
-import com.hedvig.underwriter.localization.LocalizationService
 import com.hedvig.underwriter.model.DanishHomeContentsType
 import com.hedvig.underwriter.model.Partner
 import com.hedvig.underwriter.model.QuoteInitiatedFrom
@@ -72,7 +72,7 @@ internal class GraphQlMutationsIntegrationTest {
     lateinit var signService: SignService
 
     @MockkBean
-    lateinit var localizationService: LocalizationService
+    lateinit var translations: Translations
 
     @Autowired
     lateinit var objectMapper: ObjectMapper
