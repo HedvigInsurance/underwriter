@@ -1,6 +1,7 @@
 package com.hedvig.underwriter.web
 
 import assertk.assertThat
+import assertk.assertions.isEqualByComparingTo
 import assertk.assertions.isEqualTo
 import assertk.assertions.isFalse
 import assertk.assertions.isNull
@@ -106,8 +107,10 @@ class CompetitorPriceIntegrationTest {
     @Test
     fun `Test quoting with competitor price`() {
 
-        val hedvigPrice = 99
-        var competitorPrice = 89
+        val hedvigPrice = 99.0.toBigDecimal()
+        val competitorMonthlyGrossPrice = 89.toBigDecimal()
+        val competitorMonthlyDiscount = 10.toBigDecimal()
+        val competitorMonthlyNetPrice = competitorMonthlyGrossPrice - competitorMonthlyDiscount
         val competitorLivingArea = 55
         val competitorNrInsured = 2
 
@@ -115,7 +118,7 @@ class CompetitorPriceIntegrationTest {
         every { priceEngineClient.queryPrice(capture(priceRequestSlot)) } answers {
 
             // Return the competitorPrice if present - otherwise the hedvig price
-            val priceToReturn = firstArg<PriceQueryRequest>().competitorPrice?.price ?: hedvigPrice.toBigDecimal()
+            val priceToReturn = firstArg<PriceQueryRequest>().competitorPrice?.price ?: hedvigPrice
             PriceQueryResponse(
                 UUID.randomUUID(),
                 Money.of(priceToReturn, "SEK")
@@ -132,13 +135,13 @@ class CompetitorPriceIntegrationTest {
         } returns
             ResponseEntity(
                 CompetitorPricing(
-                    Money.of(81, "SEK"),
-                    Money.of(competitorPrice, "SEK"),
-                    Money.of(0, "SEK"),
-                    "H Street 14",
-                    "12345",
-                    competitorLivingArea,
-                    competitorNrInsured
+                    monthlyNetPremium = Money.of(competitorMonthlyNetPrice, "SEK"),
+                    monthlyGrossPremium = Money.of(competitorMonthlyGrossPrice, "SEK"),
+                    monthlyDiscount = Money.of(competitorMonthlyDiscount, "SEK"),
+                    insuranceObjectAddress = "H Street 14",
+                    postalCode = "12345",
+                    livingArea = competitorLivingArea,
+                    numberInsured = competitorNrInsured
                 ),
                 HttpStatus.OK
             )
@@ -154,7 +157,7 @@ class CompetitorPriceIntegrationTest {
 
         assertThat(dataCollectionSlot.isCaptured).isFalse()
         assertThat(priceRequestSlot.captured.competitorPrice).isNull()
-        assertThat(quote.price.toInt()).isEqualTo(hedvigPrice)
+        assertThat(quote.price).isEqualByComparingTo(hedvigPrice)
 
         // Create a quote with data collectionId, and matching zipcode/livingSpace
         dataCollectionSlot.clear()
@@ -166,12 +169,14 @@ class CompetitorPriceIntegrationTest {
             dataCollectionId = dataCollectionId
         )
 
+        val expectedPrice = competitorMonthlyNetPrice
+
         assertThat(dataCollectionSlot.captured).isEqualTo(dataCollectionId)
-        assertThat(priceRequestSlot.captured.competitorPrice!!.price.compareTo(competitorPrice.toBigDecimal())).isEqualTo(
+        assertThat(priceRequestSlot.captured.competitorPrice!!.price.compareTo(expectedPrice)).isEqualTo(
             0
         )
         assertThat(priceRequestSlot.captured.competitorPrice!!.numberInsured).isEqualTo(competitorNrInsured)
-        assertThat(quote.price.toInt()).isEqualTo(competitorPrice)
+        assertThat(quote.price).isEqualByComparingTo(expectedPrice)
 
         // Create a quote with data collectionId, and matching livingSpace but NOT zipcode
         // Should call the lookupService, AND should forward the competitor price
@@ -185,11 +190,9 @@ class CompetitorPriceIntegrationTest {
         )
 
         assertThat(dataCollectionSlot.captured).isEqualTo(dataCollectionId)
-        assertThat(priceRequestSlot.captured.competitorPrice!!.price.compareTo(competitorPrice.toBigDecimal())).isEqualTo(
-            0
-        )
+        assertThat(priceRequestSlot.captured.competitorPrice!!.price).isEqualByComparingTo(expectedPrice)
         assertThat(priceRequestSlot.captured.competitorPrice!!.numberInsured).isEqualTo(competitorNrInsured)
-        assertThat(quote.price.toInt()).isEqualTo(competitorPrice)
+        assertThat(quote.price).isEqualByComparingTo(expectedPrice)
 
         // Create a quote with data collectionId, and matching zipCode but NOT livingSpace
         // Should call the lookupService, and should forward the competitor price
@@ -203,11 +206,9 @@ class CompetitorPriceIntegrationTest {
         )
 
         assertThat(dataCollectionSlot.captured).isEqualTo(dataCollectionId)
-        assertThat(priceRequestSlot.captured.competitorPrice!!.price.compareTo(competitorPrice.toBigDecimal())).isEqualTo(
-            0
-        )
+        assertThat(priceRequestSlot.captured.competitorPrice!!.price).isEqualByComparingTo(expectedPrice)
         assertThat(priceRequestSlot.captured.competitorPrice!!.numberInsured).isEqualTo(competitorNrInsured)
-        assertThat(quote.price.toInt()).isEqualTo(competitorPrice)
+        assertThat(quote.price).isEqualTo(expectedPrice)
 
         // Create a quote with data collectionId, and NOT matching zipCode or livingSpace
         // Should call the lookupService, and NOT forward the competitor price
@@ -222,7 +223,7 @@ class CompetitorPriceIntegrationTest {
 
         assertThat(dataCollectionSlot.captured).isEqualTo(dataCollectionId)
         assertThat(priceRequestSlot.captured.competitorPrice).isNull()
-        assertThat(quote.price.toInt()).isEqualTo(hedvigPrice)
+        assertThat(quote.price).isEqualByComparingTo(hedvigPrice)
 
         // When the lookupService call fails, due to 404, 500 or error returned, the flow
         // should not break and no competitor price will be forwarded
@@ -240,7 +241,7 @@ class CompetitorPriceIntegrationTest {
         )
 
         assertThat(priceRequestSlot.captured.competitorPrice).isNull()
-        assertThat(quote.price.toInt()).isEqualTo(hedvigPrice)
+        assertThat(quote.price).isEqualByComparingTo(hedvigPrice)
 
         every {
             lookupServiceClient.getMatchingCompetitorPrice(any(), any(), any())
@@ -256,7 +257,7 @@ class CompetitorPriceIntegrationTest {
         )
 
         assertThat(priceRequestSlot.captured.competitorPrice).isNull()
-        assertThat(quote.price.toInt()).isEqualTo(hedvigPrice)
+        assertThat(quote.price).isEqualByComparingTo(hedvigPrice)
 
         every {
             lookupServiceClient.getMatchingCompetitorPrice(any(), any(), any())
@@ -271,6 +272,6 @@ class CompetitorPriceIntegrationTest {
         )
 
         assertThat(priceRequestSlot.captured.competitorPrice).isNull()
-        assertThat(quote.price.toInt()).isEqualTo(hedvigPrice)
+        assertThat(quote.price).isEqualByComparingTo(hedvigPrice)
     }
 }

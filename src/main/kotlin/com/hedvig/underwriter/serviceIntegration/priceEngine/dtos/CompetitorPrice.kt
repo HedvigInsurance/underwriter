@@ -10,7 +10,7 @@ data class CompetitorPrice(val price: BigDecimal, val numberInsured: Int?) {
         fun from(competitorPricing: CompetitorPricing?): CompetitorPrice? {
             return if (competitorPricing != null)
                 CompetitorPrice(
-                    competitorPricing.monthlyGrossPremium.number.numberValueExact(BigDecimal::class.java),
+                    competitorPricing.monthlyNetPremium.number.numberValueExact(BigDecimal::class.java),
                     competitorPricing.numberInsured)
             else null
         }
