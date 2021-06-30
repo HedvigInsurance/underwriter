@@ -1,7 +1,7 @@
 package com.hedvig.underwriter.service
 
 import com.hedvig.graphql.commons.type.MonetaryAmountV2
-import com.hedvig.libs.translations.TranslationsClient
+import com.hedvig.libs.translations.Translations
 import com.hedvig.underwriter.graphql.type.InsuranceCost
 import com.hedvig.underwriter.model.ApartmentProductSubType
 import com.hedvig.underwriter.service.quotesSignDataStrategies.SignStrategyService
@@ -36,7 +36,7 @@ class BundleQuoteServiceImplTest {
     lateinit var productPricingService: ProductPricingService
 
     @MockK
-    lateinit var translationsClient: TranslationsClient
+    lateinit var translations: Translations
 
     private lateinit var cut: BundleQuotesServiceImpl
 
@@ -82,7 +82,7 @@ class BundleQuoteServiceImplTest {
         )
 
         every {
-            translationsClient.getTranslation(any(), any())
+            translations.get(any(), any())
         } returns ""
 
         cut.bundleQuotes("1337", ids)
@@ -139,7 +139,7 @@ class BundleQuoteServiceImplTest {
         )
 
         every {
-            translationsClient.getTranslation(any(), any())
+            translations.get(any(), any())
         } returns ""
 
         cut.bundleQuotes("1337", ids)
@@ -190,7 +190,7 @@ class BundleQuoteServiceImplTest {
         )
 
         every {
-            translationsClient.getTranslation(any(), any())
+            translations.get(any(), any())
         } returns ""
 
         cut.bundleQuotes("1337", listOf(id))
@@ -237,7 +237,7 @@ class BundleQuoteServiceImplTest {
         )
 
         every {
-            translationsClient.getTranslation(any(), any())
+            translations.get(any(), any())
         } returns ""
 
         cut.bundleQuotes("1337", listOf(id))
