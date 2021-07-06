@@ -57,11 +57,11 @@ class LookupServiceImpl(
             logger.info("LivingArea($livingAreaMatches) or postalCode($postalCodeMatches) matches, so we're assuming this is the same object")
             return true
         } else {
-            val streetAddressMatches = streetAddressMatches(quote, response);
+            val streetAddressMatches = streetAddressMatches(quote, response)
 
             // Do some logging only, so we can evaluate
             if (streetAddressMatches) {
-                logger.info("(Test) Street and number matched, but not postalCode/livingArea(probably missing data). quoteId: ${quote.id}, dataCollectionId: ${quote.dataCollectionId}. Will trust it: $useInsurelyStreetAddress")
+                logger.info("Street and number matched, but not postalCode/livingArea(probably missing data). quoteId: ${quote.id}, dataCollectionId: ${quote.dataCollectionId}. Will trust it: $useInsurelyStreetAddress")
             }
 
             return (useInsurelyStreetAddress && streetAddressMatches)
