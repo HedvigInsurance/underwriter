@@ -159,7 +159,9 @@ class UnderwriterImpl(
                     memberId = quote.memberId,
                     data = quote.data,
                     partner = quote.attributedTo,
-                    competitorPricing = quote.competitorPricing
+                    competitorPricing = quote.competitorPricing,
+                    overriddenPrice = quote.overriddenPrice,
+                    priceOverriddenBy = quote.priceOverriddenBy
                 )
             )
             is SwedishHouseData -> priceEngineService.querySwedishHousePrice(
@@ -168,7 +170,9 @@ class UnderwriterImpl(
                     quote.memberId,
                     quote.attributedTo,
                     quote.data,
-                    quote.competitorPricing
+                    quote.competitorPricing,
+                    quote.overriddenPrice,
+                    quote.priceOverriddenBy
                 )
             )
             is NorwegianHomeContentsData -> priceEngineService.queryNorwegianHomeContentPrice(
@@ -177,7 +181,9 @@ class UnderwriterImpl(
                     quote.memberId,
                     quote.attributedTo,
                     quote.data,
-                    quote.competitorPricing
+                    quote.competitorPricing,
+                    quote.overriddenPrice,
+                    quote.priceOverriddenBy
                 )
             )
             is NorwegianTravelData -> priceEngineService.queryNorwegianTravelPrice(
@@ -186,7 +192,9 @@ class UnderwriterImpl(
                     quote.memberId,
                     quote.attributedTo,
                     quote.data,
-                    quote.competitorPricing
+                    quote.competitorPricing,
+                    quote.overriddenPrice,
+                    quote.priceOverriddenBy
                 )
             )
             is DanishHomeContentsData -> {
@@ -196,7 +204,9 @@ class UnderwriterImpl(
                         quote.memberId,
                         quote.attributedTo,
                         quote.data,
-                        quote.competitorPricing
+                        quote.competitorPricing,
+                        quote.overriddenPrice,
+                        quote.priceOverriddenBy
                     )
                 )
             }
@@ -207,7 +217,9 @@ class UnderwriterImpl(
                         quote.memberId,
                         quote.attributedTo,
                         quote.data,
-                        quote.competitorPricing
+                        quote.competitorPricing,
+                        quote.overriddenPrice,
+                        quote.priceOverriddenBy
                     )
                 )
             }
@@ -218,7 +230,9 @@ class UnderwriterImpl(
                         quote.memberId,
                         quote.attributedTo,
                         quote.data,
-                        quote.competitorPricing
+                        quote.competitorPricing,
+                        quote.overriddenPrice,
+                        quote.priceOverriddenBy
                     )
                 )
             }

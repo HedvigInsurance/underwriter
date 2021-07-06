@@ -14,6 +14,7 @@ import org.springframework.http.HttpMethod
 import org.springframework.http.MediaType
 import org.springframework.http.ResponseEntity
 import org.springframework.stereotype.Component
+import java.math.BigDecimal
 import java.time.LocalDate
 import java.util.UUID
 
@@ -792,6 +793,22 @@ class QuoteClient {
         """.trimIndent()
 
         return postJson("/_/v1/quotes/bundle/signFromRapio", request)
+    }
+
+    fun overrideQuotePrice(
+        quoteId: UUID,
+        price: BigDecimal?,
+        overriddenBy: String
+    ): ResponseEntity<Quote> {
+
+        val request = """
+                {
+                    "price": $price,
+                    "overriddenBy": "$overriddenBy"
+                }
+            """.trimIndent()
+
+        return postJson("/_/v1/quotes/$quoteId/overridePrice", request)
     }
 
     private inline fun <reified T : Any> postJson(url: String, data: String): ResponseEntity<T> {
