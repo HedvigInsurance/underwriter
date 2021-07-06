@@ -76,9 +76,15 @@ class RequotingServiceImpl(
             return newPrice
         }
 
+        // For overridden prices, we don't reuse old quotes
+        if (isOverriddenPrice(quote)) {
+            logger.info("Skip to reuse old price, since price is overridden: ${quote.id}")
+            return newPrice
+        }
+
         // Do not process certain "expensive" quotes
         if (isTooExpensive(quote)) {
-            logger.info("Skip if to reuse old price, too expensive check: ${quote.id}")
+            logger.info("Skip to reuse old price, too expensive check: ${quote.id}")
             return newPrice
         }
 
@@ -129,6 +135,10 @@ class RequotingServiceImpl(
 
         // If user has older quotes than 30 days and no changes since then it is time to change price
         return newPrice
+    }
+
+    private fun isOverriddenPrice(quote: Quote): Boolean {
+        return quote.overriddenPrice != null
     }
 
     private fun hasExistingAgreement(quote: Quote): Boolean {

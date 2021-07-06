@@ -265,7 +265,11 @@ data class Quote(
     val contractId: UUID? = null,
     val lineItems: List<LineItem> = emptyList(),
     @JsonIgnore
-    val competitorPricing: CompetitorPricing? = null // This field is not persisted
+    val competitorPricing: CompetitorPricing? = null,  // This field is not persisted
+    @JsonIgnore
+    val overriddenPrice: BigDecimal? = null,  // This field is not persisted
+    @JsonIgnore
+    val priceOverriddenBy: String? = null  // This field is not persisted
 ) {
     val isComplete: Boolean
         get() = when {
