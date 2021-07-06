@@ -1,6 +1,6 @@
 package com.hedvig.underwriter.testhelp
 
-import com.opentable.db.postgres.embedded.EmbeddedPostgres
+import io.zonky.test.db.postgres.embedded.EmbeddedPostgres
 import org.apache.commons.lang.SystemUtils
 
 object EmbeddedPostgresSingleton {
