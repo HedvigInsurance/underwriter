@@ -491,7 +491,6 @@ data class Quote(
                     else -> throw IllegalTypeChangeOnQuote(newQuote.data, requestData)
                 }
 
-
                 newQuote.copy(
                     data = newQuoteData.copy(
                         street = requestData.street ?: newQuoteData.street,

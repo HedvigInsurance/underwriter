@@ -1,13 +1,17 @@
 package com.hedvig.underwriter.web
 
 import arrow.core.Either
+import com.fasterxml.jackson.annotation.JsonProperty
 import com.fasterxml.jackson.databind.JsonNode
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.github.imifou.jsonschema.module.addon.annotation.JsonSchema
+import com.hedvig.libs.logging.masking.Masked
 import com.hedvig.underwriter.model.ContractType
 import com.hedvig.underwriter.service.QuoteSchemaService
 import com.hedvig.underwriter.service.QuoteService
 import com.hedvig.underwriter.service.model.QuoteRequest
 import com.hedvig.underwriter.service.model.QuoteSchema
+import com.hedvig.underwriter.testhelp.databuilder.DanishTravelDataBuilder
 import com.hedvig.underwriter.testhelp.databuilder.NorwegianTravelDataBuilder
 import com.hedvig.underwriter.testhelp.databuilder.quote
 import com.hedvig.underwriter.web.dtos.CompleteQuoteResponseDto
@@ -78,11 +82,49 @@ internal class QuoteSchemaControllerTest {
         isYouth = false
     )
 
+    private val SCHEMA_DATA_DANISH_TRAVEL = QuoteSchema.DanishTravel(
+        numberCoInsured = 1,
+        isStudent = false,
+        apartment = "1",
+        floor = "2",
+        street = "tstreet",
+        city = "tcity",
+        zipCode = "1211"
+    )
     private val SCHEMA_DATA_JSON = """
         {
             "id": "NorwegianTravel",
             "numberCoInsured": ${SCHEMA_DATA.numberCoInsured},
             "isYouth": ${SCHEMA_DATA.isYouth} 
+        }
+    """.trimIndent()
+
+
+    private val SCHEMA_DATA_JSON_DENMARK_TRAVEL = """
+        {
+            "id": "DanishTravel",
+            "street": "${SCHEMA_DATA_DANISH_TRAVEL.street}",
+            "zipCode": "${SCHEMA_DATA_DANISH_TRAVEL.zipCode}",
+            "apartment": "${SCHEMA_DATA_DANISH_TRAVEL.apartment}",
+            "floor": "${SCHEMA_DATA_DANISH_TRAVEL.floor}",
+            "city": "${SCHEMA_DATA_DANISH_TRAVEL.city}",
+            "numberCoInsured": ${SCHEMA_DATA_DANISH_TRAVEL.numberCoInsured},
+            "isStudent": ${SCHEMA_DATA_DANISH_TRAVEL.isStudent},
+            "bbrId": "6A3FDA02-4A21-49E4-8E10-F94F93AFDA4C"
+        }
+    """.trimIndent()
+
+    private val SCHEMA_DATA_JSON_DENMARK_TRAVEL_WITH_BBRID = """
+        {
+            "id": "DanishTravel",
+            "street": "${SCHEMA_DATA_DANISH_TRAVEL.street}",
+            "zipCode": "${SCHEMA_DATA_DANISH_TRAVEL.zipCode}",
+            "apartment": "${SCHEMA_DATA_DANISH_TRAVEL.apartment}",
+            "floor": "${SCHEMA_DATA_DANISH_TRAVEL.floor}",
+            "city": "${SCHEMA_DATA_DANISH_TRAVEL.city}",
+            "numberCoInsured": ${SCHEMA_DATA_DANISH_TRAVEL.numberCoInsured},
+            "isStudent": ${SCHEMA_DATA_DANISH_TRAVEL.isStudent},
+            "bbrId": "6A3FDA02-4A21-49E4-8E10-F94F93AFDA4C"
         }
     """.trimIndent()
 
@@ -98,6 +140,30 @@ internal class QuoteSchemaControllerTest {
         data = NorwegianTravelDataBuilder(
             coInsured = SCHEMA_DATA.numberCoInsured,
             isYouth = SCHEMA_DATA.isYouth
+        )
+    }
+
+    private val QUOTE_DANISH_TRAVEL = quote {
+        id = QUOTE_ID
+        memberId = MEMBER_ID
+        data = DanishTravelDataBuilder().copy(
+            coInsured = 1,
+            isStudent = false,
+            apartment = "1",
+            floor = "2",
+            street = "tstreet",
+            city = "tcity",
+            zipCode = "1211"
+        )
+    }
+
+    private val QUOTE_FROM_SCHEMA_DATA_DANISH_TRAVEL = quote {
+        id = QUOTE_ID
+        memberId = MEMBER_ID
+        data = DanishTravelDataBuilder(
+            coInsured = SCHEMA_DATA_DANISH_TRAVEL.numberCoInsured,
+            isStudent = SCHEMA_DATA_DANISH_TRAVEL.isStudent,
+            bbrId = null
         )
     }
 
@@ -256,6 +322,76 @@ internal class QuoteSchemaControllerTest {
             .andExpect(
                 MockMvcResultMatchers.content().json(
                     objectMapper.writeValueAsString(QUOTE_FROM_SCHEMA_DATA)
+                )
+            )
+    }
+
+    @Test
+    fun `if updated quote doesn't send in bbrId set it to null`() {
+        every {
+            quoteService.getQuote(QUOTE_ID)
+        } returns QUOTE_DANISH_TRAVEL
+        val quoteRequest = QuoteRequest.from(QUOTE_DANISH_TRAVEL, SCHEMA_DATA_DANISH_TRAVEL)
+        every {
+            quoteService.updateQuote(
+                quoteRequest = quoteRequest,
+                id = QUOTE_ID,
+                underwritingGuidelinesBypassedBy = any()
+            )
+        } returns Either.Right(QUOTE_FROM_SCHEMA_DATA_DANISH_TRAVEL)
+
+        val response = mockMvc.perform(
+            MockMvcRequestBuilders.post(
+                "/_/v1/quotes/schema/{quoteId}/update?underwritingGuidelinesBypassedBy=null",
+                QUOTE_ID,
+                null
+            )
+                .content(SCHEMA_DATA_JSON_DENMARK_TRAVEL)
+                .contentType(MediaType.APPLICATION_JSON)
+        )
+
+        response
+            .andExpect(
+                status().is2xxSuccessful
+            )
+            .andExpect(
+                MockMvcResultMatchers.content().json(
+                    objectMapper.writeValueAsString(QUOTE_FROM_SCHEMA_DATA_DANISH_TRAVEL)
+                )
+            )
+    }
+
+    @Test
+    fun `if updated quote sends in bbrId it should still return as null`() {
+        every {
+            quoteService.getQuote(QUOTE_ID)
+        } returns QUOTE_DANISH_TRAVEL
+        val quoteRequest = QuoteRequest.from(QUOTE_DANISH_TRAVEL, SCHEMA_DATA_DANISH_TRAVEL)
+        every {
+            quoteService.updateQuote(
+                quoteRequest = quoteRequest,
+                id = QUOTE_ID,
+                underwritingGuidelinesBypassedBy = any()
+            )
+        } returns Either.Right(QUOTE_FROM_SCHEMA_DATA_DANISH_TRAVEL)
+
+        val response = mockMvc.perform(
+            MockMvcRequestBuilders.post(
+                "/_/v1/quotes/schema/{quoteId}/update?underwritingGuidelinesBypassedBy=null",
+                QUOTE_ID,
+                null
+            )
+                .content(SCHEMA_DATA_JSON_DENMARK_TRAVEL_WITH_BBRID)
+                .contentType(MediaType.APPLICATION_JSON)
+        )
+
+        response
+            .andExpect(
+                status().is2xxSuccessful
+            )
+            .andExpect(
+                MockMvcResultMatchers.content().json(
+                    objectMapper.writeValueAsString(QUOTE_FROM_SCHEMA_DATA_DANISH_TRAVEL)
                 )
             )
     }
