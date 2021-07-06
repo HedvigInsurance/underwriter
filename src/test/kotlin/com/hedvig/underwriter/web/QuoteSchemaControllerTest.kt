@@ -105,8 +105,7 @@ internal class QuoteSchemaControllerTest {
             "floor": "${SCHEMA_DATA_DANISH_TRAVEL.floor}",
             "city": "${SCHEMA_DATA_DANISH_TRAVEL.city}",
             "numberCoInsured": ${SCHEMA_DATA_DANISH_TRAVEL.numberCoInsured},
-            "isStudent": ${SCHEMA_DATA_DANISH_TRAVEL.isStudent},
-            "bbrId": "6A3FDA02-4A21-49E4-8E10-F94F93AFDA4C"
+            "isStudent": ${SCHEMA_DATA_DANISH_TRAVEL.isStudent}
         }
     """.trimIndent()
 
