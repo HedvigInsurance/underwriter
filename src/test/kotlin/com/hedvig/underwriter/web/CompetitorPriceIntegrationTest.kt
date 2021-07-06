@@ -4,7 +4,6 @@ import assertk.assertThat
 import assertk.assertions.isEqualByComparingTo
 import assertk.assertions.isEqualTo
 import assertk.assertions.isFalse
-import assertk.assertions.isNotNull
 import assertk.assertions.isNull
 import com.hedvig.productPricingObjects.dtos.Agreement
 import com.hedvig.productPricingObjects.enums.AgreementStatus

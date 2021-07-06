@@ -19,8 +19,7 @@ import org.springframework.stereotype.Service
 @Service
 class SignStrategyService(
     private val swedishBankIdSignStrategy: SwedishBankIdSignStrategy,
-    private val simpleSignStrategy: SimpleSignStrategy,
-    private val selfChangeCommittingStrategy: SelfChangeCommittingStrategy
+    private val simpleSignStrategy: SimpleSignStrategy
 ) : SignStrategy {
     override fun startSign(quotes: List<Quote>, signData: SignData): StartSignResponse {
         val strategy = quotes.getStrategiesFromQuotes()
@@ -78,9 +77,7 @@ class SignStrategyService(
     }
 
     private fun List<Quote>.getStrategiesFromQuotes() = this.map {
-        if (it.initiatedFrom == QuoteInitiatedFrom.SELF_CHANGE)
-            selfChangeCommittingStrategy
-        else when (it.data) {
+        when (it.data) {
             is SwedishHouseData,
             is SwedishApartmentData -> swedishBankIdSignStrategy
             is NorwegianHomeContentsData,
@@ -113,6 +110,12 @@ class SignStrategyService(
             this.any { it.data is DanishTravelData }
 
     override fun getSignMethod(quotes: List<Quote>): SignMethod {
+        val isSelfChangeQuotes = quotes.any { it.initiatedFrom == QuoteInitiatedFrom.SELF_CHANGE }
+        if (isSelfChangeQuotes) {
+            // These are not associated with a "sign strategy", and are routed to
+            // Mutation.approveQuotes(...) instead of .signQuotes(...)
+            return SignMethod.APPROVE_ONLY
+        }
         val strategy = quotes.getStrategiesFromQuotes()
 
         if (strategy.isEmpty()) {

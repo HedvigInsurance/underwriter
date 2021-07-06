@@ -32,6 +32,7 @@ import com.hedvig.underwriter.serviceIntegration.productPricing.ProductPricingSe
 import com.hedvig.underwriter.serviceIntegration.productPricing.dtos.RedeemCampaignDto
 import com.hedvig.underwriter.util.logger
 import com.hedvig.libs.logging.masking.toMaskedString
+import com.hedvig.underwriter.model.QuoteInitiatedFrom
 import com.hedvig.underwriter.serviceIntegration.notificationService.NotificationService
 import com.hedvig.underwriter.web.dtos.ErrorCodes
 import com.hedvig.underwriter.web.dtos.ErrorResponseDto
@@ -422,12 +423,21 @@ class SignServiceImpl(
         )
     }
 
-    private fun checkIfMemberHasSignedInsurance(
-        quote: Quote
-    ): Boolean {
-        return when (quote.data) {
-            is PersonPolicyHolder<*> -> memberService.isSsnAlreadySignedMemberEntity(quote.data.ssn!!).ssnAlreadySignedMember
-            else -> throw RuntimeException("Unsupported quote data class")
+    override fun approveQuotes(quoteIds: List<UUID>, memberId: String) {
+        val quotes = quoteService.getQuotes(quoteIds)
+        require(quotes.all { it.initiatedFrom == QuoteInitiatedFrom.SELF_CHANGE }) {
+            "Can only approve self-change quotes"
+        }
+        val result = productPricingService.selfChangeContracts(
+            memberId = memberId,
+            quotes = quotes
+        )
+        val changes = result.createdContracts + result.updatedContracts
+        changes.forEach { change ->
+            val quote = quotes.first { change.quoteId == it.id }
+            quoteRepository.update(
+                quote.copy(contractId = change.contractId, agreementId = change.agreementId, state = QuoteState.SIGNED)
+            )
         }
     }
 

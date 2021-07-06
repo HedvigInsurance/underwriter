@@ -13,7 +13,6 @@ import com.hedvig.underwriter.model.email
 import com.hedvig.underwriter.model.ssn
 import com.hedvig.underwriter.service.model.StartSignErrors
 import com.hedvig.underwriter.service.model.StartSignResponse
-import com.hedvig.underwriter.service.quotesSignDataStrategies.SelfChangeCommittingStrategy
 import com.hedvig.underwriter.service.quotesSignDataStrategies.SignStrategyService
 import com.hedvig.underwriter.service.quotesSignDataStrategies.SimpleSignStrategy
 import com.hedvig.underwriter.service.quotesSignDataStrategies.SwedishBankIdSignStrategy
@@ -73,9 +72,6 @@ class SignServiceImplTest {
     @MockK
     lateinit var notificationService: NotificationService
 
-    @MockK
-    lateinit var selfChangeCommittingStrategy: SelfChangeCommittingStrategy
-
     private lateinit var signStrategyService: SignStrategyService
 
     private lateinit var swedishBankIdSignStrategy: SwedishBankIdSignStrategy
@@ -98,7 +94,7 @@ class SignServiceImplTest {
         )
 
         signStrategyService = SignStrategyService(
-            swedishBankIdSignStrategy, simpleSignStrategy, selfChangeCommittingStrategy
+            swedishBankIdSignStrategy, simpleSignStrategy
         )
 
         cut = SignServiceImpl(
