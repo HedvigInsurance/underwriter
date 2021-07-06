@@ -1,11 +1,8 @@
 package com.hedvig.underwriter.web
 
 import arrow.core.Either
-import com.fasterxml.jackson.annotation.JsonProperty
 import com.fasterxml.jackson.databind.JsonNode
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.github.imifou.jsonschema.module.addon.annotation.JsonSchema
-import com.hedvig.libs.logging.masking.Masked
 import com.hedvig.underwriter.model.ContractType
 import com.hedvig.underwriter.service.QuoteSchemaService
 import com.hedvig.underwriter.service.QuoteService
@@ -98,7 +95,6 @@ internal class QuoteSchemaControllerTest {
             "isYouth": ${SCHEMA_DATA.isYouth} 
         }
     """.trimIndent()
-
 
     private val SCHEMA_DATA_JSON_DENMARK_TRAVEL = """
         {
