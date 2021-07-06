@@ -17,6 +17,7 @@ import com.hedvig.underwriter.model.SwedishHouseData
 import com.hedvig.underwriter.model.birthDateFromSwedishSsn
 import com.hedvig.underwriter.serviceIntegration.lookupService.dtos.CompetitorPricing
 import com.hedvig.underwriter.serviceIntegration.productPricing.dtos.mappers.OutgoingMapper
+import java.math.BigDecimal
 import java.time.LocalDate
 import java.time.Year
 import java.util.UUID
@@ -39,6 +40,7 @@ sealed class PriceQueryRequest {
     abstract val numberCoInsured: Int
     abstract val partner: Partner
     abstract val competitorPrice: CompetitorPrice?
+    abstract val overriddenPrice: OverriddenPrice?
 
     data class NorwegianHomeContent(
         override val holderMemberId: String?,
@@ -47,6 +49,7 @@ sealed class PriceQueryRequest {
         override val numberCoInsured: Int,
         override val partner: Partner,
         override val competitorPrice: CompetitorPrice? = null,
+        override val overriddenPrice: OverriddenPrice? = null,
         val lineOfBusiness: NorwegianHomeContentLineOfBusiness,
         val postalCode: String,
         val squareMeters: Int
@@ -57,7 +60,9 @@ sealed class PriceQueryRequest {
                 memberId: String?,
                 partner: Partner,
                 data: NorwegianHomeContentsData,
-                competitorPricing: CompetitorPricing?
+                competitorPricing: CompetitorPricing?,
+                overriddenPrice: BigDecimal?,
+                priceOverriddenBy: String?
             ) =
                 NorwegianHomeContent(
                     holderMemberId = memberId,
@@ -68,7 +73,8 @@ sealed class PriceQueryRequest {
                     lineOfBusiness = OutgoingMapper.toLineOfBusiness(data.type, data.isYouth),
                     postalCode = data.zipCode,
                     squareMeters = data.livingSpace,
-                    competitorPrice = CompetitorPrice.from(competitorPricing)
+                    competitorPrice = CompetitorPrice.from(competitorPricing),
+                    overriddenPrice = OverriddenPrice.from(overriddenPrice, priceOverriddenBy)
                 )
         }
     }
@@ -80,6 +86,7 @@ sealed class PriceQueryRequest {
         override val numberCoInsured: Int,
         override val partner: Partner,
         override val competitorPrice: CompetitorPrice? = null,
+        override val overriddenPrice: OverriddenPrice? = null,
         val lineOfBusiness: NorwegianTravelLineOfBusiness
     ) : PriceQueryRequest() {
         companion object {
@@ -88,7 +95,9 @@ sealed class PriceQueryRequest {
                 memberId: String?,
                 partner: Partner,
                 data: NorwegianTravelData,
-                competitorPricing: CompetitorPricing?
+                competitorPricing: CompetitorPricing?,
+                overriddenPrice: BigDecimal?,
+                priceOverriddenBy: String?
             ) = NorwegianTravel(
                 holderMemberId = memberId,
                 quoteId = quoteId,
@@ -96,7 +105,8 @@ sealed class PriceQueryRequest {
                 numberCoInsured = data.coInsured,
                 partner = partner,
                 lineOfBusiness = OutgoingMapper.toLineOfBusiness(data.isYouth),
-                competitorPrice = CompetitorPrice.from(competitorPricing)
+                competitorPrice = CompetitorPrice.from(competitorPricing),
+                overriddenPrice = OverriddenPrice.from(overriddenPrice, priceOverriddenBy)
             )
         }
     }
@@ -108,6 +118,7 @@ sealed class PriceQueryRequest {
         override val numberCoInsured: Int,
         override val partner: Partner,
         override val competitorPrice: CompetitorPrice? = null,
+        override val overriddenPrice: OverriddenPrice? = null,
         val lineOfBusiness: SwedishApartmentLineOfBusiness,
         val squareMeters: Int,
         val postalCode: String
@@ -118,7 +129,9 @@ sealed class PriceQueryRequest {
                 memberId: String?,
                 data: SwedishApartmentData,
                 partner: Partner,
-                competitorPricing: CompetitorPricing?
+                competitorPricing: CompetitorPricing?,
+                overriddenPrice: BigDecimal?,
+                priceOverriddenBy: String?
             ) = SwedishApartment(
                 holderMemberId = memberId,
                 quoteId = quoteId,
@@ -128,7 +141,8 @@ sealed class PriceQueryRequest {
                 lineOfBusiness = OutgoingMapper.toLineOfBusiness(data.subType!!),
                 squareMeters = data.livingSpace!!,
                 postalCode = data.zipCode!!,
-                competitorPrice = CompetitorPrice.from(competitorPricing)
+                competitorPrice = CompetitorPrice.from(competitorPricing),
+                overriddenPrice = OverriddenPrice.from(overriddenPrice, priceOverriddenBy)
             )
         }
     }
@@ -140,6 +154,7 @@ sealed class PriceQueryRequest {
         override val numberCoInsured: Int,
         override val partner: Partner,
         override val competitorPrice: CompetitorPrice? = null,
+        override val overriddenPrice: OverriddenPrice? = null,
         val squareMeters: Int,
         val postalCode: String,
         val ancillaryArea: Int,
@@ -154,7 +169,9 @@ sealed class PriceQueryRequest {
                 memberId: String?,
                 partner: Partner,
                 data: SwedishHouseData,
-                competitorPricing: CompetitorPricing?
+                competitorPricing: CompetitorPricing?,
+                overriddenPrice: BigDecimal?,
+                priceOverriddenBy: String?
             ) = SwedishHouse(
                 holderMemberId = memberId,
                 quoteId = quoteId,
@@ -175,7 +192,8 @@ sealed class PriceQueryRequest {
                     )
                 },
                 isSubleted = data.isSubleted!!,
-                competitorPrice = CompetitorPrice.from(competitorPricing)
+                competitorPrice = CompetitorPrice.from(competitorPricing),
+                overriddenPrice = OverriddenPrice.from(overriddenPrice, priceOverriddenBy)
             )
         }
     }
@@ -187,6 +205,7 @@ sealed class PriceQueryRequest {
         override val numberCoInsured: Int,
         override val partner: Partner,
         override val competitorPrice: CompetitorPrice? = null,
+        override val overriddenPrice: OverriddenPrice? = null,
         val squareMeters: Int,
         val bbrId: String?,
         val postalCode: String,
@@ -203,7 +222,9 @@ sealed class PriceQueryRequest {
                 memberId: String?,
                 partner: Partner,
                 data: DanishHomeContentsData,
-                competitorPricing: CompetitorPricing?
+                competitorPricing: CompetitorPricing?,
+                overriddenPrice: BigDecimal?,
+                priceOverriddenBy: String?
             ) =
                 DanishHomeContent(
                     holderMemberId = memberId,
@@ -220,7 +241,8 @@ sealed class PriceQueryRequest {
                     student = data.isStudent,
                     housingType = data.type,
                     squareMeters = data.livingSpace,
-                    competitorPrice = CompetitorPrice.from(competitorPricing)
+                    competitorPrice = CompetitorPrice.from(competitorPricing),
+                    overriddenPrice = OverriddenPrice.from(overriddenPrice, priceOverriddenBy)
                 )
         }
     }
@@ -232,6 +254,7 @@ sealed class PriceQueryRequest {
         override val numberCoInsured: Int,
         override val partner: Partner,
         override val competitorPrice: CompetitorPrice? = null,
+        override val overriddenPrice: OverriddenPrice? = null,
         val bbrId: String?,
         val postalCode: String,
         val street: String,
@@ -246,7 +269,9 @@ sealed class PriceQueryRequest {
                 memberId: String?,
                 partner: Partner,
                 data: DanishAccidentData,
-                competitorPricing: CompetitorPricing?
+                competitorPricing: CompetitorPricing?,
+                overriddenPrice: BigDecimal?,
+                priceOverriddenBy: String?
             ) = DanishAccident(
                 holderMemberId = memberId,
                 quoteId = quoteId,
@@ -260,7 +285,8 @@ sealed class PriceQueryRequest {
                 floor = data.floor,
                 city = data.city,
                 student = data.isStudent,
-                competitorPrice = CompetitorPrice.from(competitorPricing)
+                competitorPrice = CompetitorPrice.from(competitorPricing),
+                overriddenPrice = OverriddenPrice.from(overriddenPrice, priceOverriddenBy)
             )
         }
     }
@@ -272,6 +298,7 @@ sealed class PriceQueryRequest {
         override val numberCoInsured: Int,
         override val partner: Partner,
         override val competitorPrice: CompetitorPrice? = null,
+        override val overriddenPrice: OverriddenPrice? = null,
         val bbrId: String?,
         val postalCode: String,
         val street: String,
@@ -286,7 +313,9 @@ sealed class PriceQueryRequest {
                 memberId: String?,
                 partner: Partner,
                 data: DanishTravelData,
-                competitorPricing: CompetitorPricing?
+                competitorPricing: CompetitorPricing?,
+                overriddenPrice: BigDecimal?,
+                priceOverriddenBy: String?
             ) = DanishTravel(
                 holderMemberId = memberId,
                 quoteId = quoteId,
@@ -300,7 +329,8 @@ sealed class PriceQueryRequest {
                 floor = data.floor,
                 city = data.city,
                 student = data.isStudent,
-                competitorPrice = CompetitorPrice.from(competitorPricing)
+                competitorPrice = CompetitorPrice.from(competitorPricing),
+                overriddenPrice = OverriddenPrice.from(overriddenPrice, priceOverriddenBy)
             )
         }
     }

@@ -37,7 +37,7 @@ import com.hedvig.underwriter.web.dtos.ErrorCodes
 import com.hedvig.underwriter.web.dtos.ErrorResponseDto
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
-import java.lang.IllegalStateException
+import java.math.BigDecimal
 import java.security.MessageDigest
 import java.time.Instant
 import java.util.UUID
@@ -76,6 +76,36 @@ class QuoteServiceImpl(
             .flatMap { updatedQuote ->
                 underwriter
                     .validateAndCompleteQuote(updatedQuote, underwritingGuidelinesBypassedBy)
+                    .mapLeft { e ->
+                        ErrorResponseDto(
+                            ErrorCodes.MEMBER_BREACHES_UW_GUIDELINES,
+                            "quote [Id: ${updatedQuote.id}] cannot be calculated, underwriting guidelines are breached [Quote: $updatedQuote]",
+                            e.second.map { BreachedGuideline("Deprecated", it) }
+                        )
+                    }
+            }.map { quoteRepository.update(it) }
+    }
+
+    override fun overrideQuotePrice(
+        quoteId: UUID,
+        price: BigDecimal,
+        overriddenBy: String
+    ): Either<ErrorResponseDto, Quote> {
+
+        return findQuoteOrError(quoteId)
+            .filterOrOther(
+                { it.state == QuoteState.QUOTED || it.state == QuoteState.INCOMPLETE },
+                {
+                    ErrorResponseDto(
+                        ErrorCodes.INVALID_STATE,
+                        "quote [Id: ${it.id}] must be quoted to override price but was really ${it.state} [Quote: $it]"
+                    )
+                }
+            )
+            .map { it.copy(overriddenPrice = price, priceOverriddenBy = overriddenBy) }
+            .flatMap { updatedQuote ->
+                underwriter
+                    .validateAndCompleteQuote(updatedQuote, null)
                     .mapLeft { e ->
                         ErrorResponseDto(
                             ErrorCodes.MEMBER_BREACHES_UW_GUIDELINES,
