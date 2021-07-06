@@ -272,7 +272,7 @@ sealed class QuoteRequestData {
                 city = quoteSchema.city,
                 apartment = quoteSchema.apartment,
                 floor = quoteSchema.floor,
-                bbrId = quoteSchema.bbrId,
+                bbrId = null,
                 livingSpace = quoteSchema.livingSpace,
                 coInsured = quoteSchema.numberCoInsured,
                 isStudent = quoteSchema.isStudent,
@@ -284,7 +284,7 @@ sealed class QuoteRequestData {
                 city = quoteSchema.city,
                 apartment = quoteSchema.apartment,
                 floor = quoteSchema.floor,
-                bbrId = quoteSchema.bbrId,
+                bbrId = null,
                 coInsured = quoteSchema.numberCoInsured,
                 isStudent = quoteSchema.isStudent
             )
@@ -294,7 +294,7 @@ sealed class QuoteRequestData {
                 city = quoteSchema.city,
                 apartment = quoteSchema.apartment,
                 floor = quoteSchema.floor,
-                bbrId = quoteSchema.bbrId,
+                bbrId = null,
                 coInsured = quoteSchema.numberCoInsured,
                 isStudent = quoteSchema.isStudent
             )
