@@ -8,12 +8,16 @@ import com.hedvig.underwriter.model.SwedishApartmentData
 import com.hedvig.underwriter.model.SwedishHouseData
 import com.hedvig.underwriter.serviceIntegration.lookupService.dtos.CompetitorPricing
 import com.hedvig.underwriter.util.logger
+import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Service
 
 @Service
 class LookupServiceImpl(
     val lookupServiceClient: LookupServiceClient
 ) : LookupService {
+
+    @Value("\${features.useInsurelyStreetAddress:true}")
+    private var useInsurelyStreetAddress: Boolean = true
 
     private val TYPE_HOUSE = "houseContentInsurance"
     private val STREET_AND_BR_REGEX = "\\D+\\d+".toRegex()
@@ -23,7 +27,8 @@ class LookupServiceImpl(
 
             val insuranceType = getInsuranceType(quote) ?: return null
 
-            val response = lookupServiceClient.getMatchingCompetitorPrice(quote.dataCollectionId!!,
+            val response = lookupServiceClient.getMatchingCompetitorPrice(
+                quote.dataCollectionId!!,
                 quote.currencyWithFallbackOnMarket, insuranceType
             )
 
@@ -52,12 +57,14 @@ class LookupServiceImpl(
             logger.info("LivingArea($livingAreaMatches) or postalCode($postalCodeMatches) matches, so we're assuming this is the same object")
             return true
         } else {
+            val streetAddressMatches = streetAddressMatches(quote, response)
+
             // Do some logging only, so we can evaluate
-            if (streetAddressMatches(quote, response)) {
-                logger.info("(Test) Street and number matched, but not postalCode/livingArea. quoteId: ${quote.id}, dataCollectionId: ${quote.dataCollectionId}")
+            if (streetAddressMatches) {
+                logger.info("Street and number matched, but not postalCode/livingArea(probably missing data). quoteId: ${quote.id}, dataCollectionId: ${quote.dataCollectionId}. Will trust it: $useInsurelyStreetAddress")
             }
 
-            return false
+            return (useInsurelyStreetAddress && streetAddressMatches)
         }
     }
 

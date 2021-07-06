@@ -4,6 +4,7 @@ import assertk.assertThat
 import assertk.assertions.isEqualByComparingTo
 import assertk.assertions.isEqualTo
 import assertk.assertions.isFalse
+import assertk.assertions.isNotNull
 import assertk.assertions.isNull
 import com.hedvig.productPricingObjects.dtos.Agreement
 import com.hedvig.productPricingObjects.enums.AgreementStatus
@@ -23,6 +24,7 @@ import com.hedvig.underwriter.serviceIntegration.productPricing.ProductPricingCl
 import com.hedvig.underwriter.serviceIntegration.productPricing.dtos.contract.CreateContractResponse
 import com.hedvig.underwriter.testhelp.QuoteClient
 import com.ninjasquad.springmockk.MockkBean
+import io.mockk.CapturingSlot
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.slot
@@ -37,6 +39,7 @@ import org.springframework.boot.test.web.client.TestRestTemplate
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.test.context.junit4.SpringRunner
+import java.math.BigDecimal
 import java.util.UUID
 
 @RunWith(SpringRunner::class)
@@ -126,25 +129,16 @@ class CompetitorPriceIntegrationTest {
         }
 
         val dataCollectionSlot = slot<UUID>()
-        every {
-            lookupServiceClient.getMatchingCompetitorPrice(
-                capture(dataCollectionSlot),
-                "SEK",
-                "houseContentInsurance"
-            )
-        } returns
-            ResponseEntity(
-                CompetitorPricing(
-                    monthlyNetPremium = Money.of(competitorMonthlyNetPrice, "SEK"),
-                    monthlyGrossPremium = Money.of(competitorMonthlyGrossPrice, "SEK"),
-                    monthlyDiscount = Money.of(competitorMonthlyDiscount, "SEK"),
-                    insuranceObjectAddress = "H Street 14",
-                    postalCode = "12345",
-                    livingArea = competitorLivingArea,
-                    numberInsured = competitorNrInsured
-                ),
-                HttpStatus.OK
-            )
+        mockInsurelyResponse(
+            dataCollectionSlot,
+            competitorMonthlyNetPrice,
+            competitorMonthlyGrossPrice,
+            competitorMonthlyDiscount,
+            "H Street 14",
+            "12345",
+            competitorLivingArea,
+            competitorNrInsured
+        )
 
         // Create a quote WITHOUT data collectionId, should not call lookupService and not forward any competitor price to PE
 
@@ -210,12 +204,70 @@ class CompetitorPriceIntegrationTest {
         assertThat(priceRequestSlot.captured.competitorPrice!!.numberInsured).isEqualTo(competitorNrInsured)
         assertThat(quote.price).isEqualTo(expectedPrice)
 
-        // Create a quote with data collectionId, and NOT matching zipCode or livingSpace
-        // Should call the lookupService, and NOT forward the competitor price
+        // Create a quote with data collectionId, and NOT matching zipCode or livingSpace,
+        // BUT with matching street+nr
+        // Should call the lookupService, and should forward the competitor price
         dataCollectionSlot.clear()
         dataCollectionId = UUID.randomUUID()
         quote = quoteClient.createSwedishApartmentQuote(
             street = "H Street 14, th. 1111 Wherever",
+            zip = "11111",
+            livingSpace = 99,
+            dataCollectionId = dataCollectionId
+        )
+
+        assertThat(dataCollectionSlot.captured).isEqualTo(dataCollectionId)
+        assertThat(priceRequestSlot.captured.competitorPrice!!.price).isEqualByComparingTo(expectedPrice)
+        assertThat(priceRequestSlot.captured.competitorPrice!!.numberInsured).isEqualTo(competitorNrInsured)
+        assertThat(quote.price).isEqualTo(expectedPrice)
+
+        // Create a quote with data collectionId, and NO zipCode or livingSpace supplied by Insurely,
+        // but with matching street+nr
+        // Should call the lookupService, and should forward the competitor price
+        mockInsurelyResponse(
+            dataCollectionSlot,
+            competitorMonthlyNetPrice,
+            competitorMonthlyGrossPrice,
+            competitorMonthlyDiscount,
+            "H Street 14",
+            null,
+            null,
+            competitorNrInsured
+        )
+
+        dataCollectionSlot.clear()
+        dataCollectionId = UUID.randomUUID()
+        quote = quoteClient.createSwedishApartmentQuote(
+            street = "H Street 14, th. 1111 Wherever",
+            zip = "11111",
+            livingSpace = 99,
+            dataCollectionId = dataCollectionId
+        )
+
+        assertThat(dataCollectionSlot.captured).isEqualTo(dataCollectionId)
+        assertThat(priceRequestSlot.captured.competitorPrice!!.price).isEqualByComparingTo(expectedPrice)
+        assertThat(priceRequestSlot.captured.competitorPrice!!.numberInsured).isEqualTo(competitorNrInsured)
+        assertThat(quote.price).isEqualTo(expectedPrice)
+
+        // Set back the default Insurely response
+        mockInsurelyResponse(
+            dataCollectionSlot,
+            competitorMonthlyNetPrice,
+            competitorMonthlyGrossPrice,
+            competitorMonthlyDiscount,
+            "H Street 14",
+            "12345",
+            competitorLivingArea,
+            competitorNrInsured
+        )
+
+        // Create a quote with data collectionId, and NOT matching zipCode or livingSpace,
+        // but with almost, but not exactly, matching street+nr
+        // Should call the lookupService, and NOT forward the competitor price
+        dataCollectionSlot.clear()
+        dataCollectionId = UUID.randomUUID()
+        quote = quoteClient.createSwedishApartmentQuote(
+            street = "H Street 13, th. 1111 Wherever",
             zip = "11111",
             livingSpace = 99,
             dataCollectionId = dataCollectionId
@@ -273,5 +325,36 @@ class CompetitorPriceIntegrationTest {
 
         assertThat(priceRequestSlot.captured.competitorPrice).isNull()
         assertThat(quote.price).isEqualByComparingTo(hedvigPrice)
+    }
+
+    private fun mockInsurelyResponse(
+        dataCollectionSlot: CapturingSlot<UUID>,
+        competitorMonthlyNetPrice: BigDecimal,
+        competitorMonthlyGrossPrice: BigDecimal,
+        competitorMonthlyDiscount: BigDecimal,
+        insuranceObjectAddress: String?,
+        competitorPostalCode: String?,
+        competitorLivingArea: Int?,
+        competitorNrInsured: Int
+    ) {
+        every {
+            lookupServiceClient.getMatchingCompetitorPrice(
+                capture(dataCollectionSlot),
+                "SEK",
+                "houseContentInsurance"
+            )
+        } returns
+            ResponseEntity(
+                CompetitorPricing(
+                    monthlyNetPremium = Money.of(competitorMonthlyNetPrice, "SEK"),
+                    monthlyGrossPremium = Money.of(competitorMonthlyGrossPrice, "SEK"),
+                    monthlyDiscount = Money.of(competitorMonthlyDiscount, "SEK"),
+                    insuranceObjectAddress = insuranceObjectAddress,
+                    postalCode = competitorPostalCode,
+                    livingArea = competitorLivingArea,
+                    numberInsured = competitorNrInsured
+                ),
+                HttpStatus.OK
+            )
     }
 }
