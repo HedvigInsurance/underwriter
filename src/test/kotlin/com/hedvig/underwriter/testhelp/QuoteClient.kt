@@ -5,6 +5,7 @@ import com.hedvig.underwriter.web.dtos.CompleteQuoteResponseDto
 import com.hedvig.underwriter.web.dtos.QuoteBundleResponseDto
 import com.hedvig.underwriter.web.dtos.SignedQuoteResponseDto
 import com.hedvig.underwriter.web.dtos.SignedQuotesResponseDto
+import java.math.BigDecimal
 import java.time.LocalDate
 import java.util.UUID
 import org.apache.commons.lang.RandomStringUtils
@@ -824,6 +825,22 @@ class QuoteClient {
         """.trimIndent()
 
         return postJson("/_/v1/quotes/bundle/signFromRapio", request)
+    }
+
+    fun overrideQuotePrice(
+        quoteId: UUID,
+        price: BigDecimal?,
+        overriddenBy: String
+    ): ResponseEntity<Quote> {
+
+        val request = """
+                {
+                    "price": $price,
+                    "overriddenBy": "$overriddenBy"
+                }
+        """.trimIndent()
+
+        return postJson("/_/v1/quotes/$quoteId/overridePrice", request)
     }
 
     private inline fun <reified T : Any> postJson(url: String, data: String): ResponseEntity<T> {

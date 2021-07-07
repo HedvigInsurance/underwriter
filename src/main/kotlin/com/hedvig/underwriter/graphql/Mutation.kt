@@ -30,6 +30,7 @@ import graphql.schema.DataFetchingEnvironment
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 import java.time.LocalDate
+import java.util.UUID
 
 @Component
 class Mutation @Autowired constructor(
@@ -115,7 +116,6 @@ class Mutation @Autowired constructor(
 
     @LogCall
     fun signQuotes(input: SignQuotesInput, env: DataFetchingEnvironment): StartSignResponse {
-
         return signService.startSigningQuotes(
             input.quoteIds,
             env.getToken(),
@@ -123,6 +123,12 @@ class Mutation @Autowired constructor(
             input.successUrl,
             input.failUrl
         )
+    }
+
+    @LogCall
+    fun approveQuotes(quoteIds: List<UUID>, env: DataFetchingEnvironment): Boolean {
+        signService.approveQuotes(quoteIds, env.getToken())
+        return true
     }
 
     private fun responseForEditedQuote(
