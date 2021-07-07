@@ -176,11 +176,6 @@ class QuoteControllerIntegrationTest : IntegrationTest() {
             ssn = "199507282383"
         )
 
-        val raw = quoteClient.createSwedishApartmentQuoteRaw(
-            birthdate = "1995-07-28",
-            ssn = "199507282383"
-        )
-
         assertThat(result.statusCode.value()).isEqualTo(422)
         assertThat(result.body!!["errorCode"]).isEqualTo("MEMBER_BREACHES_UW_GUIDELINES")
         assertThat(result.body!!["breachedUnderwritingGuidelines"][0]["code"]).isEqualTo("DEBT_CHECK")
