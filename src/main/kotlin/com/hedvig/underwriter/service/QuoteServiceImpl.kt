@@ -35,12 +35,11 @@ import com.hedvig.underwriter.web.dtos.BreachedGuideline
 import com.hedvig.underwriter.web.dtos.CompleteQuoteResponseDto
 import com.hedvig.underwriter.web.dtos.ErrorCodes
 import com.hedvig.underwriter.web.dtos.ErrorResponseDto
-import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.stereotype.Service
-import java.lang.IllegalStateException
 import java.security.MessageDigest
 import java.time.Instant
 import java.util.UUID
+import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.stereotype.Service
 
 @Service
 class QuoteServiceImpl(
@@ -303,9 +302,14 @@ class QuoteServiceImpl(
             )
             Left(
                 ErrorResponseDto(
-                    ErrorCodes.MEMBER_BREACHES_UW_GUIDELINES,
-                    "quote cannot be calculated, underwriting guidelines are breached [Quote: $quote",
-                    quote.breachedUnderwritingGuidelines.map { BreachedGuideline("Deprecated", it) }
+                    errorCode = ErrorCodes.MEMBER_BREACHES_UW_GUIDELINES,
+                    errorMessage = "quote cannot be calculated, underwriting guidelines are breached [Quote: $quote]",
+                    breachedUnderwritingGuidelines = quote.breachedUnderwritingGuidelines.map {
+                        BreachedGuideline(
+                            message = "Deprecated",
+                            code = it
+                        )
+                    }
                 )
             )
         } else {

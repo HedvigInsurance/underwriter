@@ -5,6 +5,8 @@ import com.hedvig.underwriter.web.dtos.CompleteQuoteResponseDto
 import com.hedvig.underwriter.web.dtos.QuoteBundleResponseDto
 import com.hedvig.underwriter.web.dtos.SignedQuoteResponseDto
 import com.hedvig.underwriter.web.dtos.SignedQuotesResponseDto
+import java.time.LocalDate
+import java.util.UUID
 import org.apache.commons.lang.RandomStringUtils
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.web.client.TestRestTemplate
@@ -14,8 +16,6 @@ import org.springframework.http.HttpMethod
 import org.springframework.http.MediaType
 import org.springframework.http.ResponseEntity
 import org.springframework.stereotype.Component
-import java.time.LocalDate
-import java.util.UUID
 
 @Component
 class QuoteClient {
@@ -73,6 +73,38 @@ class QuoteClient {
         subType: String = "BRF"
     ): ResponseEntity<String> {
         return createSwedishApartmentQuote<String>(
+            firstName,
+            lastName,
+            email,
+            phoneNumber,
+            memberId,
+            ssn,
+            birthdate,
+            street,
+            zip,
+            city,
+            livingSpace,
+            householdSize,
+            subType
+        )
+    }
+
+    fun createSwedishApartmentQuoteAsMap(
+        firstName: String? = null,
+        lastName: String? = null,
+        email: String? = null,
+        phoneNumber: String? = null,
+        memberId: String? = null,
+        ssn: String = "199110112399",
+        birthdate: String = "19911011",
+        street: String = "ApStreet ${RandomStringUtils.randomNumeric(2)}",
+        zip: String = "12345",
+        city: String = "ApCity",
+        livingSpace: Int = 111,
+        householdSize: Int = 1,
+        subType: String = "BRF"
+    ): ResponseEntity<Map<String, Any>> {
+        return createSwedishApartmentQuote<Map<String, Any>>(
             firstName,
             lastName,
             email,

@@ -19,11 +19,11 @@ import com.hedvig.underwriter.testhelp.IntegrationTest
 import com.hedvig.underwriter.testhelp.QuoteClient
 import io.mockk.every
 import io.mockk.slot
+import java.util.UUID
 import org.javamoney.moneta.Money
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.ResponseEntity
-import java.util.UUID
 
 class QuoteControllerIntegrationTest : IntegrationTest() {
 
@@ -115,6 +115,42 @@ class QuoteControllerIntegrationTest : IntegrationTest() {
         }
     }
 
+    @Test
+    fun `Creating quote fails and returns appropriate error code when debt check fails`() {
+        every { priceEngineClient.queryPrice(any()) } returns PriceQueryResponse(
+            UUID.randomUUID(),
+            Money.of(12, "SEK"),
+            listOf(LineItem("PREMIUM", "premium", 118.0.toBigDecimal()))
+        )
+        every { memberServiceClient.createMember() } returns ResponseEntity.status(200)
+            .body(HelloHedvigResponseDto("12345"))
+        every {
+            productPricingClient.createContract(
+                any(),
+                any()
+            )
+        } returns listOf(CreateContractResponse(UUID.randomUUID(), UUID.randomUUID(), UUID.randomUUID()))
+        every { memberServiceClient.signQuote(any(), any()) } returns ResponseEntity.status(200)
+            .body(UnderwriterQuoteSignResponse(1L, true))
+        every { memberServiceClient.finalizeOnBoarding(any(), any()) } returns ResponseEntity.status(200).body("")
+        every { memberServiceClient.personStatus(any()) } returns ResponseEntity.status(200)
+            .body(PersonStatusDto(Flag.RED))
+
+        val result = quoteClient.createSwedishApartmentQuoteAsMap(
+            birthdate = "1995-07-28",
+            ssn = "199507282383"
+        )
+
+        val raw = quoteClient.createSwedishApartmentQuoteRaw(
+            birthdate = "1995-07-28",
+            ssn = "199507282383"
+        )
+
+        assertThat(result.statusCode.value()).isEqualTo(422)
+        assertThat(result.body!!["errorCode"]).isEqualTo("MEMBER_BREACHES_UW_GUIDELINES")
+        assertThat(result.body!!["breachedUnderwritingGuidelines"][0]["code"]).isEqualTo("DEBT_CHECK")
+    }
+
     private fun assertProductPricingLineItems(
         expectedLineItems: List<LineItem>,
         actualLineItems: List<com.hedvig.productPricingObjects.dtos.LineItem>?
@@ -146,3 +182,6 @@ class QuoteControllerIntegrationTest : IntegrationTest() {
         }
     }
 }
+
+private operator fun Any?.get(key: String): Any? = (this as Map<String, Any>)[key]
+private operator fun Any?.get(index: Int): Any = (this as List<Any>)[index]
