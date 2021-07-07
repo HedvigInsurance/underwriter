@@ -194,7 +194,6 @@ class QuoteMapper(
         is DanishHomeContentsData -> QuoteSchema.DanishHomeContent(
             street = quote.data.street,
             zipCode = quote.data.zipCode,
-            bbrId = quote.data.bbrId,
             city = quote.data.city,
             livingSpace = quote.data.livingSpace,
             numberCoInsured = quote.data.coInsured,
@@ -206,7 +205,6 @@ class QuoteMapper(
         is DanishAccidentData -> QuoteSchema.DanishAccident(
             street = quote.data.street,
             zipCode = quote.data.zipCode,
-            bbrId = quote.data.bbrId,
             city = quote.data.city,
             apartment = quote.data.apartment,
             floor = quote.data.floor,
@@ -216,7 +214,6 @@ class QuoteMapper(
         is DanishTravelData -> QuoteSchema.DanishTravel(
             street = quote.data.street,
             zipCode = quote.data.zipCode,
-            bbrId = quote.data.bbrId,
             city = quote.data.city,
             apartment = quote.data.apartment,
             floor = quote.data.floor,

@@ -472,14 +472,6 @@ data class Quote(
                     else -> throw IllegalTypeChangeOnQuote(newQuote.data, requestData)
                 }
 
-                val addressInfoHasNotChanged = addressInfoHasNotChanged(
-                    street = requestData.street,
-                    floor = requestData.floor,
-                    apartment = requestData.apartment,
-                    zipCode = requestData.zipCode,
-                    city = requestData.city
-                )
-
                 newQuote.copy(
                     data = newQuoteData.copy(
                         street = requestData.street ?: newQuoteData.street,
@@ -487,7 +479,7 @@ data class Quote(
                         apartment = requestData.apartment ?: newQuoteData.apartment,
                         floor = requestData.floor ?: newQuoteData.floor,
                         city = requestData.city ?: newQuoteData.city,
-                        bbrId = requestData.bbrId ?: if (addressInfoHasNotChanged) newQuoteData.bbrId else null,
+                        bbrId = requestData.bbrId,
                         livingSpace = requestData.livingSpace ?: newQuoteData.livingSpace,
                         coInsured = requestData.coInsured ?: newQuoteData.coInsured,
                         isStudent = requestData.isStudent ?: newQuoteData.isStudent,
@@ -503,14 +495,6 @@ data class Quote(
                     else -> throw IllegalTypeChangeOnQuote(newQuote.data, requestData)
                 }
 
-                val addressInfoHasNotChanged = addressInfoHasNotChanged(
-                    street = requestData.street,
-                    floor = requestData.floor,
-                    apartment = requestData.apartment,
-                    zipCode = requestData.zipCode,
-                    city = requestData.city
-                )
-
                 newQuote.copy(
                     data = newQuoteData.copy(
                         street = requestData.street ?: newQuoteData.street,
@@ -518,7 +502,7 @@ data class Quote(
                         apartment = requestData.apartment ?: newQuoteData.apartment,
                         floor = requestData.floor ?: newQuoteData.floor,
                         city = requestData.city ?: newQuoteData.city,
-                        bbrId = requestData.bbrId ?: if (addressInfoHasNotChanged) newQuoteData.bbrId else null,
+                        bbrId = requestData.bbrId,
                         coInsured = requestData.coInsured ?: newQuoteData.coInsured,
                         isStudent = requestData.isStudent ?: newQuoteData.isStudent
                     )
@@ -532,14 +516,6 @@ data class Quote(
                     else -> throw IllegalTypeChangeOnQuote(newQuote.data, requestData)
                 }
 
-                val addressInfoHasNotChanged = addressInfoHasNotChanged(
-                    street = requestData.street,
-                    floor = requestData.floor,
-                    apartment = requestData.apartment,
-                    zipCode = requestData.zipCode,
-                    city = requestData.city
-                )
-
                 newQuote.copy(
                     data = newQuoteData.copy(
                         street = requestData.street ?: newQuoteData.street,
@@ -547,17 +523,13 @@ data class Quote(
                         apartment = requestData.apartment ?: newQuoteData.apartment,
                         floor = requestData.floor ?: newQuoteData.floor,
                         city = requestData.city ?: newQuoteData.city,
-                        bbrId = requestData.bbrId ?: if (addressInfoHasNotChanged) newQuoteData.bbrId else null,
+                        bbrId = requestData.bbrId,
                         coInsured = requestData.coInsured ?: newQuoteData.coInsured,
                         isStudent = requestData.isStudent ?: newQuoteData.isStudent
                     )
                 )
             }
         }
-    }
-
-    private fun addressInfoHasNotChanged(street: String?, zipCode: String?, apartment: String?, floor: String?, city: String?): Boolean {
-        return street == null && zipCode == null && apartment == null && floor == null && city == null
     }
 
     fun clearBreachedUnderwritingGuidelines(): Quote = this.copy(breachedUnderwritingGuidelines = listOf())

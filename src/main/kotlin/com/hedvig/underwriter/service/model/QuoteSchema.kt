@@ -113,8 +113,6 @@ sealed class QuoteSchema {
         val floor: String?,
         @JsonSchema(title = "City", required = false)
         val city: String?,
-        @JsonSchema(title = "BbrId", required = false)
-        @Masked val bbrId: String?,
         @JsonSchema(title = "Living Space", required = true, min = 0.0)
         val livingSpace: Int,
         @JsonSchema(title = "Number Co-Insured", required = true, min = 0.0)
@@ -136,8 +134,6 @@ sealed class QuoteSchema {
         val floor: String?,
         @JsonSchema(title = "City", required = false)
         val city: String?,
-        @JsonSchema(title = "BbrId", required = false)
-        @Masked val bbrId: String?,
         @JsonSchema(title = "Number Co-Insured", required = true, min = 0.0)
         val numberCoInsured: Int,
         @get:JsonProperty("isStudent")
@@ -157,8 +153,6 @@ sealed class QuoteSchema {
         val floor: String?,
         @JsonSchema(title = "City", required = false)
         val city: String?,
-        @JsonSchema(title = "BbrId", required = false)
-        @Masked val bbrId: String?,
         @JsonSchema(title = "Number Co-Insured", required = true, min = 0.0)
         val numberCoInsured: Int,
         @get:JsonProperty("isStudent")
