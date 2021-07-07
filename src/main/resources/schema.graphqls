@@ -16,6 +16,7 @@ type Mutation {
     removeCurrentInsurer(input : RemoveCurrentInsurerInput!): CreateQuoteResult!
     removeStartDate(input : RemoveStartDateInput!): CreateQuoteResult!
     signQuotes(input: SignQuotesInput!): StartSignResponse!
+    approveQuotes(quoteIds: [ID!]!): Boolean
 }
 
 input CreateQuoteInput {
@@ -523,7 +524,6 @@ union StartSignResponse =
     | NorwegianBankIdSession
     | DanishBankIdSession
     | SimpleSignSession
-    | AlreadyCompleted
     | FailedToStartSign
 
 type SwedishBankIdSession {
@@ -540,10 +540,6 @@ type DanishBankIdSession {
 
 type SimpleSignSession {
     id: ID!
-}
-
-type AlreadyCompleted {
-    ignore: Boolean
 }
 
 type FailedToStartSign {

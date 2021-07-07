@@ -43,7 +43,7 @@ class BundleQuoteServiceImplTest {
     @Before
     fun setUp() {
         MockKAnnotations.init(this, relaxUnitFun = true)
-        cut = BundleQuotesServiceImpl(quoteService, productPricingService, SignStrategyService(mockk(), mockk(), mockk()))
+        cut = BundleQuotesServiceImpl(quoteService, productPricingService, SignStrategyService(mockk(), mockk()))
     }
 
     @Test

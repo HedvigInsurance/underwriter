@@ -40,6 +40,11 @@ interface SignService {
         request: SignQuoteFromHopeRequest
     ): Either<ErrorResponseDto, SignedQuoteResponseDto>
 
+    fun approveQuotes(
+        quoteIds: List<UUID>,
+        memberId: String
+    )
+
     fun memberSigned(memberId: String, signedRequest: SignRequest)
 
     fun getSignMethodFromQuotes(quoteIds: List<UUID>): SignMethod

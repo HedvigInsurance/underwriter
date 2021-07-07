@@ -3,7 +3,6 @@ package com.hedvig.underwriter.service.quotesSignDataStrategies
 import assertk.assertThat
 import assertk.assertions.isEqualTo
 import assertk.assertions.isInstanceOf
-import com.hedvig.underwriter.model.QuoteInitiatedFrom
 import com.hedvig.underwriter.service.model.StartSignErrors
 import com.hedvig.underwriter.service.model.StartSignResponse
 import com.hedvig.underwriter.testhelp.databuilder.DanishAccidentDataBuilder
@@ -23,12 +22,10 @@ class SignStrategyServiceTest {
 
     private val swedishBankIdSignStrategy: SwedishBankIdSignStrategy = mockk(relaxed = true)
     private val simpleSignStrategy: SimpleSignStrategy = mockk(relaxed = true)
-    private val selfChangeCommittingStrategy: SelfChangeCommittingStrategy = mockk(relaxed = true)
 
     private val cut = SignStrategyService(
         swedishBankIdSignStrategy,
-        simpleSignStrategy,
-        selfChangeCommittingStrategy
+        simpleSignStrategy
     )
 
     @Test
@@ -218,19 +215,5 @@ class SignStrategyServiceTest {
         )
 
         verify(exactly = 1) { simpleSignStrategy.startSign(any(), any()) }
-    }
-
-    @Test
-    fun `start sign of SELF_CHANGE selfChangeCommittingStrategy startSign`() {
-        cut.startSign(
-            listOf(
-                quote {
-                    initiatedFrom = QuoteInitiatedFrom.SELF_CHANGE
-                }
-            ),
-            signData
-        )
-
-        verify(exactly = 1) { selfChangeCommittingStrategy.startSign(any(), any()) }
     }
 }
