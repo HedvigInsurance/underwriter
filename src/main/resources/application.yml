@@ -82,3 +82,8 @@ spring:
 
 hedvig:
   notification-service.url: http://localhost:4087
+  price-engine.url: http://localhost:5699
+  member-service.url: http://localhost:4084
+  product-pricing.url: http://localhost:4085
+  lookup-service.url: http://localhost:4091
+  api-gateway.url: http://localhost:8080
