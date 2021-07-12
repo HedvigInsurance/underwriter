@@ -3,6 +3,7 @@ package com.hedvig.underwriter.serviceIntegration.productPricing
 import com.hedvig.productPricingObjects.dtos.Agreement
 import com.hedvig.underwriter.graphql.type.InsuranceCost
 import com.hedvig.underwriter.model.Quote
+import com.hedvig.underwriter.model.QuoteInitiatedFrom
 import com.hedvig.underwriter.serviceIntegration.productPricing.dtos.AddAgreementRequest
 import com.hedvig.underwriter.serviceIntegration.productPricing.dtos.CalculateBundleInsuranceCostRequest
 import com.hedvig.underwriter.serviceIntegration.productPricing.dtos.CalculateInsuranceCostRequest
@@ -79,10 +80,15 @@ class ProductPricingServiceImpl @Autowired constructor(
     override fun getAgreement(agreementId: UUID): Agreement =
         productPricingClient.getAgreement(agreementId).body!!
 
-    override fun selfChangeContracts(memberId: String, quotes: List<Quote>): SelfChangeResult =
+    override fun selfChangeContracts(
+        memberId: String,
+        initiatedFrom: QuoteInitiatedFrom,
+        quotes: List<Quote>
+    ): SelfChangeResult =
         productPricingClient.selfChangeContracts(
             SelfChangeRequest(
                 memberId = memberId,
+                signSource = initiatedFrom,
                 quotes = quotes.map { OutgoingMapper.toAgreementQuote(it) }
             )
         )
