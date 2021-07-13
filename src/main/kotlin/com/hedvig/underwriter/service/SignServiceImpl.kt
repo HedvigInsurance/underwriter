@@ -430,6 +430,7 @@ class SignServiceImpl(
         }
         val result = productPricingService.selfChangeContracts(
             memberId = memberId,
+            initiatedFrom = quotes.first().initiatedFrom,
             quotes = quotes
         )
         val changes = result.createdContracts + result.updatedContracts
